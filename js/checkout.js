@@ -15,11 +15,11 @@ async function startStripe(){
   if (!email) return setStatus("Coloca um email.");
 
   setStatus("A abrir pagamento (Stripe)...");
-  const res = await fetch("/api/create-stripe-checkout", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ email, cart })
-  });
+  const res = await fetch("/api/create-checkout-session", {
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body: JSON.stringify({ email, cart })
+});
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) return setStatus("❌ " + (data.error || "Erro"));
@@ -35,10 +35,10 @@ async function startPayPal(){
 
   setStatus("A abrir pagamento (PayPal)...");
   const res = await fetch("/api/paypal-create-order", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ email, cart })
-  });
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body: JSON.stringify({ email, cart })
+});
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) return setStatus("❌ " + (data.error || "Erro"));
