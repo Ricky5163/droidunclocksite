@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock — Checkout</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="shopBody">
+  <header class="shopHeader">
+    <a class="authBrand" href="cart.html" style="text-decoration:none;">
+      <img src="assets/img_2.jpg" class="authLogo" alt="Droidunclock" />
+      <div><strong>Droidunclock</strong><div class="muted tiny">Checkout</div></div>
+    </a>
+  </header>
+
+  <main class="shopMain">
+    <h1 class="shopTitle">Finalizar compra</h1>
+
+    <section class="card" style="padding:16px;">
+      <h3>Dados</h3>
+      <label class="muted tiny">Email para confirmação</label>
+      <input id="email" class="input" placeholder="teuemail@exemplo.com" />
+      <div class="spacer"></div>
+
+      <h3>Método de pagamento</h3>
+      <div style="display:grid; gap:10px; margin-top:10px;">
+        <button class="btn btn--block" id="payStripe">Pagar com Cartão / MB WAY / Multibanco</button>
+        <button class="btn btn--ghost btn--block" id="payPayPal">Pagar com PayPal</button>
+      </div>
+
+      <p id="status" class="tiny muted" style="margin-top:12px;"></p>
+    </section>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/checkout.js"></script>
+</body>
+</html>

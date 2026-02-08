@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock — Carrinho</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="shopBody">
+  <header class="shopHeader">
+    <a class="authBrand" href="shop.html" style="text-decoration:none;">
+      <img src="assets/img_2.jpg" class="authLogo" alt="Droidunclock" />
+      <div><strong>Droidunclock</strong><div class="muted tiny">Carrinho</div></div>
+    </a>
+    <div class="shopHeaderActions">
+      <a class="btn btn--ghost" href="shop.html">Continuar a comprar</a>
+    </div>
+  </header>
+
+  <main class="shopMain">
+    <h1 class="shopTitle">Carrinho</h1>
+    <section id="status" class="statusBox muted"></section>
+    <section id="cartList" class="card" style="padding:16px;"></section>
+
+    <div class="card" style="padding:16px; margin-top:12px;">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+        <strong>Total</strong>
+        <strong id="total">0€</strong>
+      </div>
+      <div style="margin-top:12px;">
+        <a class="btn btn--block" href="checkout.html" id="goCheckout">Finalizar compra</a>
+      </div>
+      <p class="tiny muted" style="margin-top:10px;">O pagamento é feito na página seguinte.</p>
+    </div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/cart.js"></script>
+</body>
+</html>

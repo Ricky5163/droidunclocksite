@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock — Loja</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="shopBody">
+  <header class="shopHeader">
+    <a class="authBrand" href="index.html" style="text-decoration:none;">
+      <img src="assets/img_2.jpg" alt="Droidunclock" class="authLogo" />
+      <div>
+        <strong>Droidunclock</strong>
+        <div class="muted tiny">Loja</div>
+      </div>
+    </a>
+
+    <div class="shopHeaderActions">
+      <a class="btn btn--ghost" href="cart.html" id="cartBtn">Carrinho (0)</a>
+      <button class="btn btn--ghost" id="logoutBtn" type="button">Terminar sessão</button>
+    </div>
+  </header>
+
+  <main class="shopMain">
+    <section class="shopTop">
+      <h1 class="shopTitle">Produtos & Recondicionados</h1>
+      <p class="muted">Compra peças e telemóveis recondicionados com confiança.</p>
+
+      <div class="shopFilters">
+        <input id="search" class="input" placeholder="Pesquisar (ex: A34, bateria, iPhone)..." />
+        <select id="category" class="input">
+          <option value="">Todas as categorias</option>
+          <option value="telemovel">Telemóveis</option>
+          <option value="peca">Peças</option>
+          <option value="acessorio">Acessórios</option>
+          <option value="servico">Serviços</option>
+        </select>
+      </div>
+    </section>
+
+    <section id="status" class="statusBox muted"></section>
+
+    <section id="grid" class="productGrid"></section>
+  </main>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/shop.js"></script>
+</body>
+</html>

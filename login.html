@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock — Login</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="authBody">
+  <header class="authHeader">
+    <a class="authBrand" href="index.html">
+      <img src="assets/img_2.jpg" alt="Droidunclock" class="authLogo" />
+      <div>
+        <strong>Droidunclock</strong>
+        <div class="muted tiny">Área de Cliente</div>
+      </div>
+    </a>
+  </header>
+
+  <main class="authMain">
+    <section class="card authCard">
+      <h1 class="authTitle">Entrar</h1>
+      <p class="muted">Acede à tua conta para comprar e acompanhar encomendas.</p>
+
+      <form id="loginForm" class="form">
+        <label>
+          Email
+          <input type="email" name="email" placeholder="teuemail@exemplo.com" required />
+        </label>
+
+        <label>
+          Palavra-passe
+          <input type="password" name="password" placeholder="••••••••" minlength="6" required />
+        </label>
+
+        <button class="btn btn--block" type="submit">Entrar</button>
+      </form>
+
+      <!-- Toggle registo -->
+       
+       <button id="toggleSignup" class="authDividerBtn" type="button" aria-expanded="false">
+        Criar conta
+         </button>
+
+      <div id="signupWrap" class="hidden">
+        <h2 class="authSubtitle">Criar conta</h2>
+
+        <form id="signupForm" class="form">
+          <label>
+            Email
+            <input type="email" name="email" placeholder="teuemail@exemplo.com" required />
+          </label>
+
+          <label>
+            Palavra-passe (mín. 6)
+            <input type="password" name="password" placeholder="••••••••" minlength="6" required />
+          </label>
+
+          <button class="btn btn--ghost btn--block" type="submit">Criar conta</button>
+        </form>
+      </div>
+
+      <div class="spacer"></div>
+
+      <button id="logoutBtn" class="btn btn--ghost btn--block hidden" type="button">
+        Terminar sessão
+      </button>
+
+      <p id="status" class="tiny muted" style="margin-top:12px;"></p>
+    </section>
+  </main>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

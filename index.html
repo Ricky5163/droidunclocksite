@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock — Reparações & Recondicionados</title>
+  <meta name="description" content="Droidunclock: reparações de smartphones, venda de recondicionados e peças. Orçamentos rápidos via WhatsApp." />
+  <link rel="stylesheet" href="css/styles.css" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+  <!-- Top bar -->
+  <header class="header">
+    <div class="container header__inner">
+      <a class="brand" href="#top" aria-label="Ir para o topo">
+        <div class="brand__logoImgWrap">
+          <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logoImg">
+        </div>
+        <div class="brand__text">
+          <strong>Droidunclock</strong>
+          <span>Reparações • Recondicionados • Peças</span>
+        </div>
+      </a>
+
+      <nav class="nav" aria-label="Navegação">
+        <a href="#servicos">Serviços</a>
+        <a href="shop.html">Loja</a>
+        <a href="#garantia">Garantia</a>
+        <a id="accountLink" href="login.html">Entrar</a>
+        <a href="#contacto" class="btn btn--sm">Contacto</a>
+      </nav>
+
+      <button class="menuBtn" id="menuBtn" aria-label="Abrir menu">
+        ☰
+      </button>
+    </div>
+
+    <div class="mobileNav" id="mobileNav" aria-hidden="true">
+      <a href="#servicos">Serviços</a>
+      <a href="shop.html">Loja</a>
+      <a href="#garantia">Garantia</a>
+      <a id="accountLink" href="login.html">Entrar</a>
+      <a href="#sobre">Sobre</a>
+      <a href="#contacto">Contacto</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main id="top">
+    <section class="hero">
+      <div class="container hero__grid">
+        <div class="hero__left">
+          <h1>Reparações rápidas e recondicionados com confiança.</h1>
+          <p class="lead">
+            Fazemos troca de ecrã, bateria, tampa traseira e diagnósticos. Também vendemos telemóveis recondicionados e algumas peças selecionadas.
+          </p>
+
+          <div class="hero__cta">
+            <a class="btn" id="ctaWhatsApp" href="#" target="_blank" rel="noopener">Pedir orçamento no WhatsApp</a>
+            <a class="btn btn--ghost" href="shop.html">Ver Loja Online</a>
+          </div>
+
+          <div class="badges">
+            <div class="badge">✅ Orçamento rápido</div>
+            <div class="badge">🧪 Testes antes de entregar</div>
+            <div class="badge">🧾 Transparência no que foi trocado</div>
+          </div>
+        </div>
+
+        <div class="hero__right">
+          <div class="card heroCard">
+            <h3>Pedido rápido</h3>
+            <p class="muted">Preenche e abrimos o WhatsApp com a mensagem pronta.</p>
+
+            <form id="quickForm" class="form">
+              <label>
+                Modelo (ex.: Samsung A34)
+                <input name="modelo" type="text" placeholder="Ex.: iPhone 11" required />
+              </label>
+
+              <label>
+                Problema
+                <select name="problema" required>
+                  <option value="" disabled selected>Seleciona…</option>
+                  <option>Troca de ecrã</option>
+                  <option>Troca de bateria</option>
+                  <option>Câmara / som / micro</option>
+                  <option>Porta de carregamento</option>
+                  <option>Diagnóstico</option>
+                  <option>Quero comprar recondicionado</option>
+                  <option>Quero comprar uma peça</option>
+                </select>
+              </label>
+
+              <label>
+                Observações
+                <textarea name="obs" rows="3" placeholder="Ex.: caiu e ficou com linhas, touch falha, etc."></textarea>
+              </label>
+
+              <button class="btn btn--block" type="submit">Abrir WhatsApp</button>
+              <p class="tiny muted">Ao clicar, vais ser redirecionado para o WhatsApp.</p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Serviços -->
+    <section id="servicos" class="section">
+      <div class="container">
+        <div class="section__head">
+          <h2>Serviços</h2>
+          <p class="muted">Os mais pedidos. Se não estiver aqui, pergunta na mesma.</p>
+        </div>
+
+        <div class="grid3">
+          <article class="card">
+            <h3>Troca de ecrã</h3>
+            <p class="muted">Substituição com teste de touch, brilho e imagem.</p>
+            <ul class="list">
+              <li>✔ Compatibilidade confirmada</li>
+              <li>✔ Teste completo</li>
+              <li>✔ Entrega rápida (quando há stock)</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Troca de bateria</h3>
+            <p class="muted">Melhora autonomia e estabilidade do aparelho.</p>
+            <ul class="list">
+              <li>✔ Verificação de saúde</li>
+              <li>✔ Teste de carregamento</li>
+              <li>✔ Recomendações de uso</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Diagnóstico</h3>
+            <p class="muted">Quando não tens a certeza do problema.</p>
+            <ul class="list">
+              <li>✔ Avaliação transparente</li>
+              <li>✔ Opções de reparo</li>
+              <li>✔ Sem “surpresas”</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="note">
+          <strong>Dica:</strong> Se quiseres, também fazemos <span class="pill">peça + montagem</span> (muitas vezes compensa mais do que comprar só a peça).
+        </div>
+      </div>
+    </section>
+
+    <!-- Garantia -->
+    <section id="garantia" class="section">
+      <div class="container">
+        <div class="section__head">
+          <h2>Garantia & Transparência</h2>
+          <p class="muted">O que entregamos e como evitamos problemas.</p>
+        </div>
+
+        <div class="grid2">
+          <div class="card">
+            <h3>O que testamos</h3>
+            <ul class="list">
+              <li>✔ Touch / brilho / imagem</li>
+              <li>✔ Câmaras</li>
+              <li>✔ Som / micro</li>
+              <li>✔ Rede / chamadas</li>
+              <li>✔ Carregamento</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Regras claras</h3>
+            <ul class="list">
+              <li>✔ Informamos se a peça é original ou compatível</li>
+              <li>✔ Fotos reais no ato de entrega</li>
+              <li>✔ Prazos combinados antes</li>
+              <li>✔ Sem “histórias”: o cliente decide</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sobre -->
+    <section id="sobre" class="section section--alt">
+      <div class="container">
+        <div class="section__head">
+          <h2>Sobre a Droidunclock</h2>
+          <p class="muted">Um serviço local, direto e sem complicações.</p>
+        </div>
+
+        <div class="card">
+          <p>
+            A <strong>Droidunclock</strong> é focada em <strong>reparações</strong>, <strong>revenda de recondicionados</strong> e <strong>peças selecionadas</strong>.
+            O objetivo é simples: entregar um trabalho limpo, com testes e transparência.
+          </p>
+          <p class="muted">
+            Atendimento por WhatsApp e marcação por mensagem. Entrega em mão (zona a combinar) e envios quando fizer sentido.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contacto -->
+    <section id="contacto" class="section">
+      <div class="container">
+        <div class="section__head">
+          <h2>Contacto</h2>
+          <p class="muted">Orçamentos e dúvidas — responde rápido no WhatsApp.</p>
+        </div>
+
+        <div class="grid2">
+          <div class="card">
+            <h3>WhatsApp</h3>
+            <p class="muted">Clica e fala comigo agora.</p>
+            <a class="btn btn--block" id="contactWhatsApp" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
+
+            <div class="spacer"></div>
+
+            <h3>Email</h3>
+            <p class="muted">Para pedidos mais detalhados.</p>
+            <a class="btn btn--ghost btn--block" href="mailto:droidunclock@gmail.com?subject=Droidunclock%20-%20Pedido">Enviar email</a>
+          </div>
+
+          <div class="card">
+            <h3>Zona</h3>
+            <p class="muted">
+              Figueira da Foz e arredores <br/>
+            </p>
+
+            <div class="mapFake">
+              <div>
+                <strong>Entrega / recolha</strong>
+                <p class="muted tiny">Combina por mensagem.</p>
+              </div>
+              <div class="pill">📍 Local</div>
+            </div>
+
+            <div class="spacer"></div>
+
+            <h3>Horário</h3>
+            <p class="muted">Ex.: 18:00 – 22:00 (dias úteis) • Sábados por marcação</p>
+          </div>
+        </div>
+
+        <footer class="footer">
+          <p class="tiny muted">© <span id="year"></span> Droidunclock. Todos os direitos reservados.</p>
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating WhatsApp -->
+  <a class="waFloat" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="WhatsApp Droidunclock">
+    💬
+  </a>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
