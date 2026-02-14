@@ -1,13 +1,46 @@
-<!doctype html><html lang="pt-PT"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Pagamento concluído</title><link rel="stylesheet" href="css/styles.css"/></head>
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Pagamento concluído</title>
+  <link rel="stylesheet" href="css/styles.css"/>
+</head>
+
 <body class="shopBody">
-<main class="shopMain">
-  <h1 class="shopTitle">✅ Pagamento concluído</h1>
-  <p class="muted">Obrigado! Vais receber confirmação no email.</p>
-  <a class="btn" href="shop.html">Voltar à loja</a>
-</main>
-<script>
-  localStorage.removeItem("cart");
-</script>
-</body></html>
+  <main class="shopMain">
+    <h1 class="shopTitle">✅ Pagamento concluído</h1>
+    <p class="muted" id="msg">Obrigado! Vais receber confirmação no email.</p>
+    <a class="btn" href="shop.html">Voltar à loja</a>
+  </main>
+
+  <script>
+    (async () => {
+      // Limpa carrinho logo (ok)
+      localStorage.removeItem("cart");
+
+      const qs = new URLSearchParams(location.search);
+      const orderId = qs.get("order");
+      const paypalOrderId = qs.get("token"); // PayPal manda token=ORDER_ID
+
+      // Se for PayPal: capturar + marcar paid + disparar emails (no backend)
+      if (paypalOrderId) {
+        const r = await fetch("/api/paypal-capture-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paypalOrderId, orderId }),
+        });
+
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          console.log("paypal capture error:", j);
+          document.getElementById("msg").textContent =
+            "Pagamento concluído, mas houve um erro a confirmar. Contacta-nos.";
+        }
+      }
+
+      // Stripe confirm entra aqui depois
+    })();
+  </script>
+</body>
+</html>

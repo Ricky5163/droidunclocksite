@@ -157,3 +157,4 @@ categoryEl?.addEventListener("change", applyFilters);
   await requireAuth();
   await loadProducts();
 })();
+
