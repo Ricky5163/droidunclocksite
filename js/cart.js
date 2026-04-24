@@ -1,67 +1,146 @@
-const cartList = document.getElementById("cartList");
-const totalEl = document.getElementById("total");
-const statusEl = document.getElementById("status");
-const goCheckout = document.getElementById("goCheckout");
+import { requireAuth } from "./auth-utils.js";
+import {
+  buildCartDetails,
+  fetchProductsByIds,
+  formatEuro,
+  getCart,
+  setCart,
+  syncCartToStock,
+} from "./storefront.js";
 
-function euro(v){
-  const n = Number(v || 0);
-  return n.toLocaleString("pt-PT", { style:"currency", currency:"EUR" });
+const cartListElement = document.getElementById("cartList");
+const statusElement = document.getElementById("status");
+const totalElement = document.getElementById("total");
+const checkoutButton = document.getElementById("goCheckout");
+const summaryCountElement = document.getElementById("summaryCount");
+
+let currentLines = [];
+
+function setStatus(message, type = "neutral") {
+  if (!statusElement) return;
+  statusElement.textContent = message || "";
+  statusElement.dataset.state = type;
 }
 
-function getCart(){
-  try { return JSON.parse(localStorage.getItem("cart") || "[]"); } catch { return []; }
-}
-function setCart(items){
-  localStorage.setItem("cart", JSON.stringify(items));
-}
-
-function render(){
-  const cart = getCart();
-  if (!cart.length){
-    cartList.innerHTML = `<p class="muted">O carrinho está vazio.</p>`;
-    totalEl.textContent = euro(0);
-    goCheckout.classList.add("hidden");
-    return;
+function updateSummary(lines, total) {
+  totalElement.textContent = formatEuro(total);
+  if (summaryCountElement) {
+    const count = lines.reduce((sum, line) => sum + line.qty, 0);
+    summaryCountElement.textContent = `${count} item${count === 1 ? "" : "s"}`;
   }
-  goCheckout.classList.remove("hidden");
 
-  let total = 0;
-  cartList.innerHTML = cart.map((it, idx) => {
-    const line = Number(it.price) * Number(it.qty || 1);
-    total += line;
-    return `
-      <div style="display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.06);">
-        <div>
-          <strong>${it.name}</strong><br/>
-          <span class="muted tiny">${euro(it.price)} • Qty:
-            <button data-dec="${idx}" class="btn btn--ghost" style="padding:4px 10px;">-</button>
-            <span style="display:inline-block; min-width:18px; text-align:center;">${it.qty}</span>
-            <button data-inc="${idx}" class="btn btn--ghost" style="padding:4px 10px;">+</button>
-          </span>
-        </div>
-        <div style="text-align:right;">
-          <strong>${euro(line)}</strong><br/>
-          <button data-del="${idx}" class="btn btn--ghost" style="padding:4px 10px; margin-top:6px;">Remover</button>
-        </div>
+  checkoutButton.classList.toggle("hidden", !lines.length);
+}
+
+function updateQuantity(productId, nextQty) {
+  const cart = getCart().map((item) => ({ ...item }));
+  const index = cart.findIndex((item) => item.id === String(productId));
+  if (index === -1) return;
+
+  if (nextQty <= 0) {
+    cart.splice(index, 1);
+  } else {
+    cart[index].qty = nextQty;
+  }
+
+  setCart(cart);
+  render();
+}
+
+function renderLines(lines, total) {
+  if (!lines.length) {
+    cartListElement.innerHTML = `
+      <div class="empty-state">
+        <h3>O carrinho esta vazio</h3>
+        <p>Escolhe um produto na loja para continuares para o checkout seguro.</p>
+        <a class="btn btn--primary" href="shop.html">Voltar a loja</a>
       </div>
     `;
-  }).join("");
+    updateSummary([], 0);
+    return;
+  }
 
-  totalEl.textContent = euro(total);
+  cartListElement.innerHTML = lines
+    .map(
+      (line) => `
+        <article class="cart-line">
+          <div class="cart-line__main">
+            <img class="cart-line__image" src="${line.image_url || "assets/img_2.jpg"}" alt="${line.name}" />
+            <div>
+              <p class="eyebrow">${line.category || "Produto"}</p>
+              <h3>${line.name}</h3>
+              <p class="muted">${line.description || "Produto validado para venda e envio."}</p>
+            </div>
+          </div>
+          <div class="cart-line__controls">
+            <span class="availability ${line.available ? "availability--ok" : "availability--empty"}">
+              ${line.available ? `${line.stock} em stock` : "Indisponivel"}
+            </span>
+            <div class="qty-control">
+              <button type="button" data-dec="${line.id}" aria-label="Diminuir quantidade">-</button>
+              <span>${line.qty}</span>
+              <button type="button" data-inc="${line.id}" aria-label="Aumentar quantidade">+</button>
+            </div>
+            <strong>${formatEuro(line.lineTotal)}</strong>
+            <button class="link-button" type="button" data-del="${line.id}">Remover</button>
+          </div>
+        </article>
+      `
+    )
+    .join("");
 
-  cartList.querySelectorAll("[data-inc]").forEach(b => b.addEventListener("click", () => {
-    const i = Number(b.getAttribute("data-inc"));
-    const c = getCart(); c[i].qty += 1; setCart(c); render();
-  }));
-  cartList.querySelectorAll("[data-dec]").forEach(b => b.addEventListener("click", () => {
-    const i = Number(b.getAttribute("data-dec"));
-    const c = getCart(); c[i].qty = Math.max(1, c[i].qty - 1); setCart(c); render();
-  }));
-  cartList.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
-    const i = Number(b.getAttribute("data-del"));
-    const c = getCart(); c.splice(i, 1); setCart(c); render();
-  }));
+  cartListElement.querySelectorAll("[data-dec]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.getAttribute("data-dec");
+      const line = currentLines.find((item) => String(item.id) === id);
+      if (!line) return;
+      updateQuantity(id, line.qty - 1);
+    });
+  });
+
+  cartListElement.querySelectorAll("[data-inc]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.getAttribute("data-inc");
+      const line = currentLines.find((item) => String(item.id) === id);
+      if (!line) return;
+      updateQuantity(id, Math.min(line.qty + 1, line.stock));
+    });
+  });
+
+  cartListElement.querySelectorAll("[data-del]").forEach((button) => {
+    button.addEventListener("click", () => {
+      updateQuantity(button.getAttribute("data-del"), 0);
+    });
+  });
+
+  updateSummary(lines, total);
 }
 
-render();
-statusEl.textContent = "";
+async function render() {
+  const cart = getCart();
+  if (!cart.length) {
+    currentLines = [];
+    renderLines([], 0);
+    return;
+  }
+
+  setStatus("A sincronizar o carrinho com o stock...", "neutral");
+
+  try {
+    const products = await fetchProductsByIds(cart.map((item) => item.id));
+    syncCartToStock(products, cart);
+
+    const details = buildCartDetails(products, getCart());
+    currentLines = details.lines;
+    renderLines(details.lines, details.total);
+    setStatus("");
+  } catch (error) {
+    setStatus(error.message || "Nao foi possivel atualizar o carrinho.", "error");
+  }
+}
+
+(async function init() {
+  const user = await requireAuth({ redirectTo: "cart.html" });
+  if (!user) return;
+  await render();
+})();

@@ -1,84 +1,94 @@
-const SUPABASE_URL = "https://eqklkfrxotoizpuacznc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxa2xrZnJ4b3RvaXpwdWFjem5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDAxMTAsImV4cCI6MjA4NTg3NjExMH0.Ex1LHdLN8Kfnu3ySY1JH7NUC9AM-TqXLnBiA56qE9Ow";
+import { getPostLoginTarget } from "./app-config.js";
+import { logoutAndRedirect, redirectIfAuthenticated, supabase } from "./auth-utils.js";
 
-const statusEl = document.getElementById("status");
+const statusElement = document.getElementById("status");
 const loginForm = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
-const logoutBtn = document.getElementById("logoutBtn");
-
-const toggleSignupBtn = document.getElementById("toggleSignup");
+const toggleSignupButton = document.getElementById("toggleSignup");
 const signupWrap = document.getElementById("signupWrap");
+const logoutButton = document.getElementById("logoutBtn");
 
-function setStatus(msg) {
-  if (!statusEl) return;
-  statusEl.textContent = msg || "";
+function setStatus(message, type = "neutral") {
+  if (!statusElement) return;
+  statusElement.textContent = message || "";
+  statusElement.dataset.state = type;
+}
+
+function setBusy(form, busy) {
+  if (!form) return;
+  form.querySelectorAll("button, input").forEach((element) => {
+    element.disabled = busy;
+  });
 }
 
 function showSignup(show) {
-  if (!signupWrap || !toggleSignupBtn) return;
+  if (!signupWrap || !toggleSignupButton) return;
   signupWrap.classList.toggle("hidden", !show);
-  toggleSignupBtn.setAttribute("aria-expanded", show ? "true" : "false");
+  toggleSignupButton.setAttribute("aria-expanded", String(show));
 }
 
-toggleSignupBtn?.addEventListener("click", () => {
-  const isHidden = signupWrap?.classList.contains("hidden");
-  showSignup(isHidden);
+toggleSignupButton?.addEventListener("click", () => {
+  showSignup(signupWrap?.classList.contains("hidden"));
 });
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+loginForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setBusy(loginForm, true);
+  setStatus("A validar credenciais...", "neutral");
 
-async function refreshSession() {
-  const { data, error } = await sb.auth.getSession();
-  if (error) return setStatus("❌ " + error.message);
+  const data = new FormData(loginForm);
+  const email = String(data.get("email") || "").trim();
+  const password = String(data.get("password") || "");
 
-  if (data?.session?.user) {
-    setStatus("✅ Sessão ativa");
-    if (logoutBtn) logoutBtn.classList.remove("hidden");
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  setBusy(loginForm, false);
 
-    // Se já está logado, vai para a loja
-    window.location.href = "shop.html";
+  if (error) {
+    setStatus(error.message, "error");
+    return;
   }
-}
 
-async function doLogin(email, password) {
-  setStatus("A entrar...");
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) return setStatus("❌ " + error.message);
+  setStatus("Sessao iniciada com sucesso. A redirecionar...", "success");
+  window.location.href = getPostLoginTarget();
+});
 
-  setStatus("✅ Login efetuado!");
-  setTimeout(() => (window.location.href = "shop.html"), 500);
-}
+signupForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setBusy(signupForm, true);
+  setStatus("A criar conta segura...", "neutral");
 
-async function doSignup(email, password) {
-  setStatus("A criar conta...");
-  const { error } = await sb.auth.signUp({ email, password });
-  if (error) return setStatus("❌ " + error.message);
+  const data = new FormData(signupForm);
+  const email = String(data.get("email") || "").trim();
+  const password = String(data.get("password") || "");
 
-  setStatus("✅ Conta criada! Agora faz login.");
+  if (password.length < 8) {
+    setBusy(signupForm, false);
+    setStatus("Usa uma palavra-passe com pelo menos 8 caracteres.", "error");
+    return;
+  }
+
+  const { error } = await supabase.auth.signUp({ email, password });
+  setBusy(signupForm, false);
+
+  if (error) {
+    setStatus(error.message, "error");
+    return;
+  }
+
+  setStatus("Conta criada. Confirma o email se a verificacao estiver ativa.", "success");
   showSignup(false);
-}
-
-async function doLogout() {
-  setStatus("A terminar sessão...");
-  const { error } = await sb.auth.signOut();
-  if (error) return setStatus("❌ " + error.message);
-
-  setStatus("Sessão terminada.");
-  if (logoutBtn) logoutBtn.classList.add("hidden");
-}
-
-loginForm?.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const fd = new FormData(loginForm);
-  doLogin(fd.get("email"), fd.get("password"));
 });
 
-signupForm?.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const fd = new FormData(signupForm);
-  doSignup(fd.get("email"), fd.get("password"));
+logoutButton?.addEventListener("click", async () => {
+  setStatus("A terminar sessao...", "neutral");
+
+  try {
+    await logoutAndRedirect("login.html");
+  } catch (error) {
+    setStatus(error.message || "Nao foi possivel terminar a sessao.", "error");
+  }
 });
 
-logoutBtn?.addEventListener("click", doLogout);
-
-refreshSession();
+redirectIfAuthenticated().catch((error) => {
+  setStatus(error.message || "Erro ao validar a sessao.", "error");
+});

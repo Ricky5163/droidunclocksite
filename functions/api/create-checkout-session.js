@@ -1,121 +1,104 @@
-import { createClient } from "@supabase/supabase-js";
+import {
+  assertEnv,
+  buildValidatedOrder,
+  createServiceClient,
+  ensureAllowedOrigin,
+  handleOptions,
+  json,
+  normalizeEmail,
+  readJson,
+} from "./_utils.js";
 
-    const cors = {
-  "Access-Control-Allow-Origin": "https://droidunclock.site",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
-
-
-/**
- * Route:
- *   /api/create-checkout-session
- *
- * ENV (Cloudflare Pages):
- *   STRIPE_SECRET_KEY
- *   SUPABASE_URL
- *   SUPABASE_SERVICE_ROLE_KEY
- *   SITE_URL
- */
 export async function onRequest(context) {
+  const { request, env } = context;
+
   try {
-    const { request, env } = context;
-if (request.method === "OPTIONS") {
-  return new Response(null, { status: 204, headers: cors });
-}
+    if (request.method === "OPTIONS") {
+      return handleOptions(request, env);
+    }
 
     if (request.method !== "POST") {
-      return json(405, { error: "Method not allowed" });
+      return json(request, env, 405, { error: "Method not allowed" });
     }
 
-    // ✅ Valida ENV
-    const missing = [];
-    if (!env.STRIPE_SECRET_KEY) missing.push("STRIPE_SECRET_KEY");
-    if (!env.SUPABASE_URL) missing.push("SUPABASE_URL");
-    if (!env.SUPABASE_SERVICE_ROLE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
-    if (!env.SITE_URL) missing.push("SITE_URL");
+    if (!ensureAllowedOrigin(request, env)) {
+      return json(request, env, 403, { error: "Origin not allowed" });
+    }
+
+    const missing = assertEnv(env, [
+      "STRIPE_SECRET_KEY",
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "SITE_URL",
+    ]);
 
     if (missing.length) {
-      return json(500, { error: "Faltam variáveis no Cloudflare: " + missing.join(", ") });
+      return json(request, env, 500, {
+        error: "Faltam variaveis no Cloudflare: " + missing.join(", "),
+      });
     }
 
-    const body = await request.json().catch(() => ({}));
-    const { email, cart } = body;
+    const body = await readJson(request);
+    const email = normalizeEmail(body.email);
 
-    if (!email || !Array.isArray(cart) || !cart.length) {
-      return json(400, { error: "Dados inválidos" });
+    if (!email) {
+      return json(request, env, 400, { error: "Email invalido." });
     }
 
-    const SITE_URL = env.SITE_URL;
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createServiceClient(env);
+    const orderDraft = await buildValidatedOrder(body.cart, supabase);
 
-    // ✅ Calcula total no server (não confiar no browser)
-    let total = 0;
-    const items = cart.map((it) => {
-      const price = Number(it.price || 0);
-      const qty = Math.max(1, Number(it.qty || 1));
-      total += price * qty;
-      return { ...it, price, qty };
-    });
-
-    // ✅ cria order pending
-    const { data: order, error: orderErr } = await supabase
+    const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
         {
           email,
           status: "pending",
           currency: "EUR",
-          total,
+          total: orderDraft.total,
           payment_provider: "stripe",
         },
       ])
-      .select("*")
+      .select("id")
       .single();
 
-    if (orderErr) return json(500, { error: orderErr.message });
+    if (orderError) {
+      return json(request, env, 500, { error: orderError.message });
+    }
 
-    // ✅ guarda items
-    const orderItems = items.map((it) => ({
+    const orderItems = orderDraft.items.map((item) => ({
       order_id: order.id,
-      product_id: it.id,
-      name: it.name,
-      price: it.price,
-      qty: it.qty,
+      product_id: item.product_id,
+      name: item.name,
+      price: item.price,
+      qty: item.qty,
     }));
 
-    const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
-    if (itemsErr) return json(500, { error: itemsErr.message });
+    const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+    if (itemsError) {
+      return json(request, env, 500, { error: itemsError.message });
+    }
 
-    // ✅ Stripe Checkout Session via API (Workers-friendly)
     const form = new URLSearchParams();
     form.set("mode", "payment");
     form.set("customer_email", email);
-
-    form.set(
-      "success_url",
-      `${SITE_URL}/success.html?order=${order.id}&session_id={CHECKOUT_SESSION_ID}`
-    );
-    form.set("cancel_url", `${SITE_URL}/cancel.html?order=${order.id}`);
-
-    // payment_method_types[]=card (Checkout hoje costuma escolher automaticamente, mas mantemos igual)
+    form.set("client_reference_id", String(order.id));
+    form.set("success_url", `${env.SITE_URL}/success.html?order=${order.id}&session_id={CHECKOUT_SESSION_ID}`);
+    form.set("cancel_url", `${env.SITE_URL}/cancel.html?order=${order.id}`);
     form.append("payment_method_types[]", "card");
-
-    // metadata[order_id]
     form.set("metadata[order_id]", String(order.id));
 
-    // line_items
-    items.forEach((it, idx) => {
-      form.set(`line_items[${idx}][quantity]`, String(it.qty));
-      form.set(`line_items[${idx}][price_data][currency]`, "eur");
+    orderDraft.items.forEach((item, index) => {
+      form.set(`line_items[${index}][quantity]`, String(item.qty));
+      form.set(`line_items[${index}][price_data][currency]`, "eur");
       form.set(
-        `line_items[${idx}][price_data][unit_amount]`,
-        String(Math.round(it.price * 100))
+        `line_items[${index}][price_data][unit_amount]`,
+        String(Math.round(item.price * 100))
       );
-      form.set(`line_items[${idx}][price_data][product_data][name]`, it.name || "Produto");
+      form.set(`line_items[${index}][price_data][product_data][name]`, item.name || "Produto");
     });
 
-    const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+    const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
@@ -124,27 +107,15 @@ if (request.method === "OPTIONS") {
       body: form.toString(),
     });
 
-    const session = await stripeRes.json();
-
-    if (!stripeRes.ok) {
-      console.log("STRIPE ERROR:", session);
-      return json(500, {
-        error: session?.error?.message || "Erro ao criar sessão Stripe",
+    const session = await stripeResponse.json().catch(() => ({}));
+    if (!stripeResponse.ok || !session.url) {
+      return json(request, env, 500, {
+        error: session?.error?.message || "Erro ao criar sessao Stripe.",
       });
     }
 
-    return json(200, { url: session.url });
-  } catch (e) {
-    return json(500, { error: e?.message || "Erro" });
+    return json(request, env, 200, { url: session.url });
+  } catch (error) {
+    return json(request, env, 500, { error: error?.message || "Erro" });
   }
-}
-
-function json(status, obj) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      ...cors,
-    },
-  });
 }

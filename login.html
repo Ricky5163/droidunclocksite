@@ -3,76 +3,123 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Droidunclock — Login</title>
+  <title>Droidunclock | Area do Cliente</title>
+  <meta name="description" content="Entrar na area do cliente Droidunclock para aceder a loja, carrinho e checkout seguro." />
+  <meta name="theme-color" content="#09111f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+<body class="auth-page">
+  <main class="auth-layout">
+    <section class="auth-showcase">
+      <a class="brand brand--light" href="index.html">
+        <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
+        <div>
+          <strong>Droidunclock</strong>
+          <span>Area do cliente</span>
+        </div>
+      </a>
 
-<body class="authBody">
-  <header class="authHeader">
-    <a class="authBrand" href="index.html">
-      <img src="assets/img_2.jpg" alt="Droidunclock" class="authLogo" />
-      <div>
-        <strong>Droidunclock</strong>
-        <div class="muted tiny">Área de Cliente</div>
+      <div class="auth-showcase__copy">
+        <span class="eyebrow">Login no lugar certo</span>
+        <h1>Entra para comprar, acompanhar e pagar com mais confianca.</h1>
+        <p>
+          A pagina publica apresenta a marca. A area privada fica reservada para o que exige sessao:
+          loja, carrinho, checkout e confirmacao das encomendas.
+        </p>
       </div>
-    </a>
-  </header>
 
-  <main class="authMain">
-    <section class="card authCard">
-      <h1 class="authTitle">Entrar</h1>
-      <p class="muted">Acede à tua conta para comprar e acompanhar encomendas.</p>
+      <div class="auth-benefits">
+        <article>
+          <strong>Fluxo mais limpo</strong>
+          <span>Entrar apenas quando faz sentido comercialmente.</span>
+        </article>
+        <article>
+          <strong>Checkout validado</strong>
+          <span>Preco e stock confirmados antes de abrir o pagamento.</span>
+        </article>
+        <article>
+          <strong>Comunicacao automatica</strong>
+          <span>Confirmacao por email apos a validacao do pagamento.</span>
+        </article>
+      </div>
+    </section>
 
-      <form id="loginForm" class="form">
-        <label>
-          Email
-          <input type="email" name="email" placeholder="teuemail@exemplo.com" required />
-        </label>
+    <section class="auth-panel">
+      <div class="auth-card glass-card">
+        <span class="eyebrow">Sessao segura</span>
+        <h2>Entrar na conta</h2>
+        <p class="muted">Usa o email da tua conta para aceder a loja privada.</p>
 
-        <label>
-          Palavra-passe
-          <input type="password" name="password" placeholder="••••••••" minlength="6" required />
-        </label>
-
-        <button class="btn btn--block" type="submit">Entrar</button>
-      </form>
-
-      <!-- Toggle registo -->
-       
-       <button id="toggleSignup" class="authDividerBtn" type="button" aria-expanded="false">
-        Criar conta
-         </button>
-
-      <div id="signupWrap" class="hidden">
-        <h2 class="authSubtitle">Criar conta</h2>
-
-        <form id="signupForm" class="form">
+        <form id="loginForm" class="form-grid">
           <label>
             Email
-            <input type="email" name="email" placeholder="teuemail@exemplo.com" required />
+            <input type="email" name="email" placeholder="teuemail@exemplo.com" autocomplete="email" required />
           </label>
 
           <label>
-            Palavra-passe (mín. 6)
-            <input type="password" name="password" placeholder="••••••••" minlength="6" required />
+            Palavra-passe
+            <input
+              type="password"
+              name="password"
+              placeholder="Minimo de 8 caracteres"
+              minlength="8"
+              autocomplete="current-password"
+              required
+            />
           </label>
 
-          <button class="btn btn--ghost btn--block" type="submit">Criar conta</button>
+          <button class="btn btn--primary btn--block" type="submit">Entrar</button>
         </form>
+
+        <button id="toggleSignup" class="inline-toggle" type="button" aria-expanded="false">
+          Criar uma conta nova
+        </button>
+
+        <div id="signupWrap" class="hidden">
+          <div class="divider"></div>
+          <h3>Criar conta</h3>
+          <p class="muted">Ideal para quem vai comprar online ou quer voltar ao checkout mais tarde.</p>
+
+          <form id="signupForm" class="form-grid">
+            <label>
+              Email
+              <input type="email" name="email" placeholder="teuemail@exemplo.com" autocomplete="email" required />
+            </label>
+
+            <label>
+              Palavra-passe
+              <input
+                type="password"
+                name="password"
+                placeholder="Escolhe uma palavra-passe forte"
+                minlength="8"
+                autocomplete="new-password"
+                required
+              />
+            </label>
+
+            <button class="btn btn--ghost btn--block" type="submit">Criar conta</button>
+          </form>
+        </div>
+
+        <p id="status" class="status-text" aria-live="polite"></p>
+
+        <div class="divider"></div>
+
+        <button id="logoutBtn" class="btn btn--ghost btn--block hidden" type="button">
+          Terminar sessao atual
+        </button>
       </div>
-
-      <div class="spacer"></div>
-
-      <button id="logoutBtn" class="btn btn--ghost btn--block hidden" type="button">
-        Terminar sessão
-      </button>
-
-      <p id="status" class="tiny muted" style="margin-top:12px;"></p>
     </section>
   </main>
 
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/auth.js"></script>
+  <script type="module" src="js/auth.js"></script>
 </body>
 </html>

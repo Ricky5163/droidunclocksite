@@ -1,160 +1,135 @@
-// ====== CONFIG SUPABASE ======
-const SUPABASE_URL = "https://eqklkfrxotoizpuacznc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxa2xrZnJ4b3RvaXpwdWFjem5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDAxMTAsImV4cCI6MjA4NTg3NjExMH0.Ex1LHdLN8Kfnu3ySY1JH7NUC9AM-TqXLnBiA56qE9Ow";
+import { escapeHtml, mergeCartItem } from "./app-config.js";
+import { logoutAndRedirect, requireAuth } from "./auth-utils.js";
+import { fetchActiveProducts, formatEuro } from "./storefront.js";
 
-const statusEl = document.getElementById("status");
-const gridEl = document.getElementById("grid");
-const searchEl = document.getElementById("search");
-const categoryEl = document.getElementById("category");
-const logoutBtn = document.getElementById("logoutBtn");
-const cartBtn = document.getElementById("cartBtn");
+const statusElement = document.getElementById("status");
+const gridElement = document.getElementById("grid");
+const searchElement = document.getElementById("search");
+const categoryElement = document.getElementById("category");
+const logoutButton = document.getElementById("logoutBtn");
+const cartButtons = document.querySelectorAll("[data-cart-count]");
 
-function setStatus(msg) { if (statusEl) statusEl.textContent = msg || ""; }
+let allProducts = [];
 
-function euro(v) {
-  const n = Number(v || 0);
-  return n.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
+function setStatus(message, type = "neutral") {
+  if (!statusElement) return;
+  statusElement.textContent = message || "";
+  statusElement.dataset.state = type;
 }
 
-function getCart() {
-  try { return JSON.parse(localStorage.getItem("cart") || "[]"); } catch { return []; }
-}
-function setCart(items) {
-  localStorage.setItem("cart", JSON.stringify(items));
-  updateCartBadge();
-}
 function updateCartBadge() {
-  const cart = getCart();
-  const totalQty = cart.reduce((s, it) => s + (it.qty || 0), 0);
-  if (cartBtn) cartBtn.textContent = `Carrinho (${totalQty})`;
+  const rawCart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const total = Array.isArray(rawCart)
+    ? rawCart.reduce((sum, item) => sum + Number(item?.qty || 0), 0)
+    : 0;
+
+  cartButtons.forEach((button) => {
+    button.textContent = `Carrinho (${total})`;
+  });
 }
 
-function escapeHtml(s) {
-  return (s ?? "").toString()
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-async function requireAuth() {
-  const { data, error } = await sb.auth.getSession();
-  if (error) return setStatus("❌ Erro sessão: " + error.message);
-  if (!data?.session?.user) window.location.href = "login.html";
-}
-
-function productCard(p) {
-  const img = p.image_url || "assets/img_2.jpg";
-  const stock = Number(p.stock ?? 0);
-  const stockTxt = stock > 0 ? `Stock: ${stock}` : "Sem stock";
-  const disabled = stock <= 0 ? "disabled" : "";
+function productCard(product) {
+  const stock = Math.max(0, Number(product.stock ?? 0));
+  const image = product.image_url || "assets/img_2.jpg";
+  const buttonText = stock > 0 ? "Adicionar ao carrinho" : "Sem stock";
 
   return `
-    <article class="productCard">
-      <img class="productImg" src="${img}" alt="${escapeHtml(p.name)}" />
-      <div class="productBody">
-        <div class="productTop">
-          <h3 class="productName">${escapeHtml(p.name)}</h3>
-          <div class="productPrice">${euro(p.price)}</div>
+    <article class="product-card">
+      <div class="product-card__media">
+        <img class="product-card__image" src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" />
+      </div>
+      <div class="product-card__body">
+        <div class="product-card__head">
+          <div>
+            <p class="eyebrow">${escapeHtml(product.category || "Produto")}</p>
+            <h3>${escapeHtml(product.name)}</h3>
+          </div>
+          <strong>${formatEuro(product.price)}</strong>
         </div>
-
-        <div class="productMeta">
-          <span class="pill">${escapeHtml(p.category || "produto")}</span>
-          <span class="muted tiny">${stockTxt}</span>
+        <p class="product-card__description">${escapeHtml(product.description || "Produto testado e validado para venda.")}</p>
+        <div class="product-card__footer">
+          <span class="availability ${stock > 0 ? "availability--ok" : "availability--empty"}">
+            ${stock > 0 ? `${stock} em stock` : "Indisponivel"}
+          </span>
+          <button class="btn btn--primary btn--small" data-add="${escapeHtml(product.id)}" ${stock > 0 ? "" : "disabled"}>
+            ${buttonText}
+          </button>
         </div>
-
-        <p class="productDesc muted">${escapeHtml(p.description || "")}</p>
-
-        <button class="btn btn--block" data-add="${p.id}" ${disabled}>
-          Adicionar ao carrinho
-        </button>
       </div>
     </article>
   `;
 }
 
-let allProducts = [];
+function renderProducts(products) {
+  if (!gridElement) return;
 
-function render(list) {
-  if (!gridEl) return;
-  if (!list.length) {
-    gridEl.innerHTML = `<p class="muted">Sem produtos para mostrar.</p>`;
+  if (!products.length) {
+    gridElement.innerHTML = `
+      <div class="empty-state">
+        <h3>Sem resultados</h3>
+        <p>Nao encontrámos produtos com esse filtro. Ajusta a pesquisa e tenta novamente.</p>
+      </div>
+    `;
     return;
   }
-  gridEl.innerHTML = list.map(productCard).join("");
 
-  gridEl.querySelectorAll("[data-add]").forEach(btn => {
-    btn.addEventListener("click", () => addToCart(btn.getAttribute("data-add")));
+  gridElement.innerHTML = products.map(productCard).join("");
+
+  gridElement.querySelectorAll("[data-add]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.getAttribute("data-add");
+      const product = allProducts.find((item) => String(item.id) === id);
+      if (!product) return;
+
+      mergeCartItem(product.id, Number(product.stock ?? 0));
+      updateCartBadge();
+      setStatus(`${product.name} foi adicionado ao carrinho.`, "success");
+      window.setTimeout(() => setStatus(""), 1800);
+    });
   });
 }
 
 function applyFilters() {
-  const q = (searchEl?.value || "").trim().toLowerCase();
-  const cat = categoryEl?.value || "";
+  const query = String(searchElement?.value || "").trim().toLowerCase();
+  const category = String(categoryElement?.value || "").trim().toLowerCase();
 
-  const filtered = allProducts.filter(p => {
-    const hay = `${p.name || ""} ${p.description || ""}`.toLowerCase();
-    const okQ = !q || hay.includes(q);
-    const okCat = !cat || (p.category || "") === cat;
-    return okQ && okCat;
+  const filtered = allProducts.filter((product) => {
+    const haystack = `${product.name || ""} ${product.description || ""}`.toLowerCase();
+    const matchesQuery = !query || haystack.includes(query);
+    const matchesCategory = !category || String(product.category || "").toLowerCase() === category;
+    return matchesQuery && matchesCategory;
   });
 
-  render(filtered);
+  renderProducts(filtered);
 }
 
-async function loadProducts() {
-  setStatus("A carregar produtos...");
-  const { data, error } = await sb
-    .from("products")
-    .select("id,name,price,description,image_url,category,stock,active,created_at")
-    .eq("active", true)
-    .order("created_at", { ascending: false });
-
-  if (error) return setStatus("❌ " + error.message);
-
-  allProducts = data || [];
-  setStatus("");
-  applyFilters();
-}
-
-function addToCart(productId) {
-  const p = allProducts.find(x => x.id === productId);
-  if (!p) return;
-
-  const cart = getCart();
-  const idx = cart.findIndex(x => x.id === productId);
-
-  if (idx >= 0) cart[idx].qty += 1;
-  else cart.push({
-    id: p.id,
-    name: p.name,
-    price: p.price,
-    qty: 1,
-    image_url: p.image_url || ""
-  });
-
-  setCart(cart);
-  setStatus(`✅ Adicionado: ${p.name}`);
-  setTimeout(() => setStatus(""), 1200);
-}
-
-async function logout() {
-  setStatus("A terminar sessão...");
-  const { error } = await sb.auth.signOut();
-  if (error) return setStatus("❌ " + error.message);
-  window.location.href = "login.html";
-}
-
-logoutBtn?.addEventListener("click", logout);
-searchEl?.addEventListener("input", applyFilters);
-categoryEl?.addEventListener("change", applyFilters);
-
-(async function init() {
+async function init() {
+  const user = await requireAuth({ redirectTo: "shop.html" });
+  if (!user) return;
   updateCartBadge();
-  await requireAuth();
-  await loadProducts();
-})();
+  setStatus("A carregar catalogo...", "neutral");
 
+  try {
+    allProducts = await fetchActiveProducts();
+    renderProducts(allProducts);
+    setStatus("");
+  } catch (error) {
+    setStatus(error.message || "Nao foi possivel carregar os produtos.", "error");
+  }
+}
+
+logoutButton?.addEventListener("click", async () => {
+  setStatus("A terminar sessao...", "neutral");
+
+  try {
+    await logoutAndRedirect("login.html");
+  } catch (error) {
+    setStatus(error.message || "Nao foi possivel terminar a sessao.", "error");
+  }
+});
+
+searchElement?.addEventListener("input", applyFilters);
+categoryElement?.addEventListener("change", applyFilters);
+window.addEventListener("cart:updated", updateCartBadge);
+
+init();

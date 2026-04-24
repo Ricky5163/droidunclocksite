@@ -1,96 +1,75 @@
-// ====== CONFIG ======
-const WHATSAPP_NUMBER = "351965782553";
+import { SITE_NAME, buildWhatsAppUrl } from "./app-config.js";
+import { syncAccountLinks } from "./auth-utils.js";
 
-// Supabase (igual ao teu projeto)
-const SUPABASE_URL = "https://eqklkfrxotoizpuacznc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxa2xrZnJ4b3RvaXpwdWFjem5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDAxMTAsImV4cCI6MjA4NTg3NjExMH0.Ex1LHdLN8Kfnu3ySY1JH7NUC9AM-TqXLnBiA56qE9Ow";
-
-function waLink(message) {
-  const text = encodeURIComponent(message);
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
-}
-
-// Top CTA / Contact / Floating
-const defaultMsg =
-  "Olá! Vim pelo site da Droidunclock. Quero um orçamento.\n\n" +
-  "Modelo: \nProblema: \nObservações: \n";
+const defaultMessage = [
+  "Ola. Vim pelo site da Droidunclock e quero pedir um orcamento.",
+  "",
+  "Modelo:",
+  "Problema:",
+  "Observacoes:",
+].join("\n");
 
 function setWhatsAppLinks() {
-  const cta = document.getElementById("ctaWhatsApp");
-  const contact = document.getElementById("contactWhatsApp");
-  const floatBtn = document.getElementById("waFloat");
-
-  const link = waLink(defaultMsg);
-  if (cta) cta.href = link;
-  if (contact) contact.href = link;
-  if (floatBtn) floatBtn.href = link;
-}
-setWhatsAppLinks();
-
-// Mobile menu
-const menuBtn = document.getElementById("menuBtn");
-const mobileNav = document.getElementById("mobileNav");
-
-if (menuBtn && mobileNav) {
-  menuBtn.addEventListener("click", () => {
-    mobileNav.classList.toggle("show");
-    mobileNav.setAttribute(
-      "aria-hidden",
-      mobileNav.classList.contains("show") ? "false" : "true"
-    );
-  });
-
-  mobileNav.querySelectorAll("a").forEach(a => {
-    a.addEventListener("click", () => mobileNav.classList.remove("show"));
+  const url = buildWhatsAppUrl(defaultMessage);
+  document.querySelectorAll("[data-whatsapp-link]").forEach((link) => {
+    link.href = url;
   });
 }
 
-// Quick form -> WhatsApp
-const form = document.getElementById("quickForm");
-if (form) {
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+function setupMenu() {
+  const button = document.getElementById("menuBtn");
+  const nav = document.getElementById("mobileNav");
+  if (!button || !nav) return;
+
+  button.addEventListener("click", () => {
+    const isOpen = nav.classList.toggle("is-open");
+    button.setAttribute("aria-expanded", String(isOpen));
+    nav.setAttribute("aria-hidden", String(!isOpen));
+  });
+
+  nav.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      nav.classList.remove("is-open");
+      button.setAttribute("aria-expanded", "false");
+      nav.setAttribute("aria-hidden", "true");
+    });
+  });
+}
+
+function setupQuickForm() {
+  const form = document.getElementById("quickForm");
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
     const data = new FormData(form);
-    const modelo = (data.get("modelo") || "").toString().trim();
-    const problema = (data.get("problema") || "").toString().trim();
-    const obs = (data.get("obs") || "").toString().trim();
+    const model = String(data.get("modelo") || "").trim();
+    const request = String(data.get("problema") || "").trim();
+    const notes = String(data.get("obs") || "").trim();
 
-    const msg =
-      "Olá! Vim pelo site da Droidunclock.\n\n" +
-      `Modelo: ${modelo}\n` +
-      `Pedido: ${problema}\n` +
-      `Observações: ${obs || "—"}\n\n` +
-      "Obrigado!";
+    const message = [
+      "Ola. Vim pelo site da Droidunclock.",
+      "",
+      `Modelo: ${model}`,
+      `Pedido: ${request}`,
+      `Observacoes: ${notes || "-"}`,
+      "",
+      "Obrigado.",
+    ].join("\n");
 
-    window.open(waLink(msg), "_blank");
+    window.open(buildWhatsAppUrl(message), "_blank", "noopener");
   });
 }
 
-// Year
-const y = document.getElementById("year");
-if (y) y.textContent = new Date().getFullYear();
-
-// ====== Account link (Login/Loja) ======
-async function updateAccountLink() {
-  const link = document.getElementById("accountLink");
-  if (!link) return;
-
-  if (!window.supabase) {
-    // Se não carregar o SDK, fica "Entrar"
-    link.href = "login.html";
-    link.textContent = "Entrar";
-    return;
-  }
-
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const { data } = await sb.auth.getSession();
-
-  if (data?.session?.user) {
-    link.href = "shop.html";
-    link.textContent = "Minha Loja";
-  } else {
-    link.href = "login.html";
-    link.textContent = "Entrar";
-  }
+function setCurrentYear() {
+  const year = document.getElementById("year");
+  if (year) year.textContent = String(new Date().getFullYear());
 }
-updateAccountLink();
+
+document.title = `${SITE_NAME} | Reparacao e Venda com Garantia`;
+setWhatsAppLinks();
+setupMenu();
+setupQuickForm();
+setCurrentYear();
+syncAccountLinks();

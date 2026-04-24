@@ -1,57 +1,90 @@
-import { createClient } from "@supabase/supabase-js";
 import { sendEmail, orderEmailHtml } from "./_email.js";
+import {
+  assertEnv,
+  createServiceClient,
+  json,
+  normalizeEmail,
+  readJson,
+  requireInternalAuth,
+} from "./_utils.js";
 
 export async function onRequest(context) {
+  const { request, env } = context;
+
   try {
-    const { request, env } = context;
-    if (request.method !== "POST") return json(405, { error: "Method not allowed" });
+    if (request.method !== "POST") {
+      return json(request, env, 405, { error: "Method not allowed" });
+    }
 
-    const body = await request.json().catch(() => ({}));
-    const { orderId } = body;
-    if (!orderId) return json(400, { error: "orderId obrigatório" });
+    const missing = assertEnv(env, [
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "SITE_URL",
+      "EMAIL_TO",
+      "EMAIL_FROM",
+      "RESEND_API_KEY",
+      "INTERNAL_API_SECRET",
+    ]);
 
-    const sb = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    if (missing.length) {
+      return json(request, env, 500, { error: "Missing env: " + missing.join(", ") });
+    }
 
-    // buscar order
-    const { data: order, error: e1 } = await sb
+    if (!requireInternalAuth(request, env)) {
+      return json(request, env, 403, { error: "Forbidden" });
+    }
+
+    const body = await readJson(request);
+    const orderId = String(body.orderId || "").trim();
+    if (!orderId) {
+      return json(request, env, 400, { error: "orderId obrigatorio" });
+    }
+
+    const supabase = createServiceClient(env);
+    const { data: order, error: orderError } = await supabase
       .from("orders")
       .select("*")
       .eq("id", orderId)
       .single();
-    if (e1) return json(500, { error: e1.message });
 
-    // buscar items
-    const { data: items, error: e2 } = await sb
+    if (orderError) {
+      return json(request, env, 500, { error: orderError.message });
+    }
+
+    if (order.status !== "paid") {
+      return json(request, env, 409, { error: "A encomenda ainda nao esta paga." });
+    }
+
+    const { data: items, error: itemsError } = await supabase
       .from("order_items")
       .select("*")
       .eq("order_id", orderId);
-    if (e2) return json(500, { error: e2.message });
+
+    if (itemsError) {
+      return json(request, env, 500, { error: itemsError.message });
+    }
+
+    const customerEmail = normalizeEmail(order.email);
+    if (!customerEmail) {
+      return json(request, env, 500, { error: "Email do cliente invalido." });
+    }
 
     const html = orderEmailHtml({ order, items, siteUrl: env.SITE_URL });
 
-    // 1) email ao cliente
     await sendEmail(env, {
-      to: order.email,
-      subject: `Droidunclock — Encomenda #${order.id}`,
+      to: customerEmail,
+      subject: `Droidunclock - Encomenda #${order.id}`,
       html,
     });
 
-    // 2) email ao admin (tu)
     await sendEmail(env, {
       to: env.EMAIL_TO,
-      subject: `🟢 NOVA ENCOMENDA PAGA #${order.id} — € ${Number(order.total || 0).toFixed(2)}`,
+      subject: `Nova encomenda paga #${order.id} - EUR ${Number(order.total || 0).toFixed(2)}`,
       html,
     });
 
-    return json(200, { ok: true });
-  } catch (err) {
-    return json(500, { error: err?.message || "Erro" });
+    return json(request, env, 200, { ok: true });
+  } catch (error) {
+    return json(request, env, 500, { error: error?.message || "Erro" });
   }
-}
-
-function json(status, obj) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8" },
-  });
 }

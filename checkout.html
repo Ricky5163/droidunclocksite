@@ -3,37 +3,78 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Droidunclock — Checkout</title>
+  <title>Droidunclock | Checkout Seguro</title>
+  <meta name="description" content="Checkout seguro Droidunclock com revalidacao de carrinho, Stripe e PayPal." />
+  <meta name="theme-color" content="#09111f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="shopBody">
-  <header class="shopHeader">
-    <a class="authBrand" href="cart.html" style="text-decoration:none;">
-      <img src="assets/img_2.jpg" class="authLogo" alt="Droidunclock" />
-      <div><strong>Droidunclock</strong><div class="muted tiny">Checkout</div></div>
-    </a>
+<body class="dashboard-page">
+  <header class="dashboard-header">
+    <div class="container dashboard-header__bar">
+      <a class="brand" href="cart.html">
+        <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
+        <div>
+          <strong>Droidunclock</strong>
+          <span>Checkout seguro</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <a class="btn btn--ghost btn--small" href="cart.html">Voltar ao carrinho</a>
+      </div>
+    </div>
   </header>
 
-  <main class="shopMain">
-    <h1 class="shopTitle">Finalizar compra</h1>
+  <main class="dashboard-main">
+    <div class="container checkout-layout">
+      <section class="glass-card checkout-panel">
+        <div class="section-head section-head--compact">
+          <span class="eyebrow">Pagamento</span>
+          <h1>Confirma o email e escolhe o gateway.</h1>
+          <p class="muted">
+            O checkout usa a tua sessao ativa e volta a validar os itens no servidor antes de abrir o pagamento.
+          </p>
+        </div>
 
-    <section class="card" style="padding:16px;">
-      <h3>Dados</h3>
-      <label class="muted tiny">Email para confirmação</label>
-      <input id="email" class="input" placeholder="teuemail@exemplo.com" />
-      <div class="spacer"></div>
+        <div class="form-grid">
+          <label>
+            Email para confirmacao
+            <input id="email" class="input" type="email" placeholder="teuemail@exemplo.com" autocomplete="email" />
+          </label>
+        </div>
 
-      <h3>Método de pagamento</h3>
-      <div style="display:grid; gap:10px; margin-top:10px;">
-        <button class="btn btn--block" id="payStripe">Pagar com Cartão / MB WAY / Multibanco</button>
-        <button class="btn btn--ghost btn--block" id="payPayPal">Pagar com PayPal</button>
-      </div>
+        <div class="payment-grid">
+          <button class="btn btn--primary btn--block" id="payStripe" type="button">
+            Pagar com Stripe
+          </button>
+          <button class="btn btn--ghost btn--block" id="payPayPal" type="button">
+            Pagar com PayPal
+          </button>
+        </div>
 
-      <p id="status" class="tiny muted" style="margin-top:12px;"></p>
-    </section>
+        <p id="status" class="status-text" aria-live="polite"></p>
+      </section>
+
+      <aside class="glass-card summary-card">
+        <span class="eyebrow">Encomenda</span>
+        <h2>Resumo validado</h2>
+        <div id="orderSummary" class="checkout-summary"></div>
+        <div class="summary-card__row">
+          <span>Total</span>
+          <strong id="orderTotal">0,00 €</strong>
+        </div>
+        <p class="muted">Se algum item tiver mudado de stock, o checkout reflete isso antes de cobrares.</p>
+      </aside>
+    </div>
   </main>
 
-  <script src="js/config.js"></script>
-  <script src="/js/checkout.js?v=4"></script>
+  <script type="module" src="js/checkout.js"></script>
 </body>
 </html>

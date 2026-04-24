@@ -1,46 +1,30 @@
 <!doctype html>
 <html lang="pt-PT">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Pagamento concluído</title>
-  <link rel="stylesheet" href="css/styles.css"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock | Pagamento Recebido</title>
+  <meta name="description" content="Confirmacao de pagamento Droidunclock." />
+  <meta name="theme-color" content="#09111f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
-
-<body class="shopBody">
-  <main class="shopMain">
-    <h1 class="shopTitle">✅ Pagamento concluído</h1>
-    <p class="muted" id="msg">Obrigado! Vais receber confirmação no email.</p>
-    <a class="btn" href="shop.html">Voltar à loja</a>
+<body class="result-page">
+  <main class="result-card glass-card">
+    <span class="eyebrow">Pagamento recebido</span>
+    <h1 id="msg">A processar confirmacao...</h1>
+    <p id="detail" class="muted">Estamos a validar o retorno do gateway de pagamento.</p>
+    <div class="result-actions">
+      <a class="btn btn--primary" href="shop.html">Voltar a loja</a>
+      <a class="btn btn--ghost" href="index.html">Ir para homepage</a>
+    </div>
   </main>
 
-  <script>
-    (async () => {
-      // Limpa carrinho logo (ok)
-      localStorage.removeItem("cart");
-
-      const qs = new URLSearchParams(location.search);
-      const orderId = qs.get("order");
-      const paypalOrderId = qs.get("token"); // PayPal manda token=ORDER_ID
-
-      // Se for PayPal: capturar + marcar paid + disparar emails (no backend)
-      if (paypalOrderId) {
-        const r = await fetch("/api/paypal-capture-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paypalOrderId, orderId }),
-        });
-
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          console.log("paypal capture error:", j);
-          document.getElementById("msg").textContent =
-            "Pagamento concluído, mas houve um erro a confirmar. Contacta-nos.";
-        }
-      }
-
-      // Stripe confirm entra aqui depois
-    })();
-  </script>
+  <script type="module" src="js/success.js"></script>
 </body>
 </html>
