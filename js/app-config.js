@@ -3,7 +3,7 @@ const runtimeConfig = window.DROIDUNCLOCK_CONFIG || {};
 const SUPABASE_URL = runtimeConfig.SUPABASE_URL || "https://rtjfezznepfshhrpvjcf.supabase.co";
 const SUPABASE_ANON_KEY =
   runtimeConfig.SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxa2xrZnJ4b3RvaXpwdWFjem5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDAxMTAsImV4cCI6MjA4NTg3NjExMH0.Ex1LHdLN8Kfnu3ySY1JH7NUC9AM-TqXLnBiA56qE9Ow";
+  "sb_publishable_n3IsW1I0owLEaBsZj3WEuA_6SOfYMvV";
 
 export const SITE_NAME = "Droidunclock";
 export const WHATSAPP_NUMBER = runtimeConfig.WHATSAPP_NUMBER || "351965782553";
