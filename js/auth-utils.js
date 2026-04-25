@@ -3,7 +3,7 @@ import {
   buildLoginRedirect,
   createSupabaseBrowserClient,
   getPostLoginTarget,
-} from "./app-config.js?v=lang2";
+} from "./app-config.js?v=admin1";
 
 const supabase = createSupabaseBrowserClient();
 

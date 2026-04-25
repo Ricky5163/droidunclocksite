@@ -128,5 +128,7 @@ create index if not exists products_slug_idx on public.products(slug);
 create index if not exists products_category_idx on public.products(category);
 create index if not exists orders_created_at_idx on public.orders(created_at desc);
 
--- Replace with your Supabase Auth admin account email.
--- insert into public.admin_users (email, role) values ('owner@example.com', 'owner');
+-- Create this email in Supabase Auth, then this row authorizes it for admin.html.
+insert into public.admin_users (email, role)
+values ('admin@droidunclock.site', 'owner')
+on conflict (email) do update set role = excluded.role;

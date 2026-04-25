@@ -1,4 +1,4 @@
-import { clearCart } from "./app-config.js?v=lang2";
+import { clearCart } from "./app-config.js?v=admin1";
 import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 
 const messageElement = document.getElementById("msg");

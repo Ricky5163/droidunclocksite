@@ -1,4 +1,4 @@
-import { SITE_NAME, buildWhatsAppUrl } from "./app-config.js?v=lang2";
+import { SITE_NAME, buildWhatsAppUrl, setupAdminLogoShortcut } from "./app-config.js?v=admin1";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 
 const defaultMessage = [
@@ -177,6 +177,7 @@ function setCurrentYear() {
 
 document.title = `${SITE_NAME} | Fast Phone Repairs in the Netherlands`;
 setupLanguageSelector();
+setupAdminLogoShortcut();
 setWhatsAppLinks();
 setupMenu();
 setupQuickForm();

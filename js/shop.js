@@ -1,4 +1,4 @@
-import { escapeHtml, getCartCount, mergeCartItem } from "./app-config.js?v=lang2";
+import { escapeHtml, getCartCount, mergeCartItem, setupAdminLogoShortcut } from "./app-config.js?v=admin1";
 import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
 
@@ -10,6 +10,7 @@ const cartBadges = document.querySelectorAll("[data-cart-count]");
 
 let allProducts = [];
 let currentLang = setupLanguageSelector();
+setupAdminLogoShortcut();
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;

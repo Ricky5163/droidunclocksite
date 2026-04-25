@@ -169,3 +169,32 @@ export function getPostLoginTarget() {
 export function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
 }
+
+export function setupAdminLogoShortcut(selector = ".site-header .brand, .dashboard-header .brand") {
+  document.querySelectorAll(selector).forEach((link) => {
+    let clickTimer;
+    let lastClick = 0;
+
+    link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href") || "index.html";
+      const now = Date.now();
+
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (now - lastClick < 360) {
+        window.clearTimeout(clickTimer);
+        window.location.href = "admin.html";
+        return;
+      }
+
+      lastClick = now;
+      clickTimer = window.setTimeout(() => {
+        window.location.href = href;
+      }, 260);
+    });
+  });
+}

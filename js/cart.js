@@ -1,4 +1,4 @@
-import { escapeHtml } from "./app-config.js?v=lang2";
+import { escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=admin1";
 import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
@@ -19,6 +19,7 @@ const checkoutButton = document.getElementById("goCheckout");
 const summaryCountElement = document.getElementById("summaryCount");
 let currentLines = [];
 let currentLang = setupLanguageSelector();
+setupAdminLogoShortcut();
 
 const SHIPPING_COST = 9.95;
 

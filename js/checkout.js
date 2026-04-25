@@ -1,4 +1,4 @@
-import { buildLoginRedirect, isValidEmail } from "./app-config.js?v=lang2";
+import { buildLoginRedirect, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=admin1";
 import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js?v=lang2";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
@@ -37,6 +37,7 @@ const checkoutLoginLink = document.getElementById("checkoutLoginLink");
 let orderLines = [];
 let orderSubtotal = 0;
 setupLanguageSelector();
+setupAdminLogoShortcut();
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;

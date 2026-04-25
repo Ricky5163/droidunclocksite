@@ -40,8 +40,10 @@ For frontend runtime config, copy `js/env.example.js` to `js/env.js`, fill the p
 1. Create a Supabase project on the free plan.
 2. Run `supabase-schema.sql` in the SQL editor.
 3. Create your owner account through Supabase Auth.
-4. Insert that email into `admin_users`.
-5. Add products in `admin.html`.
+4. Create `admin@droidunclock.site` in Supabase Auth with a strong password.
+5. Run the final `admin_users` insert in `supabase-schema.sql` to authorize that email.
+6. Admin is intentionally hidden from navigation: double-click the site logo to open `admin.html`.
+7. Add products in `admin.html`.
 
 ## Payment Security
 

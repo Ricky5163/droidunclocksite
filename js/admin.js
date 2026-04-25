@@ -1,4 +1,4 @@
-import { createSupabaseBrowserClient, escapeHtml } from "./app-config.js?v=lang2";
+import { createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=admin1";
 import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js?v=lang2";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
@@ -10,6 +10,7 @@ const productsElement = document.getElementById("productsAdmin");
 const ordersElement = document.getElementById("ordersAdmin");
 const logoutButton = document.getElementById("logoutBtn");
 setupLanguageSelector();
+setupAdminLogoShortcut();
 
 const fields = {
   id: document.getElementById("productId"),
