@@ -3,9 +3,15 @@ import {
   buildLoginRedirect,
   createSupabaseBrowserClient,
   getPostLoginTarget,
-} from "./app-config.js?v=supa2";
+} from "./app-config.js?v=auth3";
 
 const supabase = createSupabaseBrowserClient();
+const SESSION_WAIT_TIMEOUT = 3000;
+const SESSION_WAIT_INTERVAL = 100;
+
+function delay(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 export async function getSession() {
   const { data, error } = await supabase.auth.getSession();
@@ -13,14 +19,26 @@ export async function getSession() {
   return data?.session || null;
 }
 
-export async function getCurrentUser() {
-  const session = await getSession();
+export async function waitForSession(timeoutMs = SESSION_WAIT_TIMEOUT) {
+  const deadline = Date.now() + timeoutMs;
+  let session = await getSession();
+
+  while (!session && Date.now() < deadline) {
+    await delay(SESSION_WAIT_INTERVAL);
+    session = await getSession();
+  }
+
+  return session;
+}
+
+export async function getCurrentUser(options = {}) {
+  const session = options.wait ? await waitForSession(options.timeoutMs) : await getSession();
   return session?.user || null;
 }
 
 export async function requireAuth(options = {}) {
   const redirectTo = options.redirectTo || DEFAULT_LOGIN_REDIRECT;
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ wait: true });
 
   if (!user) {
     window.location.href = buildLoginRedirect(redirectTo);
@@ -31,7 +49,7 @@ export async function requireAuth(options = {}) {
 }
 
 export async function redirectIfAuthenticated() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ wait: true, timeoutMs: 800 });
   if (!user) return null;
 
   window.location.href = getPostLoginTarget();

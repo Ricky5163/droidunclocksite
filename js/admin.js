@@ -1,5 +1,5 @@
-import { createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=supa2";
-import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js?v=lang2";
+import { createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth3";
+import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js?v=auth3";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
 
@@ -45,7 +45,7 @@ function slugify(value) {
 }
 
 async function assertAdmin() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ wait: true });
   if (!user) {
     window.location.href = "login.html?next=admin.html";
     return false;
