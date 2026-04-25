@@ -1,5 +1,5 @@
-import { getPostLoginTarget } from "./app-config.js";
-import { logoutAndRedirect, redirectIfAuthenticated, supabase } from "./auth-utils.js";
+import { getPostLoginTarget } from "./app-config.js?v=admin1";
+import { logoutAndRedirect, redirectIfAuthenticated, supabase } from "./auth-utils.js?v=admin1";
 
 const statusElement = document.getElementById("status");
 const loginForm = document.getElementById("loginForm");
