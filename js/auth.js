@@ -1,5 +1,4 @@
-import { getPostLoginTarget } from "./app-config.js?v=auth3";
-import { logoutAndRedirect, redirectIfAuthenticated, supabase, waitForSession } from "./auth-utils.js?v=auth3";
+import { getAuthenticatedRedirectTarget, logoutAndRedirect, redirectIfAuthenticated, supabase, waitForSession } from "./auth-utils.js?v=auth4";
 
 const statusElement = document.getElementById("status");
 const loginForm = document.getElementById("loginForm");
@@ -59,8 +58,8 @@ loginForm?.addEventListener("submit", async (event) => {
   }
 
   setStatus("Sessao iniciada com sucesso. A redirecionar...", "success");
-  await waitForSession();
-  window.location.href = getPostLoginTarget();
+  const session = await waitForSession();
+  window.location.href = await getAuthenticatedRedirectTarget(session?.user);
 });
 
 signupForm?.addEventListener("submit", async (event) => {

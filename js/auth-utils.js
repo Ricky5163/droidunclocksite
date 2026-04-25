@@ -3,7 +3,7 @@ import {
   buildLoginRedirect,
   createSupabaseBrowserClient,
   getPostLoginTarget,
-} from "./app-config.js?v=auth3";
+} from "./app-config.js?v=auth4";
 
 const supabase = createSupabaseBrowserClient();
 const SESSION_WAIT_TIMEOUT = 3000;
@@ -36,6 +36,25 @@ export async function getCurrentUser(options = {}) {
   return session?.user || null;
 }
 
+export async function isAdminUser(user) {
+  if (!user?.email) return false;
+
+  const { data, error } = await supabase
+    .from("admin_users")
+    .select("id")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  return Boolean(data && !error);
+}
+
+export async function getAuthenticatedRedirectTarget(user) {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("next")) return getPostLoginTarget();
+
+  return (await isAdminUser(user)) ? "admin.html" : DEFAULT_LOGIN_REDIRECT;
+}
+
 export async function requireAuth(options = {}) {
   const redirectTo = options.redirectTo || DEFAULT_LOGIN_REDIRECT;
   const user = await getCurrentUser({ wait: true });
@@ -52,7 +71,7 @@ export async function redirectIfAuthenticated() {
   const user = await getCurrentUser({ wait: true, timeoutMs: 800 });
   if (!user) return null;
 
-  window.location.href = getPostLoginTarget();
+  window.location.href = await getAuthenticatedRedirectTarget(user);
   return user;
 }
 
