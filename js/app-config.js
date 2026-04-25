@@ -1,16 +1,21 @@
-const SUPABASE_URL = "https://eqklkfrxotoizpuacznc.supabase.co";
+const runtimeConfig = window.DROIDUNCLOCK_CONFIG || {};
+
+const SUPABASE_URL = runtimeConfig.SUPABASE_URL || "https://eqklkfrxotoizpuacznc.supabase.co";
 const SUPABASE_ANON_KEY =
+  runtimeConfig.SUPABASE_ANON_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxa2xrZnJ4b3RvaXpwdWFjem5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDAxMTAsImV4cCI6MjA4NTg3NjExMH0.Ex1LHdLN8Kfnu3ySY1JH7NUC9AM-TqXLnBiA56qE9Ow";
 
 export const SITE_NAME = "Droidunclock";
-export const WHATSAPP_NUMBER = "351965782553";
+export const WHATSAPP_NUMBER = runtimeConfig.WHATSAPP_NUMBER || "351965782553";
 export const DEFAULT_LOGIN_REDIRECT = "shop.html";
 export const VALID_LOCAL_PATHS = new Set([
   "index.html",
   "login.html",
   "shop.html",
+  "product.html",
   "cart.html",
   "checkout.html",
+  "admin.html",
   "success.html",
   "cancel.html",
 ]);
@@ -45,6 +50,33 @@ export function formatEuro(value) {
 
 export function buildWhatsAppUrl(message) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+export function parseImages(images) {
+  if (Array.isArray(images)) return images.filter(Boolean);
+  if (typeof images === "string" && images.trim()) {
+    try {
+      const parsed = JSON.parse(images);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch {
+      return images
+        .split(",")
+        .map((image) => image.trim())
+        .filter(Boolean);
+    }
+  }
+  return [];
+}
+
+export function getProductImage(product) {
+  const images = parseImages(product?.images);
+  return images[0] || product?.image_url || "assets/img_2.jpg";
+}
+
+export function getEffectivePrice(product) {
+  const price = Number(product?.price || 0);
+  const discount = Number(product?.discount_price || 0);
+  return discount > 0 && discount < price ? discount : price;
 }
 
 export function escapeHtml(value) {

@@ -1,34 +1,31 @@
 <!doctype html>
-<html lang="pt-PT">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Droidunclock | Checkout Seguro</title>
-  <meta name="description" content="Checkout seguro Droidunclock com revalidacao de carrinho, Stripe e PayPal." />
-  <meta name="theme-color" content="#09111f" />
+  <title>Droidunclock | Secure Checkout</title>
+  <meta name="description" content="Secure international checkout with Stripe card payments and PayPal Checkout." />
+  <meta name="theme-color" content="#050608" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="dashboard-page checkout-guarded">
-  <header class="dashboard-header">
-    <div class="container dashboard-header__bar">
+  <header class="site-header">
+    <div class="container header-bar">
       <a class="brand" href="cart.html">
         <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
-        <div>
-          <strong>Droidunclock</strong>
-          <span>Checkout seguro</span>
-        </div>
+        <div><strong>Droidunclock</strong><span data-i18n="checkout">Checkout</span></div>
       </a>
-
-      <div class="header-actions">
-        <a class="btn btn--ghost btn--small" href="cart.html">Voltar ao carrinho</a>
-      </div>
+      <nav class="desktop-nav">
+        <a href="cart.html" data-i18n="navCart">Cart</a>
+        <select class="language-select" data-language-select aria-label="Language">
+          <option value="en">EN</option><option value="pt">PT</option><option value="nl">NL</option>
+          <option value="es">ES</option><option value="fr">FR</option><option value="de">DE</option>
+        </select>
+      </nav>
     </div>
   </header>
 
@@ -36,55 +33,50 @@
     <div class="container checkout-layout">
       <section class="glass-card checkout-panel">
         <div class="section-head section-head--compact">
-          <span class="eyebrow">Pagamento</span>
-          <h1>Confirma o email e escolhe o gateway.</h1>
-          <p class="muted">
-            O checkout usa a tua sessao ativa e volta a validar os itens no servidor antes de abrir o pagamento.
-          </p>
+          <span class="eyebrow" data-i18n="customerInfo">Customer information</span>
+          <h1>Secure international checkout.</h1>
+          <p class="muted">Stripe and PayPal are created server-side. Card details are never stored by Droidunclock.</p>
         </div>
 
-        <div class="form-grid">
-          <label>
-            Email para confirmacao
-            <input id="email" class="input" type="email" placeholder="teuemail@exemplo.com" autocomplete="email" />
-          </label>
-        </div>
+        <form class="form-grid" id="checkoutForm">
+          <label><span data-i18n="fullName">Full name</span><input id="customerName" name="customer_name" required autocomplete="name" /></label>
+          <label><span data-i18n="email">Email</span><input id="email" name="customer_email" type="email" required autocomplete="email" /></label>
+          <label><span data-i18n="phone">Phone number</span><input id="phone" name="customer_phone" required autocomplete="tel" /></label>
+          <div class="form-row">
+            <label><span data-i18n="country">Country</span><input id="country" name="country" required autocomplete="country-name" /></label>
+            <label><span data-i18n="city">City</span><input id="city" name="city" required autocomplete="address-level2" /></label>
+          </div>
+          <label><span data-i18n="address">Address</span><input id="address" name="address" required autocomplete="street-address" /></label>
+          <label><span data-i18n="postalCode">Postal code</span><input id="postalCode" name="postal_code" required autocomplete="postal-code" /></label>
+        </form>
 
         <div class="payment-grid">
-          <button class="btn btn--primary btn--block" id="payStripe" type="button">
-            Pagar com Stripe
-          </button>
-          <button class="btn btn--ghost btn--block" id="payPayPal" type="button">
-            Pagar com PayPal
-          </button>
+          <button class="btn btn--primary btn--block" id="payStripe" type="button" data-i18n="payStripe">Pay with Card</button>
+          <button class="btn btn--ghost btn--block" id="payPayPal" type="button" data-i18n="payPayPal">Pay with PayPal</button>
         </div>
 
         <p id="status" class="status-text" aria-live="polite"></p>
       </section>
 
       <aside class="glass-card summary-card">
-        <span class="eyebrow">Encomenda</span>
-        <h2>Resumo validado</h2>
+        <span class="eyebrow">Order</span>
+        <h2>Validated summary</h2>
         <div id="orderSummary" class="checkout-summary"></div>
-        <div class="summary-card__row">
-          <span>Total</span>
-          <strong id="orderTotal">0,00 €</strong>
-        </div>
-        <p class="muted">Se algum item tiver mudado de stock, o checkout reflete isso antes de cobrares.</p>
+        <div class="summary-card__row"><span data-i18n="subtotal">Subtotal</span><strong id="orderSubtotal">€0.00</strong></div>
+        <div class="summary-card__row"><span data-i18n="shipping">Shipping</span><strong id="orderShipping">€0.00</strong></div>
+        <div class="summary-card__row summary-card__total-row"><span data-i18n="total">Total</span><strong id="orderTotal">€0.00</strong></div>
       </aside>
     </div>
   </main>
 
   <section class="result-page hidden" id="checkoutGate">
     <main class="result-card glass-card">
-      <span class="eyebrow">Login obrigatorio</span>
-      <h1>Entra para continuar o checkout.</h1>
-      <p class="muted">
-        A loja e o carrinho podem ser vistos sem sessao, mas o pagamento so avanca dentro da area do cliente.
-      </p>
+      <span class="eyebrow">Login required</span>
+      <h1>Sign in to continue checkout.</h1>
+      <p class="muted">Supabase Auth protects customer checkout and order history.</p>
       <div class="result-actions">
-        <a class="btn btn--primary" id="checkoutLoginLink" href="login.html?next=checkout.html">Entrar</a>
-        <a class="btn btn--ghost" href="cart.html">Voltar ao carrinho</a>
+        <a class="btn btn--primary" id="checkoutLoginLink" href="login.html?next=checkout.html">Sign in</a>
+        <a class="btn btn--ghost" href="cart.html">Back to cart</a>
       </div>
     </main>
   </section>

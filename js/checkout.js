@@ -1,5 +1,6 @@
 import { buildLoginRedirect, isValidEmail } from "./app-config.js";
 import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js";
+import { setupLanguageSelector } from "./i18n.js";
 import {
   buildCartDetails,
   buildCheckoutPayload,
@@ -9,9 +10,23 @@ import {
   syncCartToStock,
 } from "./storefront.js";
 
-const emailElement = document.getElementById("email");
+const SHIPPING_COST = 9.95;
+
+const fields = {
+  name: document.getElementById("customerName"),
+  email: document.getElementById("email"),
+  phone: document.getElementById("phone"),
+  country: document.getElementById("country"),
+  address: document.getElementById("address"),
+  postalCode: document.getElementById("postalCode"),
+  city: document.getElementById("city"),
+};
+
+const formElement = document.getElementById("checkoutForm");
 const statusElement = document.getElementById("status");
 const summaryElement = document.getElementById("orderSummary");
+const subtotalElement = document.getElementById("orderSubtotal");
+const shippingElement = document.getElementById("orderShipping");
 const totalElement = document.getElementById("orderTotal");
 const stripeButton = document.getElementById("payStripe");
 const paypalButton = document.getElementById("payPayPal");
@@ -20,6 +35,8 @@ const checkoutGateElement = document.getElementById("checkoutGate");
 const checkoutLoginLink = document.getElementById("checkoutLoginLink");
 
 let orderLines = [];
+let orderSubtotal = 0;
+setupLanguageSelector();
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
@@ -28,7 +45,7 @@ function setStatus(message, type = "neutral") {
 }
 
 function setBusy(busy) {
-  [stripeButton, paypalButton, emailElement].forEach((element) => {
+  [stripeButton, paypalButton, ...Object.values(fields)].forEach((element) => {
     if (element) element.disabled = busy;
   });
 }
@@ -41,43 +58,59 @@ function showCheckout() {
 function showLoginGate() {
   checkoutMainElement?.classList.add("hidden");
   checkoutGateElement?.classList.remove("hidden");
-  if (checkoutLoginLink) {
-    checkoutLoginLink.href = buildLoginRedirect("checkout.html");
-  }
+  if (checkoutLoginLink) checkoutLoginLink.href = buildLoginRedirect("checkout.html");
 }
 
-function renderSummary(lines, total) {
-  if (!summaryElement || !totalElement) return;
+function totals() {
+  const shipping = orderLines.length ? SHIPPING_COST : 0;
+  return { subtotal: orderSubtotal, shipping, total: orderSubtotal + shipping };
+}
 
+function renderSummary(lines, subtotal) {
+  orderLines = lines;
+  orderSubtotal = subtotal;
   if (!lines.length) {
-    summaryElement.innerHTML = `
-      <div class="empty-state">
-        <h3>Sem itens para pagar</h3>
-        <p>O carrinho foi esvaziado ou os produtos ficaram indisponiveis.</p>
-        <a class="btn btn--primary" href="shop.html">Voltar a loja</a>
-      </div>
-    `;
-    totalElement.textContent = formatEuro(0);
+    summaryElement.innerHTML = `<div class="empty-state"><h3>No items</h3><p>Your cart is empty or unavailable.</p><a class="btn btn--primary" href="shop.html">Back to shop</a></div>`;
     stripeButton.disabled = true;
     paypalButton.disabled = true;
-    return;
+  } else {
+    summaryElement.innerHTML = lines
+      .map(
+        (line) => `
+          <div class="checkout-line">
+            <div><strong>${line.name}</strong><p>${line.qty} x ${formatEuro(line.price)}</p></div>
+            <strong>${formatEuro(line.lineTotal)}</strong>
+          </div>
+        `,
+      )
+      .join("");
   }
 
-  summaryElement.innerHTML = lines
-    .map(
-      (line) => `
-        <div class="checkout-line">
-          <div>
-            <strong>${line.name}</strong>
-            <p class="muted">${line.qty} x ${formatEuro(line.price)}</p>
-          </div>
-          <strong>${formatEuro(line.lineTotal)}</strong>
-        </div>
-      `
-    )
-    .join("");
+  const next = totals();
+  subtotalElement.textContent = formatEuro(next.subtotal);
+  shippingElement.textContent = formatEuro(next.shipping);
+  totalElement.textContent = formatEuro(next.total);
+}
 
-  totalElement.textContent = formatEuro(total);
+function getCustomer() {
+  return {
+    customer_name: fields.name.value.trim(),
+    customer_email: fields.email.value.trim().toLowerCase(),
+    customer_phone: fields.phone.value.trim(),
+    country: fields.country.value.trim(),
+    address: fields.address.value.trim(),
+    postal_code: fields.postalCode.value.trim(),
+    city: fields.city.value.trim(),
+  };
+}
+
+function validateCustomer(customer) {
+  if (!formElement.reportValidity()) return false;
+  if (!isValidEmail(customer.customer_email)) {
+    setStatus("Enter a valid email address.", "error");
+    return false;
+  }
+  return true;
 }
 
 async function loadOrder() {
@@ -86,67 +119,50 @@ async function loadOrder() {
     renderSummary([], 0);
     return;
   }
-
-  setStatus("A validar o carrinho...", "neutral");
-
+  setStatus("Validating cart...");
   const products = await fetchProductsByIds(cart.map((item) => item.id));
   syncCartToStock(products, cart);
-
   const details = buildCartDetails(products, getCart());
-  orderLines = details.lines;
   renderSummary(details.lines, details.total);
   setStatus("");
 }
 
 async function startCheckout(endpoint, providerLabel) {
-  const email = String(emailElement.value || "").trim().toLowerCase();
-  if (!isValidEmail(email)) {
-    setStatus("Introduz um email valido para receberes a confirmacao.", "error");
-    return;
-  }
-
+  const customer = getCustomer();
+  if (!validateCustomer(customer)) return;
   if (!orderLines.length) {
-    setStatus("Nao existem itens validos para pagamento.", "error");
+    setStatus("No valid items for payment.", "error");
     return;
   }
 
   setBusy(true);
-  setStatus(`A abrir pagamento seguro com ${providerLabel}...`, "neutral");
+  setStatus(`Opening secure ${providerLabel} payment...`);
 
   try {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email,
+        ...customer,
+        shipping_cost: totals().shipping,
         cart: buildCheckoutPayload(orderLines),
       }),
     });
 
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(data.error || "Nao foi possivel iniciar o pagamento.");
-    }
+    if (!response.ok) throw new Error(data.error || "Could not start payment.");
 
     const redirectUrl = data.url || data.approval_url || data.approvalUrl;
-    if (!redirectUrl) {
-      throw new Error("Gateway de pagamento sem URL de redirecionamento.");
-    }
-
+    if (!redirectUrl) throw new Error("Payment provider did not return a redirect URL.");
     window.location.href = redirectUrl;
   } catch (error) {
     setBusy(false);
-    setStatus(error.message || "Erro ao abrir pagamento.", "error");
+    setStatus(error.message || "Payment error.", "error");
   }
 }
 
-stripeButton?.addEventListener("click", () => {
-  startCheckout("/api/create-checkout-session", "Stripe");
-});
-
-paypalButton?.addEventListener("click", () => {
-  startCheckout("/api/paypal-create-order", "PayPal");
-});
+stripeButton?.addEventListener("click", () => startCheckout("/api/create-checkout-session", "Stripe"));
+paypalButton?.addEventListener("click", () => startCheckout("/api/paypal-create-order", "PayPal"));
 
 (async function init() {
   const user = await getCurrentUser().catch(() => null);
@@ -154,13 +170,11 @@ paypalButton?.addEventListener("click", () => {
     showLoginGate();
     return;
   }
-
   showCheckout();
-  await hydrateUserEmail(emailElement);
-
+  await hydrateUserEmail(fields.email);
   try {
     await loadOrder();
   } catch (error) {
-    setStatus(error.message || "Nao foi possivel carregar o checkout.", "error");
+    setStatus(error.message || "Could not load checkout.", "error");
   }
 })();

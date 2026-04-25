@@ -26,9 +26,9 @@ export function orderEmailHtml({ order, items, siteUrl }) {
     .map(
       (item) => `
       <tr>
-        <td style="padding:8px;border-bottom:1px solid #eee;">${escapeHtml(item.name || "")}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${item.qty}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">EUR ${Number(item.price).toFixed(2)}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;">${escapeHtml(item.product_name || item.name || "")}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${item.quantity || item.qty}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">EUR ${Number(item.unit_price || item.price || 0).toFixed(2)}</td>
       </tr>`
     )
     .join("");
@@ -40,9 +40,9 @@ export function orderEmailHtml({ order, items, siteUrl }) {
 
     <div style="background:#f5f7fb;padding:14px;border-radius:12px;margin:16px 0;">
       <b>Encomenda:</b> ${order.id}<br/>
-      <b>Status:</b> ${escapeHtml(order.status || "")}<br/>
-      <b>Total:</b> EUR ${Number(order.total || 0).toFixed(2)}<br/>
-      <b>Pagamento:</b> ${escapeHtml(order.payment_provider || "")}
+      <b>Status:</b> ${escapeHtml(order.order_status || order.payment_status || "")}<br/>
+      <b>Total:</b> EUR ${Number(order.total_amount || order.total || 0).toFixed(2)}<br/>
+      <b>Pagamento:</b> ${escapeHtml(order.payment_method || order.payment_provider || "")}
     </div>
 
     <table style="width:100%;border-collapse:collapse;">

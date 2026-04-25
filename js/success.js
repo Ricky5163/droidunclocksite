@@ -15,15 +15,13 @@ function setMessage(message, detail = "", type = "neutral") {
 }
 
 (async function init() {
-  clearCart();
-
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get("order");
   const paypalOrderId = params.get("token");
   const hasStripeSession = params.has("session_id");
 
   if (paypalOrderId) {
-    setMessage("A confirmar o pagamento PayPal...", "Estamos a validar a tua encomenda.", "neutral");
+    setMessage("Confirming PayPal payment...", "We are validating your order.", "neutral");
 
     try {
       const response = await fetch("/api/paypal-capture-order", {
@@ -38,15 +36,16 @@ function setMessage(message, detail = "", type = "neutral") {
       }
 
       setMessage(
-        "Pagamento confirmado.",
-        "Receberas a confirmacao por email assim que a encomenda ficar processada.",
+        "Payment confirmed.",
+        "You will receive confirmation by email when the order is processed.",
         "success"
       );
+      clearCart();
       return;
     } catch (error) {
       setMessage(
-        "Pagamento recebido, mas a confirmacao automatica falhou.",
-        error.message || "Contacta-nos para validarmos manualmente a encomenda.",
+        "Payment received, but automatic confirmation failed.",
+        error.message || "Contact us so we can manually validate the order.",
         "error"
       );
       return;
@@ -54,17 +53,18 @@ function setMessage(message, detail = "", type = "neutral") {
   }
 
   if (hasStripeSession) {
+    clearCart();
     setMessage(
-      "Pagamento enviado com sucesso.",
-      "O Stripe devolveu-te ao site. O webhook esta a fechar a confirmacao da encomenda.",
+      "Payment sent successfully.",
+      "Stripe returned you to the site. The webhook will complete the order confirmation.",
       "success"
     );
     return;
   }
 
   setMessage(
-    "Pedido registado.",
-    "Se este retorno veio de um gateway de pagamento, a confirmacao final sera enviada por email.",
+    "Order registered.",
+    "If this return came from a payment provider, final confirmation will be sent by email.",
     "neutral"
   );
 })();

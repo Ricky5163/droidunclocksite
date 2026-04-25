@@ -1,34 +1,15 @@
-import { escapeHtml, mergeCartItem } from "./app-config.js";
-import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js";
-import { fetchActiveProducts, formatEuro } from "./storefront.js";
+import { escapeHtml, getCartCount, mergeCartItem } from "./app-config.js";
+import { setupLanguageSelector, t } from "./i18n.js";
+import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js";
 
 const statusElement = document.getElementById("status");
 const gridElement = document.getElementById("grid");
 const searchElement = document.getElementById("search");
 const categoryElement = document.getElementById("category");
-const logoutButton = document.getElementById("logoutBtn");
-const cartButtons = document.querySelectorAll("[data-cart-count]");
+const cartBadges = document.querySelectorAll("[data-cart-count]");
 
-const hiddenCategories = new Set(["peca", "pecas", "acessorio", "acessorios", "servico", "servicos", "reparacao", "reparacoes"]);
-const phoneKeywords = ["iphone", "samsung", "xiaomi", "redmi", "pixel", "huawei", "oppo", "realme", "oneplus", "motorola", "nokia", "telemovel", "smartphone"];
 let allProducts = [];
-
-function normalizeValue(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function isPhoneProduct(product) {
-  const category = normalizeValue(product.category);
-  const text = normalizeValue(`${product.name || ""} ${product.description || ""}`);
-
-  if (hiddenCategories.has(category)) return false;
-  if (category.includes("telemovel") || category.includes("smartphone")) return true;
-  return phoneKeywords.some((keyword) => text.includes(keyword));
-}
+let currentLang = setupLanguageSelector();
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
@@ -37,42 +18,101 @@ function setStatus(message, type = "neutral") {
 }
 
 function updateCartBadge() {
-  const rawCart = JSON.parse(localStorage.getItem("cart") || "[]");
-  const total = Array.isArray(rawCart)
-    ? rawCart.reduce((sum, item) => sum + Number(item?.qty || 0), 0)
-    : 0;
-
-  cartButtons.forEach((button) => {
-    button.textContent = `Carrinho (${total})`;
+  const count = getCartCount();
+  cartBadges.forEach((badge) => {
+    badge.textContent = `${t("navCart", currentLang)} (${count})`;
   });
+}
+
+function normalize(value) {
+  return String(value || "").toLowerCase().trim();
+}
+
+function fallbackProducts() {
+  return [
+    {
+      id: "demo-iphone-13",
+      slug: "iphone-13-refurbished",
+      name: "iPhone 13 128GB",
+      brand: "Apple",
+      model: "iPhone 13",
+      category: "Refurbished Phones",
+      condition: "Excellent",
+      stock: 4,
+      price: 449,
+      discount_price: 399,
+      description: "Refurbished, tested, unlocked, and ready for worldwide delivery.",
+      images: ["https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=900&q=80"],
+      active: true,
+    },
+    {
+      id: "demo-samsung-screen",
+      slug: "samsung-s22-screen",
+      name: "Samsung Galaxy S22 Screen",
+      brand: "Samsung",
+      model: "Galaxy S22",
+      category: "Phone Screens",
+      condition: "New",
+      stock: 8,
+      price: 129,
+      description: "Premium replacement screen for professional repair use.",
+      images: ["https://images.unsplash.com/photo-1581993192873-b8aa6a7d53df?auto=format&fit=crop&w=900&q=80"],
+      active: true,
+    },
+    {
+      id: "demo-battery",
+      slug: "iphone-12-battery",
+      name: "iPhone 12 Battery",
+      brand: "Apple",
+      model: "iPhone 12",
+      category: "Batteries",
+      condition: "New",
+      stock: 12,
+      price: 49,
+      description: "Replacement battery with warranty information included.",
+      images: ["https://images.unsplash.com/photo-1603539444875-76e7684265f6?auto=format&fit=crop&w=900&q=80"],
+      active: true,
+    },
+  ];
+}
+
+function productUrl(product) {
+  return `product.html?slug=${encodeURIComponent(product.slug || product.id)}`;
 }
 
 function productCard(product) {
   const stock = Math.max(0, Number(product.stock ?? 0));
-  const image = product.image_url || "assets/img_2.jpg";
-  const buttonText = stock > 0 ? "Adicionar ao carrinho" : "Sem stock";
+  const price = Number(product.price || 0);
+  const effectivePrice = getEffectivePrice(product);
+  const hasDiscount = effectivePrice < price;
 
   return `
     <article class="product-card">
-      <div class="product-card__media">
-        <img class="product-card__image" src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" />
-      </div>
+      <a class="product-card__media" href="${productUrl(product)}">
+        <img class="product-card__image" src="${escapeHtml(getProductImage(product))}" alt="${escapeHtml(product.name)}" loading="lazy" />
+      </a>
       <div class="product-card__body">
         <div class="product-card__head">
           <div>
-            <p class="eyebrow">Telemovel</p>
+            <span class="availability ${stock > 0 ? "availability--ok" : "availability--empty"}">
+              ${stock > 0 ? t("inStock", currentLang) : t("outOfStock", currentLang)}
+            </span>
             <h3>${escapeHtml(product.name)}</h3>
+            <p class="product-meta">${escapeHtml(product.brand || "Droidunclock")} · ${escapeHtml(product.model || product.category || "")}</p>
           </div>
-          <strong>${formatEuro(product.price)}</strong>
+          <div class="price-stack">
+            ${hasDiscount ? `<span>${formatEuro(price)}</span>` : ""}
+            <strong>${formatEuro(effectivePrice)}</strong>
+          </div>
         </div>
-        <p class="product-card__description">${escapeHtml(product.description || "Equipamento testado e validado para venda.")}</p>
+        <p class="product-card__description">${escapeHtml(product.description || "Premium product with secure checkout and warranty information.")}</p>
+        <div class="product-specs">
+          <span>${escapeHtml(product.category || "Product")}</span>
+          <span>${escapeHtml(product.condition || "New")}</span>
+        </div>
         <div class="product-card__footer">
-          <span class="availability ${stock > 0 ? "availability--ok" : "availability--empty"}">
-            ${stock > 0 ? `${stock} em stock` : "Indisponivel"}
-          </span>
-          <button class="btn btn--primary btn--small" data-add="${escapeHtml(product.id)}" ${stock > 0 ? "" : "disabled"}>
-            ${buttonText}
-          </button>
+          <button class="btn btn--ghost btn--small" data-add="${escapeHtml(product.id)}" ${stock > 0 ? "" : "disabled"}>${t("addToCart", currentLang)}</button>
+          <button class="btn btn--primary btn--small" data-buy="${escapeHtml(product.id)}" ${stock > 0 ? "" : "disabled"}>${t("buyNow", currentLang)}</button>
         </div>
       </div>
     </article>
@@ -81,82 +121,58 @@ function productCard(product) {
 
 function renderProducts(products) {
   if (!gridElement) return;
-
   if (!products.length) {
-    gridElement.innerHTML = `
-      <div class="empty-state">
-        <h3>Sem resultados</h3>
-        <p>Nao encontramos telemoveis com esse filtro. Ajusta a pesquisa e tenta novamente.</p>
-      </div>
-    `;
+    gridElement.innerHTML = `<div class="empty-state"><h3>No products found</h3><p>Try another category or search term.</p></div>`;
     return;
   }
 
   gridElement.innerHTML = products.map(productCard).join("");
 
-  gridElement.querySelectorAll("[data-add]").forEach((button) => {
+  gridElement.querySelectorAll("[data-add], [data-buy]").forEach((button) => {
     button.addEventListener("click", () => {
-      const id = button.getAttribute("data-add");
+      const id = button.getAttribute("data-add") || button.getAttribute("data-buy");
       const product = allProducts.find((item) => String(item.id) === id);
       if (!product) return;
-
       mergeCartItem(product.id, Number(product.stock ?? 0));
       updateCartBadge();
-      setStatus(`${product.name} foi adicionado ao carrinho.`, "success");
-      window.setTimeout(() => setStatus(""), 1800);
+      if (button.hasAttribute("data-buy")) window.location.href = "checkout.html";
+      else setStatus(`${product.name} added to cart.`, "success");
     });
   });
 }
 
 function applyFilters() {
-  const query = String(searchElement?.value || "").trim().toLowerCase();
-  const category = String(categoryElement?.value || "").trim().toLowerCase();
-
+  const query = normalize(searchElement?.value);
+  const category = normalize(categoryElement?.value);
   const filtered = allProducts.filter((product) => {
-    const haystack = `${product.name || ""} ${product.description || ""}`.toLowerCase();
-    const matchesQuery = !query || haystack.includes(query);
-    const matchesCategory = !category || String(product.category || "").toLowerCase() === category;
-    return matchesQuery && matchesCategory;
+    const text = normalize(`${product.name} ${product.brand} ${product.model} ${product.category} ${product.description}`);
+    return (!query || text.includes(query)) && (!category || normalize(product.category) === category);
   });
-
   renderProducts(filtered);
 }
 
 async function init() {
   updateCartBadge();
-  setStatus("A carregar telemoveis...", "neutral");
-
+  setStatus("Loading products...");
   try {
-    const user = await getCurrentUser().catch(() => null);
-    if (!user && logoutButton) {
-      logoutButton.classList.add("hidden");
-    }
-
     const products = await fetchActiveProducts();
-    const visibleProducts = products.filter(isPhoneProduct);
-    allProducts = visibleProducts.length
-      ? visibleProducts
-      : products.filter((product) => !hiddenCategories.has(normalizeValue(product.category)));
-
+    allProducts = products.length ? products : fallbackProducts();
     renderProducts(allProducts);
     setStatus("");
   } catch (error) {
-    setStatus(error.message || "Nao foi possivel carregar os telemoveis.", "error");
+    allProducts = fallbackProducts();
+    renderProducts(allProducts);
+    setStatus("Demo products are shown until Supabase products are configured.", "neutral");
   }
 }
-
-logoutButton?.addEventListener("click", async () => {
-  setStatus("A terminar sessao...", "neutral");
-
-  try {
-    await logoutAndRedirect("login.html");
-  } catch (error) {
-    setStatus(error.message || "Nao foi possivel terminar a sessao.", "error");
-  }
-});
 
 searchElement?.addEventListener("input", applyFilters);
 categoryElement?.addEventListener("change", applyFilters);
 window.addEventListener("cart:updated", updateCartBadge);
+document.querySelector("[data-language-select]")?.addEventListener("change", () => {
+  currentLang = localStorage.getItem("language") || "en";
+  updateCartBadge();
+  renderProducts(allProducts);
+});
 
 init();

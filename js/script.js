@@ -1,5 +1,5 @@
 import { SITE_NAME, buildWhatsAppUrl } from "./app-config.js";
-import { syncAccountLinks } from "./auth-utils.js";
+import { setupLanguageSelector } from "./i18n.js";
 
 const defaultMessage = [
   "Hello Droidunclock, I came from the website and need help with my phone.",
@@ -176,6 +176,7 @@ function setCurrentYear() {
 }
 
 document.title = `${SITE_NAME} | Fast Phone Repairs in the Netherlands`;
+setupLanguageSelector();
 setWhatsAppLinks();
 setupMenu();
 setupQuickForm();
@@ -183,7 +184,6 @@ setupRepairLinks();
 setupRevealAnimations();
 renderFeaturedProducts();
 setCurrentYear();
-syncAccountLinks();
 
 window.addEventListener("load", () => {
   revealVisibleElements();

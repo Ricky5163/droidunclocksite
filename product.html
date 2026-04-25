@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock | Product Details</title>
+  <meta name="description" content="Product details, warranty, delivery information, and secure checkout from Droidunclock." />
+  <meta name="theme-color" content="#050608" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-page">
+  <header class="site-header">
+    <div class="container header-bar">
+      <a class="brand" href="index.html">
+        <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
+        <div>
+          <strong>Droidunclock</strong>
+          <span>Product details</span>
+        </div>
+      </a>
+      <nav class="desktop-nav">
+        <a href="shop.html" data-i18n="navShop">Shop</a>
+        <a href="cart.html" data-cart-count>Cart</a>
+        <select class="language-select" data-language-select aria-label="Language">
+          <option value="en">EN</option>
+          <option value="pt">PT</option>
+          <option value="nl">NL</option>
+          <option value="es">ES</option>
+          <option value="fr">FR</option>
+          <option value="de">DE</option>
+        </select>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="container product-detail" id="productDetail">
+      <p class="status-text">Loading product...</p>
+    </section>
+  </main>
+
+  <script type="module" src="js/product.js"></script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock | Admin</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#050608" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-page">
+  <header class="site-header">
+    <div class="container header-bar">
+      <a class="brand" href="index.html">
+        <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
+        <div><strong>Droidunclock</strong><span>Admin dashboard</span></div>
+      </a>
+      <nav class="desktop-nav">
+        <a href="shop.html">Shop</a>
+        <button class="btn btn--ghost btn--small" id="logoutBtn" type="button">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="container admin-layout">
+      <aside class="glass-card admin-panel">
+        <span class="eyebrow">Product management</span>
+        <h1>Add or edit product</h1>
+        <form id="productForm" class="form-grid">
+          <input type="hidden" id="productId" />
+          <label>Name<input id="name" required /></label>
+          <div class="form-row">
+            <label>Brand<input id="brand" /></label>
+            <label>Model<input id="model" /></label>
+          </div>
+          <label>Category
+            <select id="category" required>
+              <option>Refurbished Phones</option>
+              <option>Phone Screens</option>
+              <option>Batteries</option>
+              <option>Charging Ports</option>
+              <option>Accessories</option>
+              <option>Repair Services</option>
+            </select>
+          </label>
+          <label>Condition
+            <select id="condition">
+              <option>New</option><option>Used</option><option>Refurbished</option><option>Excellent</option><option>Good</option>
+            </select>
+          </label>
+          <label>Description<textarea id="description" rows="3"></textarea></label>
+          <label>Image URLs<textarea id="images" rows="3" placeholder="One image URL per line"></textarea></label>
+          <div class="form-row">
+            <label>Price<input id="price" type="number" min="0" step="0.01" required /></label>
+            <label>Discount<input id="discountPrice" type="number" min="0" step="0.01" /></label>
+            <label>Stock<input id="stock" type="number" min="0" step="1" required /></label>
+          </div>
+          <label>Technical details<textarea id="technicalDetails" rows="3"></textarea></label>
+          <label>Warranty information<textarea id="warrantyInfo" rows="3"></textarea></label>
+          <label>Delivery information<textarea id="deliveryInfo" rows="3"></textarea></label>
+          <label class="checkbox-row"><input id="active" type="checkbox" checked /> Active</label>
+          <button class="btn btn--primary btn--block" type="submit">Save product</button>
+          <button class="btn btn--ghost btn--block" id="resetForm" type="button">New product</button>
+        </form>
+        <p id="adminStatus" class="status-text"></p>
+      </aside>
+
+      <section class="admin-content">
+        <div class="glass-card admin-panel">
+          <div class="section-head section-head--split">
+            <div><span class="eyebrow">Products</span><h2>Inventory</h2></div>
+          </div>
+          <div id="productsAdmin" class="admin-table"></div>
+        </div>
+        <div class="glass-card admin-panel">
+          <div class="section-head"><span class="eyebrow">Orders</span><h2>Order management</h2></div>
+          <div id="ordersAdmin" class="admin-table"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

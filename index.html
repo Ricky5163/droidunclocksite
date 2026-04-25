@@ -22,7 +22,6 @@
   />
   <link rel="stylesheet" href="css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -57,6 +56,14 @@
           <a class="btn btn--primary btn--small" data-whatsapp-link href="#" target="_blank" rel="noopener">
             WhatsApp
           </a>
+          <select class="language-select" data-language-select aria-label="Language">
+            <option value="en">EN</option>
+            <option value="pt">PT</option>
+            <option value="nl">NL</option>
+            <option value="es">ES</option>
+            <option value="fr">FR</option>
+            <option value="de">DE</option>
+          </select>
         </nav>
 
         <button class="icon-button menu-button" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false">
@@ -82,11 +89,11 @@
               <i data-lucide="zap"></i>
               Same-day repair available
             </span>
-            <h1>Fast & Reliable Phone Repairs in the Netherlands</h1>
-            <p class="lead">Same-day repairs. Trusted service. Premium quality.</p>
+            <h1 data-i18n="heroTitle">Premium phone repairs and refurbished devices worldwide</h1>
+            <p class="lead" data-i18n="heroText">Repair bookings, tested refurbished phones, and mobile parts with secure international checkout.</p>
             <div class="hero-actions">
-              <a class="btn btn--primary" href="#quote">Get a Quote</a>
-              <a class="btn btn--dark" data-whatsapp-link href="#" target="_blank" rel="noopener">Book a Repair</a>
+              <a class="btn btn--primary" href="#quote" data-i18n="getQuote">Get a Quote</a>
+              <a class="btn btn--dark" data-whatsapp-link href="#" target="_blank" rel="noopener" data-i18n="shopNow">Shop Now</a>
             </div>
             <div class="hero-proof" aria-label="Service highlights">
               <span>4.9 customer rating</span>

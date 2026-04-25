@@ -70,6 +70,24 @@ export function normalizeEmail(email) {
   return EMAIL_REGEX.test(clean) ? clean : null;
 }
 
+export function normalizeCustomer(body = {}) {
+  const customer = {
+    customer_name: String(body.customer_name || body.name || "").trim(),
+    customer_email: normalizeEmail(body.customer_email || body.email),
+    customer_phone: String(body.customer_phone || body.phone || "").trim(),
+    country: String(body.country || "").trim(),
+    address: String(body.address || "").trim(),
+    postal_code: String(body.postal_code || body.postalCode || "").trim(),
+    city: String(body.city || "").trim(),
+  };
+
+  const missing = Object.entries(customer)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  return { customer, missing };
+}
+
 export async function readJson(request) {
   return request.json().catch(() => ({}));
 }
@@ -113,7 +131,7 @@ export async function buildValidatedOrder(cart, supabase) {
   const ids = normalizedCart.map((item) => item.id);
   const { data: products, error } = await supabase
     .from("products")
-    .select("id,name,price,stock,active")
+    .select("id,name,price,discount_price,stock,active")
     .in("id", ids);
 
   if (error) throw new Error(error.message);
@@ -131,7 +149,9 @@ export async function buildValidatedOrder(cart, supabase) {
   let total = 0;
   const items = normalizedCart.map((item) => {
     const product = productMap.get(item.id);
-    const price = Number(product.price || 0);
+    const basePrice = Number(product.price || 0);
+    const discountPrice = Number(product.discount_price || 0);
+    const price = discountPrice > 0 && discountPrice < basePrice ? discountPrice : basePrice;
     const stock = Number(product.stock ?? 0);
 
     if (!Number.isFinite(price) || price <= 0) {
@@ -161,23 +181,24 @@ export async function buildValidatedOrder(cart, supabase) {
 export async function markOrderPaid(supabase, orderId, updates = {}) {
   const { data: currentOrder, error: currentError } = await supabase
     .from("orders")
-    .select("id,status,email,total,payment_provider")
+    .select("id,payment_status,order_status,customer_email,total_amount,payment_method")
     .eq("id", orderId)
     .single();
 
   if (currentError) throw new Error(currentError.message);
-  if (currentOrder.status === "paid") {
+  if (currentOrder.payment_status === "paid") {
     return { order: currentOrder, changed: false };
   }
 
   const { data: updatedOrder, error: updateError } = await supabase
     .from("orders")
     .update({
-      status: "paid",
+      payment_status: "paid",
+      order_status: "Paid",
       ...updates,
     })
     .eq("id", orderId)
-    .select("id,status,email,total,payment_provider")
+    .select("id,payment_status,order_status,customer_email,total_amount,payment_method")
     .single();
 
   if (updateError) throw new Error(updateError.message);

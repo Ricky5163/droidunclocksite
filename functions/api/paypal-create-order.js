@@ -5,7 +5,7 @@ import {
   ensureAllowedOrigin,
   handleOptions,
   json,
-  normalizeEmail,
+  normalizeCustomer,
   readJson,
 } from "./_utils.js";
 
@@ -39,24 +39,26 @@ export async function onRequest(context) {
     }
 
     const body = await readJson(request);
-    const email = normalizeEmail(body.email);
+    const { customer, missing: missingCustomer } = normalizeCustomer(body);
 
-    if (!email) {
-      return json(request, env, 400, { error: "Email invalido." });
+    if (missingCustomer.length) {
+      return json(request, env, 400, { error: "Missing customer fields: " + missingCustomer.join(", ") });
     }
 
     const supabase = createServiceClient(env);
     const orderDraft = await buildValidatedOrder(body.cart, supabase);
+    const shippingCost = Math.max(0, Number(body.shipping_cost || 0));
+    const totalAmount = Number((orderDraft.total + shippingCost).toFixed(2));
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
         {
-          email,
-          status: "pending",
-          currency: "EUR",
-          total: orderDraft.total,
-          payment_provider: "paypal",
+          ...customer,
+          total_amount: totalAmount,
+          payment_method: "paypal",
+          payment_status: "pending",
+          order_status: "Pending",
         },
       ])
       .select("id")
@@ -69,9 +71,10 @@ export async function onRequest(context) {
     const orderItems = orderDraft.items.map((item) => ({
       order_id: order.id,
       product_id: item.product_id,
-      name: item.name,
-      price: item.price,
-      qty: item.qty,
+      product_name: item.name,
+      unit_price: item.price,
+      quantity: item.qty,
+      total_price: Number((item.price * item.qty).toFixed(2)),
     }));
 
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
@@ -91,7 +94,7 @@ export async function onRequest(context) {
         purchase_units: [
           {
             reference_id: String(order.id),
-            amount: { currency_code: "EUR", value: orderDraft.total.toFixed(2) },
+            amount: { currency_code: "EUR", value: totalAmount.toFixed(2) },
           },
         ],
         application_context: {

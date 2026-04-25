@@ -51,7 +51,7 @@ export async function onRequest(context) {
       return json(request, env, 500, { error: orderError.message });
     }
 
-    if (order.status !== "paid") {
+    if (order.payment_status !== "paid") {
       return json(request, env, 409, { error: "A encomenda ainda nao esta paga." });
     }
 
@@ -64,7 +64,7 @@ export async function onRequest(context) {
       return json(request, env, 500, { error: itemsError.message });
     }
 
-    const customerEmail = normalizeEmail(order.email);
+    const customerEmail = normalizeEmail(order.customer_email);
     if (!customerEmail) {
       return json(request, env, 500, { error: "Email do cliente invalido." });
     }
@@ -79,7 +79,7 @@ export async function onRequest(context) {
 
     await sendEmail(env, {
       to: env.EMAIL_TO,
-      subject: `Nova encomenda paga #${order.id} - EUR ${Number(order.total || 0).toFixed(2)}`,
+      subject: `Nova encomenda paga #${order.id} - EUR ${Number(order.total_amount || 0).toFixed(2)}`,
       html,
     });
 

@@ -49,7 +49,7 @@ export async function onRequest(context) {
     const supabase = createServiceClient(env);
     const { data: order, error: orderLookupError } = await supabase
       .from("orders")
-      .select("id,status,paypal_order_id")
+      .select("id,payment_status,paypal_order_id")
       .eq("paypal_order_id", paypalOrderId)
       .single();
 
@@ -61,7 +61,7 @@ export async function onRequest(context) {
       return json(request, env, 400, { error: "Order mismatch." });
     }
 
-    if (order.status === "paid") {
+    if (order.payment_status === "paid") {
       return json(request, env, 200, { ok: true, alreadyPaid: true, orderId: order.id });
     }
 
@@ -85,7 +85,10 @@ export async function onRequest(context) {
       });
     }
 
-    await supabase.from("orders").update({ status: "paid" }).eq("id", order.id);
+    await supabase
+      .from("orders")
+      .update({ payment_status: "paid", order_status: "Paid" })
+      .eq("id", order.id);
     await triggerOrderEmails(env, order.id);
 
     return json(request, env, 200, { ok: true, orderId: order.id, data });

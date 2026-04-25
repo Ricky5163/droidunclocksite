@@ -5,7 +5,7 @@ import {
   ensureAllowedOrigin,
   handleOptions,
   json,
-  normalizeEmail,
+  normalizeCustomer,
   readJson,
 } from "./_utils.js";
 
@@ -39,24 +39,26 @@ export async function onRequest(context) {
     }
 
     const body = await readJson(request);
-    const email = normalizeEmail(body.email);
+    const { customer, missing: missingCustomer } = normalizeCustomer(body);
 
-    if (!email) {
-      return json(request, env, 400, { error: "Email invalido." });
+    if (missingCustomer.length) {
+      return json(request, env, 400, { error: "Missing customer fields: " + missingCustomer.join(", ") });
     }
 
     const supabase = createServiceClient(env);
     const orderDraft = await buildValidatedOrder(body.cart, supabase);
+    const shippingCost = Math.max(0, Number(body.shipping_cost || 0));
+    const totalAmount = Number((orderDraft.total + shippingCost).toFixed(2));
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
         {
-          email,
-          status: "pending",
-          currency: "EUR",
-          total: orderDraft.total,
-          payment_provider: "stripe",
+          ...customer,
+          total_amount: totalAmount,
+          payment_method: "stripe",
+          payment_status: "pending",
+          order_status: "Pending",
         },
       ])
       .select("id")
@@ -69,9 +71,10 @@ export async function onRequest(context) {
     const orderItems = orderDraft.items.map((item) => ({
       order_id: order.id,
       product_id: item.product_id,
-      name: item.name,
-      price: item.price,
-      qty: item.qty,
+      product_name: item.name,
+      unit_price: item.price,
+      quantity: item.qty,
+      total_price: Number((item.price * item.qty).toFixed(2)),
     }));
 
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
@@ -81,14 +84,19 @@ export async function onRequest(context) {
 
     const form = new URLSearchParams();
     form.set("mode", "payment");
-    form.set("customer_email", email);
+    form.set("customer_email", customer.customer_email);
     form.set("client_reference_id", String(order.id));
     form.set("success_url", `${env.SITE_URL}/success.html?order=${order.id}&session_id={CHECKOUT_SESSION_ID}`);
     form.set("cancel_url", `${env.SITE_URL}/cancel.html?order=${order.id}`);
     form.append("payment_method_types[]", "card");
     form.set("metadata[order_id]", String(order.id));
 
-    orderDraft.items.forEach((item, index) => {
+    const stripeItems = [...orderDraft.items];
+    if (shippingCost > 0) {
+      stripeItems.push({ name: "Shipping", price: shippingCost, qty: 1 });
+    }
+
+    stripeItems.forEach((item, index) => {
       form.set(`line_items[${index}][quantity]`, String(item.qty));
       form.set(`line_items[${index}][price_data][currency]`, "eur");
       form.set(
