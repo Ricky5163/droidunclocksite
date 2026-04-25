@@ -1,4 +1,4 @@
-import { escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=supa2";
+import { escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
 import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,

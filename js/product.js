@@ -1,4 +1,4 @@
-import { escapeHtml, getCartCount, mergeCartItem, parseImages, setupAdminLogoShortcut } from "./app-config.js?v=supa2";
+import { escapeHtml, getCartCount, mergeCartItem, parseImages, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
 import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 import { fetchActiveProducts, fetchProductBySlug, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
 

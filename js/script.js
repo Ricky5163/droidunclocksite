@@ -1,4 +1,4 @@
-import { SITE_NAME, buildWhatsAppUrl, setupAdminLogoShortcut } from "./app-config.js?v=supa2";
+import { SITE_NAME, buildWhatsAppUrl, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 
 const defaultMessage = [

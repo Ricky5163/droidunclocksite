@@ -1,5 +1,5 @@
-import { createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth4";
-import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js?v=auth4";
+import { buildAdminLoginRedirect, createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
+import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js?v=auth5";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
 
@@ -47,18 +47,28 @@ function slugify(value) {
 async function assertAdmin() {
   const user = await getCurrentUser({ wait: true });
   if (!user) {
-    window.location.href = "login.html?next=admin.html";
+    window.location.href = buildAdminLoginRedirect();
     return false;
   }
 
-  const { data, error } = await supabase
-    .from("admin_users")
-    .select("id,email,role")
-    .eq("email", user.email)
-    .maybeSingle();
+  let data;
+  let error;
+
+  try {
+    const response = await supabase
+      .from("admin_users")
+      .select("id,email,role")
+      .eq("email", user.email)
+      .maybeSingle();
+
+    data = response.data;
+    error = response.error;
+  } catch (requestError) {
+    error = requestError;
+  }
 
   if (error || !data) {
-    document.body.innerHTML = `<main class="result-page"><section class="result-card glass-card"><h1>Admin access required</h1><p class="muted">Your account is not listed in admin_users.</p><a class="btn btn--primary" href="index.html">Go home</a></section></main>`;
+    document.body.innerHTML = `<main class="result-page"><section class="result-card glass-card"><h1>Admin access required</h1><p class="muted">Your account is not listed in admin_users.</p><a class="btn btn--primary" href="${buildAdminLoginRedirect()}">Login as admin</a></section></main>`;
     return false;
   }
   return true;

@@ -161,6 +161,10 @@ export function buildLoginRedirect(path = window.location.pathname.split("/").po
   return `login.html?next=${encodeURIComponent(safePath)}`;
 }
 
+export function buildAdminLoginRedirect() {
+  return buildLoginRedirect("admin.html");
+}
+
 export function getPostLoginTarget() {
   const params = new URLSearchParams(window.location.search);
   return sanitizeReturnPath(params.get("next"), DEFAULT_LOGIN_REDIRECT);
@@ -187,7 +191,7 @@ export function setupAdminLogoShortcut(selector = ".site-header .brand, .dashboa
 
       if (now - lastClick < 360) {
         window.clearTimeout(clickTimer);
-        window.location.href = "admin.html";
+        window.location.href = buildAdminLoginRedirect();
         return;
       }
 

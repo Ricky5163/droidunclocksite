@@ -1,5 +1,5 @@
-import { buildLoginRedirect, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=supa2";
-import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js?v=lang2";
+import { buildLoginRedirect, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
+import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js?v=auth5";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,

@@ -1,4 +1,4 @@
-import { getAuthenticatedRedirectTarget, logoutAndRedirect, redirectIfAuthenticated, supabase, waitForSession } from "./auth-utils.js?v=auth4";
+import { getAuthenticatedRedirectTarget, logoutAndRedirect, redirectIfAuthenticated, supabase, waitForSession } from "./auth-utils.js?v=auth5";
 
 const statusElement = document.getElementById("status");
 const loginForm = document.getElementById("loginForm");

@@ -3,7 +3,7 @@ import {
   buildLoginRedirect,
   createSupabaseBrowserClient,
   getPostLoginTarget,
-} from "./app-config.js?v=auth4";
+} from "./app-config.js?v=auth5";
 
 const supabase = createSupabaseBrowserClient();
 const SESSION_WAIT_TIMEOUT = 3000;
@@ -68,6 +68,8 @@ export async function requireAuth(options = {}) {
 }
 
 export async function redirectIfAuthenticated() {
+  if (getPostLoginTarget() === "admin.html") return null;
+
   const user = await getCurrentUser({ wait: true, timeoutMs: 800 });
   if (!user) return null;
 
