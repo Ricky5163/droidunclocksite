@@ -1,5 +1,5 @@
-import { getPostLoginTarget } from "./app-config.js?v=supa1";
-import { logoutAndRedirect, redirectIfAuthenticated, supabase } from "./auth-utils.js?v=supa1";
+import { getPostLoginTarget } from "./app-config.js?v=supa2";
+import { logoutAndRedirect, redirectIfAuthenticated, supabase } from "./auth-utils.js?v=supa2";
 
 const statusElement = document.getElementById("status");
 const loginForm = document.getElementById("loginForm");
@@ -7,6 +7,10 @@ const signupForm = document.getElementById("signupForm");
 const toggleSignupButton = document.getElementById("toggleSignup");
 const signupWrap = document.getElementById("signupWrap");
 const logoutButton = document.getElementById("logoutBtn");
+const loginEmailInput = document.getElementById("loginEmail");
+const loginPasswordInput = document.getElementById("loginPassword");
+const signupEmailInput = document.getElementById("signupEmail");
+const signupPasswordInput = document.getElementById("signupPassword");
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
@@ -37,8 +41,14 @@ loginForm?.addEventListener("submit", async (event) => {
   setStatus("A validar credenciais...", "neutral");
 
   const data = new FormData(loginForm);
-  const email = String(data.get("email") || "").trim();
-  const password = String(data.get("password") || "");
+  const email = String(loginEmailInput?.value || data.get("email") || "").trim().toLowerCase();
+  const password = String(loginPasswordInput?.value || data.get("password") || "");
+
+  if (!email) {
+    setBusy(loginForm, false);
+    setStatus("Introduz o email antes de entrar.", "error");
+    return;
+  }
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   setBusy(loginForm, false);
@@ -58,8 +68,14 @@ signupForm?.addEventListener("submit", async (event) => {
   setStatus("A criar conta segura...", "neutral");
 
   const data = new FormData(signupForm);
-  const email = String(data.get("email") || "").trim();
-  const password = String(data.get("password") || "");
+  const email = String(signupEmailInput?.value || data.get("email") || "").trim().toLowerCase();
+  const password = String(signupPasswordInput?.value || data.get("password") || "");
+
+  if (!email) {
+    setBusy(signupForm, false);
+    setStatus("Introduz o email para criar a conta.", "error");
+    return;
+  }
 
   if (password.length < 8) {
     setBusy(signupForm, false);

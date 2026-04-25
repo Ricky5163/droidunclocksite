@@ -1,4 +1,4 @@
-import { createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=supa1";
+import { createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=supa2";
 import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js?v=lang2";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";

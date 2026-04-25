@@ -12,7 +12,7 @@
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
     rel="stylesheet"
   />
-  <link rel="stylesheet" href="css/styles.css?v=supa1" />
+  <link rel="stylesheet" href="css/styles.css?v=supa2" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="auth-page">
@@ -60,13 +60,14 @@
         <form id="loginForm" class="form-grid">
           <label>
             Email
-            <input type="email" name="email" placeholder="teuemail@exemplo.com" autocomplete="email" required />
+            <input id="loginEmail" type="email" name="email" placeholder="teuemail@exemplo.com" autocomplete="username email" required />
           </label>
 
           <label>
             Palavra-passe
             <input
               type="password"
+              id="loginPassword"
               name="password"
               placeholder="Minimo de 8 caracteres"
               minlength="8"
@@ -90,13 +91,14 @@
           <form id="signupForm" class="form-grid">
             <label>
               Email
-              <input type="email" name="email" placeholder="teuemail@exemplo.com" autocomplete="email" required />
+              <input id="signupEmail" type="email" name="email" placeholder="teuemail@exemplo.com" autocomplete="username email" required />
             </label>
 
             <label>
               Palavra-passe
               <input
                 type="password"
+                id="signupPassword"
                 name="password"
                 placeholder="Escolhe uma palavra-passe forte"
                 minlength="8"
@@ -120,6 +122,6 @@
     </section>
   </main>
 
-  <script type="module" src="js/auth.js?v=supa1"></script>
+  <script type="module" src="js/auth.js?v=supa2"></script>
 </body>
 </html>
