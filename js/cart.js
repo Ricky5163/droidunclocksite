@@ -1,4 +1,3 @@
-import { requireAuth } from "./auth-utils.js";
 import {
   buildCartDetails,
   fetchProductsByIds,
@@ -140,7 +139,5 @@ async function render() {
 }
 
 (async function init() {
-  const user = await requireAuth({ redirectTo: "cart.html" });
-  if (!user) return;
   await render();
 })();

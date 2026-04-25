@@ -37,7 +37,7 @@ export function createSupabaseBrowserClient() {
 
 export function formatEuro(value) {
   const number = Number(value || 0);
-  return number.toLocaleString("pt-PT", {
+  return number.toLocaleString("nl-NL", {
     style: "currency",
     currency: "EUR",
   });

@@ -1,5 +1,5 @@
-import { isValidEmail } from "./app-config.js";
-import { hydrateUserEmail, requireAuth } from "./auth-utils.js";
+import { buildLoginRedirect, isValidEmail } from "./app-config.js";
+import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js";
 import {
   buildCartDetails,
   buildCheckoutPayload,
@@ -15,6 +15,9 @@ const summaryElement = document.getElementById("orderSummary");
 const totalElement = document.getElementById("orderTotal");
 const stripeButton = document.getElementById("payStripe");
 const paypalButton = document.getElementById("payPayPal");
+const checkoutMainElement = document.getElementById("checkoutMain");
+const checkoutGateElement = document.getElementById("checkoutGate");
+const checkoutLoginLink = document.getElementById("checkoutLoginLink");
 
 let orderLines = [];
 
@@ -28,6 +31,19 @@ function setBusy(busy) {
   [stripeButton, paypalButton, emailElement].forEach((element) => {
     if (element) element.disabled = busy;
   });
+}
+
+function showCheckout() {
+  checkoutMainElement?.classList.remove("hidden");
+  checkoutGateElement?.classList.add("hidden");
+}
+
+function showLoginGate() {
+  checkoutMainElement?.classList.add("hidden");
+  checkoutGateElement?.classList.remove("hidden");
+  if (checkoutLoginLink) {
+    checkoutLoginLink.href = buildLoginRedirect("checkout.html");
+  }
 }
 
 function renderSummary(lines, total) {
@@ -133,8 +149,13 @@ paypalButton?.addEventListener("click", () => {
 });
 
 (async function init() {
-  const user = await requireAuth({ redirectTo: "checkout.html" });
-  if (!user) return;
+  const user = await getCurrentUser().catch(() => null);
+  if (!user) {
+    showLoginGate();
+    return;
+  }
+
+  showCheckout();
   await hydrateUserEmail(emailElement);
 
   try {

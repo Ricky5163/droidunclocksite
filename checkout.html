@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page checkout-guarded">
   <header class="dashboard-header">
     <div class="container dashboard-header__bar">
       <a class="brand" href="cart.html">
@@ -32,7 +32,7 @@
     </div>
   </header>
 
-  <main class="dashboard-main">
+  <main class="dashboard-main hidden" id="checkoutMain">
     <div class="container checkout-layout">
       <section class="glass-card checkout-panel">
         <div class="section-head section-head--compact">
@@ -74,6 +74,20 @@
       </aside>
     </div>
   </main>
+
+  <section class="result-page hidden" id="checkoutGate">
+    <main class="result-card glass-card">
+      <span class="eyebrow">Login obrigatorio</span>
+      <h1>Entra para continuar o checkout.</h1>
+      <p class="muted">
+        A loja e o carrinho podem ser vistos sem sessao, mas o pagamento so avanca dentro da area do cliente.
+      </p>
+      <div class="result-actions">
+        <a class="btn btn--primary" id="checkoutLoginLink" href="login.html?next=checkout.html">Entrar</a>
+        <a class="btn btn--ghost" href="cart.html">Voltar ao carrinho</a>
+      </div>
+    </main>
+  </section>
 
   <script type="module" src="js/checkout.js"></script>
 </body>

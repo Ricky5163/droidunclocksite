@@ -1,5 +1,5 @@
 import { escapeHtml, mergeCartItem } from "./app-config.js";
-import { logoutAndRedirect, requireAuth } from "./auth-utils.js";
+import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js";
 import { fetchActiveProducts, formatEuro } from "./storefront.js";
 
 const statusElement = document.getElementById("status");
@@ -9,7 +9,26 @@ const categoryElement = document.getElementById("category");
 const logoutButton = document.getElementById("logoutBtn");
 const cartButtons = document.querySelectorAll("[data-cart-count]");
 
+const hiddenCategories = new Set(["peca", "pecas", "acessorio", "acessorios", "servico", "servicos", "reparacao", "reparacoes"]);
+const phoneKeywords = ["iphone", "samsung", "xiaomi", "redmi", "pixel", "huawei", "oppo", "realme", "oneplus", "motorola", "nokia", "telemovel", "smartphone"];
 let allProducts = [];
+
+function normalizeValue(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function isPhoneProduct(product) {
+  const category = normalizeValue(product.category);
+  const text = normalizeValue(`${product.name || ""} ${product.description || ""}`);
+
+  if (hiddenCategories.has(category)) return false;
+  if (category.includes("telemovel") || category.includes("smartphone")) return true;
+  return phoneKeywords.some((keyword) => text.includes(keyword));
+}
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
@@ -41,12 +60,12 @@ function productCard(product) {
       <div class="product-card__body">
         <div class="product-card__head">
           <div>
-            <p class="eyebrow">${escapeHtml(product.category || "Produto")}</p>
+            <p class="eyebrow">Telemovel</p>
             <h3>${escapeHtml(product.name)}</h3>
           </div>
           <strong>${formatEuro(product.price)}</strong>
         </div>
-        <p class="product-card__description">${escapeHtml(product.description || "Produto testado e validado para venda.")}</p>
+        <p class="product-card__description">${escapeHtml(product.description || "Equipamento testado e validado para venda.")}</p>
         <div class="product-card__footer">
           <span class="availability ${stock > 0 ? "availability--ok" : "availability--empty"}">
             ${stock > 0 ? `${stock} em stock` : "Indisponivel"}
@@ -67,7 +86,7 @@ function renderProducts(products) {
     gridElement.innerHTML = `
       <div class="empty-state">
         <h3>Sem resultados</h3>
-        <p>Nao encontrámos produtos com esse filtro. Ajusta a pesquisa e tenta novamente.</p>
+        <p>Nao encontramos telemoveis com esse filtro. Ajusta a pesquisa e tenta novamente.</p>
       </div>
     `;
     return;
@@ -104,17 +123,25 @@ function applyFilters() {
 }
 
 async function init() {
-  const user = await requireAuth({ redirectTo: "shop.html" });
-  if (!user) return;
   updateCartBadge();
-  setStatus("A carregar catalogo...", "neutral");
+  setStatus("A carregar telemoveis...", "neutral");
 
   try {
-    allProducts = await fetchActiveProducts();
+    const user = await getCurrentUser().catch(() => null);
+    if (!user && logoutButton) {
+      logoutButton.classList.add("hidden");
+    }
+
+    const products = await fetchActiveProducts();
+    const visibleProducts = products.filter(isPhoneProduct);
+    allProducts = visibleProducts.length
+      ? visibleProducts
+      : products.filter((product) => !hiddenCategories.has(normalizeValue(product.category)));
+
     renderProducts(allProducts);
     setStatus("");
   } catch (error) {
-    setStatus(error.message || "Nao foi possivel carregar os produtos.", "error");
+    setStatus(error.message || "Nao foi possivel carregar os telemoveis.", "error");
   }
 }
 

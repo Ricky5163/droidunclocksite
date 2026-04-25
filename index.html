@@ -1,272 +1,398 @@
 <!doctype html>
-<html lang="pt-PT">
+<html lang="en-NL">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Droidunclock | Reparacao, Recondicionados e Checkout Seguro</title>
+  <title>Droidunclock | Fast & Reliable Phone Repairs in the Netherlands</title>
   <meta
     name="description"
-    content="Droidunclock: reparacao de smartphones, recondicionados testados, loja online com login seguro e pagamentos validados no servidor."
+    content="Droidunclock provides same-day mobile phone repairs and refurbished phones in the Netherlands. Screen repair, battery replacement, charging port repair, diagnostics, and premium service."
   />
-  <meta name="theme-color" content="#09111f" />
+  <meta name="theme-color" content="#050608" />
+  <meta property="og:title" content="Droidunclock | Phone Repairs in the Netherlands" />
+  <meta property="og:description" content="Same-day repairs, trusted service, premium quality, and refurbished phones." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/img_2.jpg" />
+  <link rel="canonical" href="https://droidunclock.nl/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
   <link rel="stylesheet" href="css/styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Droidunclock",
+      "description": "Mobile phone repair and refurbished device service in the Netherlands.",
+      "areaServed": "Netherlands",
+      "email": "droidunclock@gmail.com",
+      "url": "https://droidunclock.nl/",
+      "priceRange": "€€"
+    }
+  </script>
 </head>
 <body>
   <div class="page-shell">
     <header class="site-header">
       <div class="container header-bar">
-        <a class="brand" href="index.html" aria-label="Droidunclock">
+        <a class="brand" href="index.html" aria-label="Droidunclock homepage">
           <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
           <div>
             <strong>Droidunclock</strong>
-            <span>Reparacao, revenda e apoio tecnico</span>
+            <span>Repair & refurbished devices</span>
           </div>
         </a>
 
-        <nav class="desktop-nav" aria-label="Navegacao principal">
-          <a href="#servicos">Servicos</a>
-          <a href="#processo">Processo</a>
-          <a href="#seguranca">Seguranca</a>
-          <a href="#contacto">Contacto</a>
-          <a href="shop.html">Loja</a>
-          <a class="btn btn--ghost btn--small" data-account-link href="login.html">Entrar</a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="#services">Repairs</a>
+          <a href="#store">Devices</a>
+          <a href="#reviews">Reviews</a>
+          <a href="#contact">Contact</a>
+          <a class="btn btn--ghost btn--small" href="shop.html">Shop</a>
+          <a class="btn btn--primary btn--small" data-whatsapp-link href="#" target="_blank" rel="noopener">
+            WhatsApp
+          </a>
         </nav>
 
-        <button class="menu-button" id="menuBtn" type="button" aria-label="Abrir menu" aria-expanded="false">
-          Menu
+        <button class="icon-button menu-button" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false">
+          <i data-lucide="menu"></i>
         </button>
       </div>
 
-      <nav class="mobile-nav" id="mobileNav" aria-label="Menu mobile" aria-hidden="true">
-        <a href="#servicos">Servicos</a>
-        <a href="#processo">Processo</a>
-        <a href="#seguranca">Seguranca</a>
-        <a href="#contacto">Contacto</a>
-        <a href="shop.html">Loja</a>
-        <a data-account-link href="login.html">Entrar</a>
+      <nav class="mobile-nav" id="mobileNav" aria-label="Mobile menu" aria-hidden="true">
+        <a href="#services">Repairs</a>
+        <a href="#store">Devices</a>
+        <a href="#reviews">Reviews</a>
+        <a href="#contact">Contact</a>
+        <a href="shop.html">Shop</a>
+        <a data-whatsapp-link href="#" target="_blank" rel="noopener">WhatsApp</a>
       </nav>
     </header>
 
     <main>
-      <section class="hero hero--home">
+      <section class="hero hero--premium">
         <div class="container hero-grid">
-          <div class="hero-copy">
-            <span class="eyebrow">Servico local com operacao mais profissional</span>
-            <h1>Reparacao rapida, loja validada e area de cliente no sitio certo.</h1>
-            <p class="lead">
-              A Droidunclock junta diagnostico, revenda e checkout online num fluxo mais confiavel:
-              login seguro, carrinho validado com stock real e pagamentos confirmados no servidor.
-            </p>
-
+          <div class="hero-copy reveal">
+            <span class="badge badge--accent">
+              <i data-lucide="zap"></i>
+              Same-day repair available
+            </span>
+            <h1>Fast & Reliable Phone Repairs in the Netherlands</h1>
+            <p class="lead">Same-day repairs. Trusted service. Premium quality.</p>
             <div class="hero-actions">
-              <a class="btn btn--primary" data-whatsapp-link href="#" target="_blank" rel="noopener">
-                Pedir orcamento no WhatsApp
-              </a>
-              <a class="btn btn--ghost" href="login.html">Entrar na area do cliente</a>
+              <a class="btn btn--primary" href="#quote">Get a Quote</a>
+              <a class="btn btn--dark" data-whatsapp-link href="#" target="_blank" rel="noopener">Book a Repair</a>
             </div>
-
-            <div class="hero-stats">
-              <article class="stat-card">
-                <strong>Checkout protegido</strong>
-                <span>Precos e stock validados no backend antes do pagamento.</span>
-              </article>
-              <article class="stat-card">
-                <strong>Processo claro</strong>
-                <span>Diagnostico, proposta, reparacao e entrega com comunicacao direta.</span>
-              </article>
-              <article class="stat-card">
-                <strong>Apoio rapido</strong>
-                <span>Pedidos de orcamento e suporte centralizados em WhatsApp e email.</span>
-              </article>
+            <div class="hero-proof" aria-label="Service highlights">
+              <span>4.9 customer rating</span>
+              <span>Warranty included</span>
+              <span>English-friendly</span>
             </div>
           </div>
 
-          <aside class="hero-panel glass-card">
-            <div class="hero-panel__top">
-              <span class="eyebrow">Pedido rapido</span>
-              <h2>Abre a conversa certa sem perder tempo.</h2>
-              <p class="muted">
-                Escolhe o tipo de pedido e enviamos uma mensagem pronta com a informacao essencial.
-              </p>
-            </div>
-
-            <form id="quickForm" class="form-grid">
-              <label>
-                Modelo
-                <input name="modelo" type="text" placeholder="Ex.: Samsung A34 ou iPhone 11" required />
-              </label>
-
-              <label>
-                Pedido
-                <select name="problema" required>
-                  <option value="" disabled selected>Seleciona uma opcao</option>
-                  <option>Troca de ecra</option>
-                  <option>Troca de bateria</option>
-                  <option>Porta de carregamento</option>
-                  <option>Diagnostico</option>
-                  <option>Comprar recondicionado</option>
-                  <option>Comprar peca</option>
-                </select>
-              </label>
-
-              <label>
-                Observacoes
-                <textarea name="obs" rows="4" placeholder="Descreve o sintoma ou o que procuras."></textarea>
-              </label>
-
-              <button class="btn btn--primary btn--block" type="submit">Abrir WhatsApp</button>
-            </form>
-
-            <div class="security-strip">
-              <div>
-                <strong>Area do cliente</strong>
-                <p>Login dedicado, loja privada e checkout com confirmacao automatica.</p>
+          <div class="hero-visual reveal" aria-label="Premium phone repair visual">
+            <div class="phone-scene">
+              <div class="phone-card phone-card--front">
+                <div class="phone-screen">
+                  <span class="screen-pill"></span>
+                  <div class="repair-status">
+                    <i data-lucide="shield-check"></i>
+                    <strong>Ready today</strong>
+                    <span>Screen repair estimate</span>
+                  </div>
+                  <div class="status-line"></div>
+                  <div class="status-line status-line--short"></div>
+                </div>
               </div>
-              <a class="btn btn--ghost btn--small" href="login.html">Aceder</a>
+              <div class="phone-card phone-card--back">
+                <div class="camera-dot"></div>
+                <div class="camera-dot camera-dot--small"></div>
+              </div>
+              <div class="visual-chip visual-chip--top">
+                <i data-lucide="battery-charging"></i>
+                Battery checked
+              </div>
+              <div class="visual-chip visual-chip--bottom">
+                <i data-lucide="sparkles"></i>
+                Premium parts
+              </div>
             </div>
-          </aside>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="container split-banner">
-          <div>
-            <span class="eyebrow">Posicionamento</span>
-            <h2>Um site com cara de oficina premium, nao apenas um catalogo.</h2>
           </div>
-          <p class="muted">
-            A nova estrutura destaca servico, confianca e experiencia de compra. O visitante entende
-            rapidamente quem atende, como compra e onde faz login para continuar o processo.
-          </p>
         </div>
       </section>
 
-      <section class="section" id="servicos">
+      <section class="trust-strip" aria-label="Trust highlights">
+        <div class="container trust-grid">
+          <article class="trust-item reveal">
+            <i data-lucide="timer"></i>
+            <strong>Same-day service</strong>
+            <span>Fast turnaround on common repairs.</span>
+          </article>
+          <article class="trust-item reveal">
+            <i data-lucide="badge-check"></i>
+            <strong>Warranty included</strong>
+            <span>Clear coverage after repair.</span>
+          </article>
+          <article class="trust-item reveal">
+            <i data-lucide="receipt-text"></i>
+            <strong>100% transparency</strong>
+            <span>Diagnosis and pricing before work starts.</span>
+          </article>
+          <article class="trust-item reveal">
+            <i data-lucide="messages-square"></i>
+            <strong>English-friendly service</strong>
+            <span>Simple support for international customers.</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="services">
         <div class="container">
-          <div class="section-head">
-            <span class="eyebrow">Servicos principais</span>
-            <h2>Atendimento mais claro, tecnico e comercial.</h2>
+          <div class="section-head reveal">
+            <span class="eyebrow">Repairs</span>
+            <h2>Premium repair services without the waiting room energy.</h2>
           </div>
-
-          <div class="feature-grid">
-            <article class="info-card">
-              <h3>Reparacao de ecra</h3>
-              <p>Substituicao com validacao de touch, imagem, brilho e acabamento final.</p>
+          <div class="service-grid">
+            <article class="service-card reveal">
+              <i data-lucide="smartphone"></i>
+              <h3>Screen Repair</h3>
+              <p>Sharp display replacements for cracked glass, touch issues, and dead pixels.</p>
+              <div class="card-footer">
+                <strong>From €79</strong>
+                <a data-repair-request="Screen Repair" href="#">Request Repair</a>
+              </div>
             </article>
-            <article class="info-card">
-              <h3>Baterias e energia</h3>
-              <p>Troca com verificacao de carga, estabilidade e boas praticas de utilizacao.</p>
+            <article class="service-card reveal">
+              <i data-lucide="battery-charging"></i>
+              <h3>Battery Replacement</h3>
+              <p>Restore battery life and reduce unexpected shutdowns with a clean replacement.</p>
+              <div class="card-footer">
+                <strong>From €49</strong>
+                <a data-repair-request="Battery Replacement" href="#">Request Repair</a>
+              </div>
             </article>
-            <article class="info-card">
-              <h3>Recondicionados</h3>
-              <p>Equipamentos selecionados com checkout dedicado e pagamento acompanhado.</p>
+            <article class="service-card reveal">
+              <i data-lucide="plug-zap"></i>
+              <h3>Charging Port Repair</h3>
+              <p>Fix loose cables, slow charging, and connection problems with careful diagnostics.</p>
+              <div class="card-footer">
+                <strong>From €59</strong>
+                <a data-repair-request="Charging Port Repair" href="#">Request Repair</a>
+              </div>
             </article>
-            <article class="info-card">
-              <h3>Pecas e acessorios</h3>
-              <p>Venda de itens com stock real e carrinho sincronizado com a loja.</p>
+            <article class="service-card reveal">
+              <i data-lucide="droplets"></i>
+              <h3>Water Damage Diagnosis</h3>
+              <p>Professional inspection after spills, rain exposure, or device failure.</p>
+              <div class="card-footer">
+                <strong>From €29</strong>
+                <a data-repair-request="Water Damage Diagnosis" href="#">Request Repair</a>
+              </div>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section section--alt" id="processo">
-        <div class="container">
-          <div class="section-head">
-            <span class="eyebrow">Processo</span>
-            <h2>Do primeiro contacto ao pagamento confirmado.</h2>
+      <section class="section section--soft" id="quote">
+        <div class="container quote-layout">
+          <div class="section-head reveal">
+            <span class="eyebrow">Quote</span>
+            <h2>Tell us what happened. We will reply with clear next steps.</h2>
+            <p class="muted">Built for WhatsApp first, so customers can move from question to booking quickly.</p>
           </div>
+          <form id="quickForm" class="quote-form reveal">
+            <label>
+              Device model
+              <input name="model" type="text" placeholder="iPhone 13, Samsung S23, Pixel 8" required />
+            </label>
+            <label>
+              Service needed
+              <select name="service" required>
+                <option value="" disabled selected>Select a service</option>
+                <option>Screen Repair</option>
+                <option>Battery Replacement</option>
+                <option>Charging Port Repair</option>
+                <option>Water Damage Diagnosis</option>
+                <option>Refurbished device inquiry</option>
+              </select>
+            </label>
+            <label>
+              Notes
+              <textarea name="notes" rows="4" placeholder="Tell us the issue, preferred timing, and your city."></textarea>
+            </label>
+            <button class="btn btn--primary btn--block" type="submit">Send via WhatsApp</button>
+          </form>
+        </div>
+      </section>
 
-          <div class="timeline-grid">
-            <article class="timeline-card">
+      <section class="section" id="process">
+        <div class="container">
+          <div class="section-head reveal">
+            <span class="eyebrow">How it works</span>
+            <h2>A clean repair flow from first message to pickup.</h2>
+          </div>
+          <div class="steps">
+            <article class="step-card reveal">
               <span>01</span>
-              <h3>Triagem rapida</h3>
-              <p>Recebemos o pedido, confirmamos o modelo e alinhamos o tipo de intervencao.</p>
+              <h3>Contact us</h3>
+              <p>Send your model, issue, and preferred timing.</p>
             </article>
-            <article class="timeline-card">
+            <article class="step-card reveal">
               <span>02</span>
-              <h3>Proposta transparente</h3>
-              <p>Preco, disponibilidade e caminho de reparacao ou compra antes de avancares.</p>
+              <h3>Diagnose</h3>
+              <p>We confirm the likely repair, cost, and timeframe.</p>
             </article>
-            <article class="timeline-card">
+            <article class="step-card reveal">
               <span>03</span>
-              <h3>Entrega com registo</h3>
-              <p>Pagamento confirmado, email emitido e acompanhamento simples na area privada.</p>
+              <h3>Repair</h3>
+              <p>Your device is handled with professional tools and tested parts.</p>
+            </article>
+            <article class="step-card reveal">
+              <span>04</span>
+              <h3>Delivery / Pickup</h3>
+              <p>Collect your phone or arrange delivery where available.</p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section" id="seguranca">
-        <div class="container security-grid">
-          <div class="glass-card security-card">
-            <span class="eyebrow">Seguranca aplicada</span>
-            <h2>O site agora valida no servidor o que realmente importa.</h2>
-            <ul class="feature-list">
-              <li>Checkout nao usa preco vindo do browser para gerar a encomenda.</li>
-              <li>Stock e disponibilidade sao revalidados antes de abrir Stripe ou PayPal.</li>
-              <li>Fluxo de email interno protegido para evitar abuso publico do endpoint.</li>
-              <li>Area de cliente separada da landing para manter o funil mais limpo.</li>
-            </ul>
+      <section class="section section--dark" id="store">
+        <div class="container">
+          <div class="section-head section-head--split reveal">
+            <div>
+              <span class="eyebrow">Store</span>
+              <h2>Featured refurbished devices.</h2>
+            </div>
+            <a class="btn btn--ghost" href="shop.html">View shop</a>
           </div>
+          <div class="product-skeleton-grid" id="productSkeletons" aria-hidden="true">
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
+          </div>
+          <div class="product-grid product-grid--featured" id="featuredProducts" aria-live="polite"></div>
+        </div>
+      </section>
 
-          <div class="glass-card security-card security-card--contrast">
-            <span class="eyebrow">Area do cliente</span>
-            <h2>O login ficou onde faz sentido: junto da compra e do acompanhamento.</h2>
-            <p>
-              Quem chega pelo site recebe primeiro contexto e confianca. Quando quer comprar,
-              entra na area privada, acede a loja e segue para carrinho e checkout com sessao ativa.
-            </p>
-            <a class="btn btn--primary" href="login.html">Entrar agora</a>
+      <section class="section" id="why">
+        <div class="container why-layout">
+          <div class="section-head reveal">
+            <span class="eyebrow">Why choose us</span>
+            <h2>Designed for people who need their phone back fast.</h2>
+          </div>
+          <div class="why-grid">
+            <article class="why-card reveal">
+              <i data-lucide="rotate-cw"></i>
+              <strong>Fast turnaround</strong>
+              <span>Common repairs are planned for same-day completion when parts are available.</span>
+            </article>
+            <article class="why-card reveal">
+              <i data-lucide="wallet-cards"></i>
+              <strong>Affordable pricing</strong>
+              <span>Clear quotes before repair, with no surprise charges at pickup.</span>
+            </article>
+            <article class="why-card reveal">
+              <i data-lucide="wrench"></i>
+              <strong>Professional tools</strong>
+              <span>Repairs are handled with clean processes, testing, and careful device handling.</span>
+            </article>
+            <article class="why-card reveal">
+              <i data-lucide="heart-handshake"></i>
+              <strong>Customer satisfaction</strong>
+              <span>Friendly support, transparent communication, and warranty-backed service.</span>
+            </article>
           </div>
         </div>
       </section>
 
-      <section class="section" id="contacto">
-        <div class="container contact-grid">
-          <div class="glass-card contact-card">
-            <span class="eyebrow">Contacto direto</span>
-            <h2>Fala comigo sem rodeios.</h2>
-            <p class="muted">Para orcamentos rapidos, duvidas tecnicas ou acompanhamento de compra.</p>
-            <div class="stack-actions">
-              <a class="btn btn--primary btn--block" data-whatsapp-link href="#" target="_blank" rel="noopener">
-                Abrir WhatsApp
-              </a>
-              <a class="btn btn--ghost btn--block" href="mailto:droidunclock@gmail.com?subject=Droidunclock%20-%20Pedido">
-                Enviar email
-              </a>
-            </div>
+      <section class="section section--soft" id="reviews">
+        <div class="container">
+          <div class="section-head reveal">
+            <span class="eyebrow">Testimonials</span>
+            <h2>Trusted by customers who value speed and clarity.</h2>
           </div>
+          <div class="review-grid">
+            <article class="review-card reveal">
+              <div class="stars">★★★★★</div>
+              <p>“My iPhone screen was replaced the same day and the communication was excellent.”</p>
+              <strong>Sophie M.</strong>
+              <span>Amsterdam</span>
+            </article>
+            <article class="review-card reveal">
+              <div class="stars">★★★★★</div>
+              <p>“Clear price, quick battery replacement, and no pressure. Very professional service.”</p>
+              <strong>Daniel R.</strong>
+              <span>Rotterdam</span>
+            </article>
+            <article class="review-card reveal">
+              <div class="stars">★★★★★</div>
+              <p>“I bought a refurbished Samsung and it arrived clean, tested, and exactly as described.”</p>
+              <strong>Amina K.</strong>
+              <span>Utrecht</span>
+            </article>
+            <article class="review-card reveal">
+              <div class="stars">★★★★★</div>
+              <p>“English support made everything easy. Diagnosis, repair, pickup. Smooth from start to finish.”</p>
+              <strong>Lucas V.</strong>
+              <span>The Hague</span>
+            </article>
+          </div>
+        </div>
+      </section>
 
-          <div class="glass-card contact-card">
-            <span class="eyebrow">Zona e horario</span>
-            <h2>Figueira da Foz e arredores</h2>
-            <p class="muted">Atendimento por mensagem e entregas por combinacao.</p>
-            <div class="contact-meta">
-              <div>
-                <strong>Janela habitual</strong>
-                <p>Dias uteis a partir das 18:00 e sabados por marcacao.</p>
-              </div>
-              <div>
-                <strong>Loja online</strong>
-                <p>Disponivel para compras com login e pagamentos digitais.</p>
-              </div>
-            </div>
-          </div>
+      <section class="final-cta" id="contact">
+        <div class="container final-cta__inner reveal">
+          <span class="badge badge--light">
+            <i data-lucide="clock-3"></i>
+            Same-day repair available
+          </span>
+          <h2>Need your phone fixed today?</h2>
+          <p>Message Droidunclock now and get a clear quote before you commit.</p>
+          <a class="btn btn--light" data-whatsapp-link href="#" target="_blank" rel="noopener">Contact Now (WhatsApp)</a>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <div class="container footer-bar">
-        <p>© <span id="year"></span> Droidunclock. Reparacao, revenda e apoio com processo mais seguro.</p>
-        <a href="shop.html">Ver loja</a>
+      <div class="container footer-grid">
+        <div>
+          <a class="brand brand--footer" href="index.html" aria-label="Droidunclock homepage">
+            <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
+            <div>
+              <strong>Droidunclock</strong>
+              <span>Premium repair and refurbished devices in the Netherlands.</span>
+            </div>
+          </a>
+        </div>
+        <div>
+          <strong>Contact</strong>
+          <a data-whatsapp-link href="#" target="_blank" rel="noopener">WhatsApp</a>
+          <a href="mailto:droidunclock@gmail.com?subject=Droidunclock%20repair%20request">droidunclock@gmail.com</a>
+        </div>
+        <div>
+          <strong>Location</strong>
+          <span>Netherlands</span>
+          <span>English-friendly service</span>
+        </div>
+        <div>
+          <strong>Links</strong>
+          <a href="shop.html">Shop</a>
+          <a href="#" aria-label="Instagram">Instagram</a>
+          <a href="#" aria-label="Facebook">Facebook</a>
+        </div>
+        <div>
+          <strong>Legal</strong>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <span>(c) <span id="year"></span> Droidunclock. All rights reserved.</span>
       </div>
     </footer>
   </div>
