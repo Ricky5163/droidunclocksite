@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="css/styles.css?v=lang2" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page admin-page">
   <header class="site-header">
     <div class="container header-bar">
       <a class="brand" href="index.html">
@@ -31,8 +31,29 @@
   </header>
 
   <main class="dashboard-main">
+    <section class="container admin-hero" aria-label="Dashboard overview">
+      <div class="admin-hero__copy">
+        <span class="eyebrow" data-i18n="adminDashboard">Admin dashboard</span>
+        <h1>Command center</h1>
+        <p>Manage inventory, pricing, and order flow from one polished workspace.</p>
+      </div>
+      <div class="admin-hero__metrics" aria-label="Quick metrics">
+        <div class="admin-metric">
+          <span>Catalog</span>
+          <strong>Live</strong>
+        </div>
+        <div class="admin-metric">
+          <span>Orders</span>
+          <strong>Recent</strong>
+        </div>
+        <div class="admin-metric">
+          <span>Mode</span>
+          <strong>Secure</strong>
+        </div>
+      </div>
+    </section>
     <section class="container admin-layout">
-      <aside class="glass-card admin-panel">
+      <aside class="glass-card admin-panel admin-panel--form">
         <span class="eyebrow" data-i18n="productManagement">Product management</span>
         <h1 data-i18n="addEditProduct">Add or edit product</h1>
         <form id="productForm" class="form-grid">
