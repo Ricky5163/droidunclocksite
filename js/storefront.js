@@ -5,7 +5,7 @@ import {
   getProductImage,
   getCart,
   setCart,
-} from "./app-config.js";
+} from "./app-config.js?v=lang2";
 
 const supabase = createSupabaseBrowserClient();
 

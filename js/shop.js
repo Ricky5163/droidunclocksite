@@ -1,6 +1,6 @@
-import { escapeHtml, getCartCount, mergeCartItem } from "./app-config.js";
-import { setupLanguageSelector, t } from "./i18n.js";
-import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js";
+import { escapeHtml, getCartCount, mergeCartItem } from "./app-config.js?v=lang2";
+import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
+import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
 
 const statusElement = document.getElementById("status");
 const gridElement = document.getElementById("grid");

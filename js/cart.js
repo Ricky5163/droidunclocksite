@@ -1,5 +1,5 @@
-import { escapeHtml } from "./app-config.js";
-import { setupLanguageSelector, t } from "./i18n.js";
+import { escapeHtml } from "./app-config.js?v=lang2";
+import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
   fetchProductsByIds,
@@ -8,7 +8,7 @@ import {
   getProductImage,
   setCart,
   syncCartToStock,
-} from "./storefront.js";
+} from "./storefront.js?v=lang2";
 
 const cartListElement = document.getElementById("cartList");
 const statusElement = document.getElementById("status");

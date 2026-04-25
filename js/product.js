@@ -1,6 +1,6 @@
-import { escapeHtml, getCartCount, mergeCartItem, parseImages } from "./app-config.js";
-import { setupLanguageSelector, t } from "./i18n.js";
-import { fetchActiveProducts, fetchProductBySlug, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js";
+import { escapeHtml, getCartCount, mergeCartItem, parseImages } from "./app-config.js?v=lang2";
+import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
+import { fetchActiveProducts, fetchProductBySlug, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
 
 const detailElement = document.getElementById("productDetail");
 const cartBadges = document.querySelectorAll("[data-cart-count]");

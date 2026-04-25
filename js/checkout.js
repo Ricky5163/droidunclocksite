@@ -1,6 +1,6 @@
-import { buildLoginRedirect, isValidEmail } from "./app-config.js";
-import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js";
-import { setupLanguageSelector } from "./i18n.js";
+import { buildLoginRedirect, isValidEmail } from "./app-config.js?v=lang2";
+import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js?v=lang2";
+import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
   buildCheckoutPayload,
@@ -8,7 +8,7 @@ import {
   formatEuro,
   getCart,
   syncCartToStock,
-} from "./storefront.js";
+} from "./storefront.js?v=lang2";
 
 const SHIPPING_COST = 9.95;
 

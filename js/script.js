@@ -1,5 +1,5 @@
-import { SITE_NAME, buildWhatsAppUrl } from "./app-config.js";
-import { setupLanguageSelector } from "./i18n.js";
+import { SITE_NAME, buildWhatsAppUrl } from "./app-config.js?v=lang2";
+import { setupLanguageSelector } from "./i18n.js?v=lang2";
 
 const defaultMessage = [
   "Hello Droidunclock, I came from the website and need help with my phone.",

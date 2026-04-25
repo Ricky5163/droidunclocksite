@@ -1,7 +1,7 @@
-import { createSupabaseBrowserClient, escapeHtml } from "./app-config.js";
-import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js";
-import { setupLanguageSelector } from "./i18n.js";
-import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js";
+import { createSupabaseBrowserClient, escapeHtml } from "./app-config.js?v=lang2";
+import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js?v=lang2";
+import { setupLanguageSelector } from "./i18n.js?v=lang2";
+import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
 
 const supabase = createSupabaseBrowserClient();
 const statusElement = document.getElementById("adminStatus");
