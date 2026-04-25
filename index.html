@@ -20,7 +20,7 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
-  <link rel="stylesheet" href="css/styles.css?v=9dfcfd3" />
+  <link rel="stylesheet" href="css/styles.css?v=lang1" />
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
   <script type="application/ld+json">
     {
@@ -48,13 +48,13 @@
         </a>
 
         <nav class="desktop-nav" aria-label="Primary navigation">
-          <a href="#services">Repairs</a>
-          <a href="#store">Devices</a>
-          <a href="#reviews">Reviews</a>
-          <a href="#contact">Contact</a>
-          <a class="btn btn--ghost btn--small" href="shop.html">Shop</a>
+          <a href="#services" data-i18n="navRepairs">Repairs</a>
+          <a href="#store" data-i18n="navDevices">Devices</a>
+          <a href="#reviews" data-i18n="navReviews">Reviews</a>
+          <a href="#contact" data-i18n="navContact">Contact</a>
+          <a class="btn btn--ghost btn--small" href="shop.html" data-i18n="navShop">Shop</a>
           <a class="btn btn--primary btn--small" data-whatsapp-link href="#" target="_blank" rel="noopener">
-            WhatsApp
+            <span data-i18n="whatsapp">WhatsApp</span>
           </a>
           <select class="language-select" data-language-select aria-label="Language">
             <option value="en">EN</option>
@@ -72,12 +72,12 @@
       </div>
 
       <nav class="mobile-nav" id="mobileNav" aria-label="Mobile menu" aria-hidden="true">
-        <a href="#services">Repairs</a>
-        <a href="#store">Devices</a>
-        <a href="#reviews">Reviews</a>
-        <a href="#contact">Contact</a>
-        <a href="shop.html">Shop</a>
-        <a data-whatsapp-link href="#" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="#services" data-i18n="navRepairs">Repairs</a>
+        <a href="#store" data-i18n="navDevices">Devices</a>
+        <a href="#reviews" data-i18n="navReviews">Reviews</a>
+        <a href="#contact" data-i18n="navContact">Contact</a>
+        <a href="shop.html" data-i18n="navShop">Shop</a>
+        <a data-whatsapp-link href="#" target="_blank" rel="noopener" data-i18n="whatsapp">WhatsApp</a>
       </nav>
     </header>
 
@@ -87,7 +87,7 @@
           <div class="hero-copy reveal">
             <span class="badge badge--accent">
               <i data-lucide="zap"></i>
-              Same-day repair available
+              <span data-i18n="sameDayBadge">Same-day repair available</span>
             </span>
             <h1 data-i18n="heroTitle">Premium phone repairs and refurbished devices worldwide</h1>
             <p class="lead" data-i18n="heroText">Repair bookings, tested refurbished phones, and mobile parts with secure international checkout.</p>
@@ -96,9 +96,9 @@
               <a class="btn btn--dark" data-whatsapp-link href="#" target="_blank" rel="noopener" data-i18n="shopNow">Shop Now</a>
             </div>
             <div class="hero-proof" aria-label="Service highlights">
-              <span>4.9 customer rating</span>
-              <span>Warranty included</span>
-              <span>English-friendly</span>
+              <span data-i18n="ratingProof">4.9 customer rating</span>
+              <span data-i18n="warrantyProof">Warranty included</span>
+              <span data-i18n="englishProof">English-friendly</span>
             </div>
           </div>
 
@@ -109,8 +109,8 @@
                   <span class="screen-pill"></span>
                   <div class="repair-status">
                     <i data-lucide="shield-check"></i>
-                    <strong>Ready today</strong>
-                    <span>Screen repair estimate</span>
+                    <strong data-i18n="readyToday">Ready today</strong>
+                    <span data-i18n="screenEstimate">Screen repair estimate</span>
                   </div>
                   <div class="status-line"></div>
                   <div class="status-line status-line--short"></div>
@@ -122,11 +122,11 @@
               </div>
               <div class="visual-chip visual-chip--top">
                 <i data-lucide="battery-charging"></i>
-                Battery checked
+                <span data-i18n="batteryChecked">Battery checked</span>
               </div>
               <div class="visual-chip visual-chip--bottom">
                 <i data-lucide="sparkles"></i>
-                Premium parts
+                <span data-i18n="premiumParts">Premium parts</span>
               </div>
             </div>
           </div>
@@ -137,23 +137,23 @@
         <div class="container trust-grid">
           <article class="trust-item reveal">
             <i data-lucide="timer"></i>
-            <strong>Same-day service</strong>
-            <span>Fast turnaround on common repairs.</span>
+            <strong data-i18n="sameDayService">Same-day service</strong>
+            <span data-i18n="sameDayServiceText">Fast turnaround on common repairs.</span>
           </article>
           <article class="trust-item reveal">
             <i data-lucide="badge-check"></i>
-            <strong>Warranty included</strong>
-            <span>Clear coverage after repair.</span>
+            <strong data-i18n="warrantyIncluded">Warranty included</strong>
+            <span data-i18n="warrantyIncludedText">Clear coverage after repair.</span>
           </article>
           <article class="trust-item reveal">
             <i data-lucide="receipt-text"></i>
-            <strong>100% transparency</strong>
-            <span>Diagnosis and pricing before work starts.</span>
+            <strong data-i18n="transparency">100% transparency</strong>
+            <span data-i18n="transparencyText">Diagnosis and pricing before work starts.</span>
           </article>
           <article class="trust-item reveal">
             <i data-lucide="messages-square"></i>
-            <strong>English-friendly service</strong>
-            <span>Simple support for international customers.</span>
+            <strong data-i18n="englishService">English-friendly service</strong>
+            <span data-i18n="englishServiceText">Simple support for international customers.</span>
           </article>
         </div>
       </section>
@@ -161,44 +161,44 @@
       <section class="section" id="services">
         <div class="container">
           <div class="section-head reveal">
-            <span class="eyebrow">Repairs</span>
-            <h2>Premium repair services without the waiting room energy.</h2>
+            <span class="eyebrow" data-i18n="repairsEyebrow">Repairs</span>
+            <h2 data-i18n="servicesTitle">Premium repair services without the waiting room energy.</h2>
           </div>
           <div class="service-grid">
             <article class="service-card reveal">
               <i data-lucide="smartphone"></i>
-              <h3>Screen Repair</h3>
-              <p>Sharp display replacements for cracked glass, touch issues, and dead pixels.</p>
+              <h3 data-i18n="screenRepair">Screen Repair</h3>
+              <p data-i18n="screenRepairText">Sharp display replacements for cracked glass, touch issues, and dead pixels.</p>
               <div class="card-footer">
                 <strong>From €79</strong>
-                <a data-repair-request="Screen Repair" href="#">Request Repair</a>
+                <a data-repair-request="Screen Repair" href="#" data-i18n="requestRepair">Request Repair</a>
               </div>
             </article>
             <article class="service-card reveal">
               <i data-lucide="battery-charging"></i>
-              <h3>Battery Replacement</h3>
-              <p>Restore battery life and reduce unexpected shutdowns with a clean replacement.</p>
+              <h3 data-i18n="batteryReplacement">Battery Replacement</h3>
+              <p data-i18n="batteryReplacementText">Restore battery life and reduce unexpected shutdowns with a clean replacement.</p>
               <div class="card-footer">
                 <strong>From €49</strong>
-                <a data-repair-request="Battery Replacement" href="#">Request Repair</a>
+                <a data-repair-request="Battery Replacement" href="#" data-i18n="requestRepair">Request Repair</a>
               </div>
             </article>
             <article class="service-card reveal">
               <i data-lucide="plug-zap"></i>
-              <h3>Charging Port Repair</h3>
-              <p>Fix loose cables, slow charging, and connection problems with careful diagnostics.</p>
+              <h3 data-i18n="chargingRepair">Charging Port Repair</h3>
+              <p data-i18n="chargingRepairText">Fix loose cables, slow charging, and connection problems with careful diagnostics.</p>
               <div class="card-footer">
                 <strong>From €59</strong>
-                <a data-repair-request="Charging Port Repair" href="#">Request Repair</a>
+                <a data-repair-request="Charging Port Repair" href="#" data-i18n="requestRepair">Request Repair</a>
               </div>
             </article>
             <article class="service-card reveal">
               <i data-lucide="droplets"></i>
-              <h3>Water Damage Diagnosis</h3>
-              <p>Professional inspection after spills, rain exposure, or device failure.</p>
+              <h3 data-i18n="waterDamage">Water Damage Diagnosis</h3>
+              <p data-i18n="waterDamageText">Professional inspection after spills, rain exposure, or device failure.</p>
               <div class="card-footer">
                 <strong>From €29</strong>
-                <a data-repair-request="Water Damage Diagnosis" href="#">Request Repair</a>
+                <a data-repair-request="Water Damage Diagnosis" href="#" data-i18n="requestRepair">Request Repair</a>
               </div>
             </article>
           </div>
@@ -208,31 +208,31 @@
       <section class="section section--soft" id="quote">
         <div class="container quote-layout">
           <div class="section-head reveal">
-            <span class="eyebrow">Quote</span>
-            <h2>Tell us what happened. We will reply with clear next steps.</h2>
-            <p class="muted">Built for WhatsApp first, so customers can move from question to booking quickly.</p>
+            <span class="eyebrow" data-i18n="quoteEyebrow">Quote</span>
+            <h2 data-i18n="quoteTitle">Tell us what happened. We will reply with clear next steps.</h2>
+            <p class="muted" data-i18n="quoteText">Built for WhatsApp first, so customers can move from question to booking quickly.</p>
           </div>
           <form id="quickForm" class="quote-form reveal">
             <label>
-              Device model
+              <span data-i18n="deviceModel">Device model</span>
               <input name="model" type="text" placeholder="iPhone 13, Samsung S23, Pixel 8" required />
             </label>
             <label>
-              Service needed
+              <span data-i18n="serviceNeeded">Service needed</span>
               <select name="service" required>
-                <option value="" disabled selected>Select a service</option>
+                <option value="" disabled selected data-i18n="selectService">Select a service</option>
                 <option>Screen Repair</option>
                 <option>Battery Replacement</option>
                 <option>Charging Port Repair</option>
                 <option>Water Damage Diagnosis</option>
-                <option>Refurbished device inquiry</option>
+                <option data-i18n="refurbishedInquiry">Refurbished device inquiry</option>
               </select>
             </label>
             <label>
-              Notes
-              <textarea name="notes" rows="4" placeholder="Tell us the issue, preferred timing, and your city."></textarea>
+              <span data-i18n="notes">Notes</span>
+              <textarea name="notes" rows="4" placeholder="Tell us the issue, preferred timing, and your city." data-i18n-placeholder="notesPlaceholder"></textarea>
             </label>
-            <button class="btn btn--primary btn--block" type="submit">Send via WhatsApp</button>
+            <button class="btn btn--primary btn--block" type="submit" data-i18n="sendWhatsapp">Send via WhatsApp</button>
           </form>
         </div>
       </section>
@@ -240,29 +240,29 @@
       <section class="section" id="process">
         <div class="container">
           <div class="section-head reveal">
-            <span class="eyebrow">How it works</span>
-            <h2>A clean repair flow from first message to pickup.</h2>
+            <span class="eyebrow" data-i18n="howItWorks">How it works</span>
+            <h2 data-i18n="processTitle">A clean repair flow from first message to pickup.</h2>
           </div>
           <div class="steps">
             <article class="step-card reveal">
               <span>01</span>
-              <h3>Contact us</h3>
-              <p>Send your model, issue, and preferred timing.</p>
+              <h3 data-i18n="contactUs">Contact us</h3>
+              <p data-i18n="contactUsText">Send your model, issue, and preferred timing.</p>
             </article>
             <article class="step-card reveal">
               <span>02</span>
-              <h3>Diagnose</h3>
-              <p>We confirm the likely repair, cost, and timeframe.</p>
+              <h3 data-i18n="diagnose">Diagnose</h3>
+              <p data-i18n="diagnoseText">We confirm the likely repair, cost, and timeframe.</p>
             </article>
             <article class="step-card reveal">
               <span>03</span>
-              <h3>Repair</h3>
-              <p>Your device is handled with professional tools and tested parts.</p>
+              <h3 data-i18n="repair">Repair</h3>
+              <p data-i18n="repairText">Your device is handled with professional tools and tested parts.</p>
             </article>
             <article class="step-card reveal">
               <span>04</span>
-              <h3>Delivery / Pickup</h3>
-              <p>Collect your phone or arrange delivery where available.</p>
+              <h3 data-i18n="deliveryPickup">Delivery / Pickup</h3>
+              <p data-i18n="deliveryPickupText">Collect your phone or arrange delivery where available.</p>
             </article>
           </div>
         </div>
@@ -272,10 +272,10 @@
         <div class="container">
           <div class="section-head section-head--split reveal">
             <div>
-              <span class="eyebrow">Store</span>
-              <h2>Featured refurbished devices.</h2>
+              <span class="eyebrow" data-i18n="store">Store</span>
+              <h2 data-i18n="featuredDevices">Featured refurbished devices.</h2>
             </div>
-            <a class="btn btn--ghost" href="shop.html">View shop</a>
+            <a class="btn btn--ghost" href="shop.html" data-i18n="viewShop">View shop</a>
           </div>
           <div class="product-skeleton-grid" id="productSkeletons" aria-hidden="true">
             <div class="product-skeleton"></div>
@@ -289,29 +289,29 @@
       <section class="section" id="why">
         <div class="container why-layout">
           <div class="section-head reveal">
-            <span class="eyebrow">Why choose us</span>
-            <h2>Designed for people who need their phone back fast.</h2>
+            <span class="eyebrow" data-i18n="whyChoose">Why choose us</span>
+            <h2 data-i18n="whyTitle">Designed for people who need their phone back fast.</h2>
           </div>
           <div class="why-grid">
             <article class="why-card reveal">
               <i data-lucide="rotate-cw"></i>
-              <strong>Fast turnaround</strong>
-              <span>Common repairs are planned for same-day completion when parts are available.</span>
+              <strong data-i18n="fastTurnaround">Fast turnaround</strong>
+              <span data-i18n="fastTurnaroundText">Common repairs are planned for same-day completion when parts are available.</span>
             </article>
             <article class="why-card reveal">
               <i data-lucide="wallet-cards"></i>
-              <strong>Affordable pricing</strong>
-              <span>Clear quotes before repair, with no surprise charges at pickup.</span>
+              <strong data-i18n="affordablePricing">Affordable pricing</strong>
+              <span data-i18n="affordablePricingText">Clear quotes before repair, with no surprise charges at pickup.</span>
             </article>
             <article class="why-card reveal">
               <i data-lucide="wrench"></i>
-              <strong>Professional tools</strong>
-              <span>Repairs are handled with clean processes, testing, and careful device handling.</span>
+              <strong data-i18n="professionalTools">Professional tools</strong>
+              <span data-i18n="professionalToolsText">Repairs are handled with clean processes, testing, and careful device handling.</span>
             </article>
             <article class="why-card reveal">
               <i data-lucide="heart-handshake"></i>
-              <strong>Customer satisfaction</strong>
-              <span>Friendly support, transparent communication, and warranty-backed service.</span>
+              <strong data-i18n="satisfaction">Customer satisfaction</strong>
+              <span data-i18n="satisfactionText">Friendly support, transparent communication, and warranty-backed service.</span>
             </article>
           </div>
         </div>
@@ -320,8 +320,8 @@
       <section class="section section--soft" id="reviews">
         <div class="container">
           <div class="section-head reveal">
-            <span class="eyebrow">Testimonials</span>
-            <h2>Trusted by customers who value speed and clarity.</h2>
+            <span class="eyebrow" data-i18n="testimonials">Testimonials</span>
+            <h2 data-i18n="testimonialsTitle">Trusted by customers who value speed and clarity.</h2>
           </div>
           <div class="review-grid">
             <article class="review-card reveal">
@@ -356,11 +356,11 @@
         <div class="container final-cta__inner reveal">
           <span class="badge badge--light">
             <i data-lucide="clock-3"></i>
-            Same-day repair available
+            <span data-i18n="sameDayBadge">Same-day repair available</span>
           </span>
-          <h2>Need your phone fixed today?</h2>
-          <p>Message Droidunclock now and get a clear quote before you commit.</p>
-          <a class="btn btn--light" data-whatsapp-link href="#" target="_blank" rel="noopener">Contact Now (WhatsApp)</a>
+          <h2 data-i18n="finalCtaTitle">Need your phone fixed today?</h2>
+          <p data-i18n="finalCtaText">Message Droidunclock now and get a clear quote before you commit.</p>
+          <a class="btn btn--light" data-whatsapp-link href="#" target="_blank" rel="noopener" data-i18n="contactNow">Contact Now (WhatsApp)</a>
         </div>
       </section>
     </main>
@@ -372,38 +372,38 @@
             <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
             <div>
               <strong>Droidunclock</strong>
-              <span>Premium repair and refurbished devices in the Netherlands.</span>
+              <span data-i18n="footerDescription">Premium repair and refurbished devices in the Netherlands.</span>
             </div>
           </a>
         </div>
         <div>
-          <strong>Contact</strong>
+          <strong data-i18n="navContact">Contact</strong>
           <a data-whatsapp-link href="#" target="_blank" rel="noopener">WhatsApp</a>
           <a href="mailto:droidunclock@gmail.com?subject=Droidunclock%20repair%20request">droidunclock@gmail.com</a>
         </div>
         <div>
-          <strong>Location</strong>
+          <strong data-i18n="location">Location</strong>
           <span>Netherlands</span>
-          <span>English-friendly service</span>
+          <span data-i18n="englishService">English-friendly service</span>
         </div>
         <div>
-          <strong>Links</strong>
-          <a href="shop.html">Shop</a>
+          <strong data-i18n="links">Links</strong>
+          <a href="shop.html" data-i18n="navShop">Shop</a>
           <a href="#" aria-label="Instagram">Instagram</a>
           <a href="#" aria-label="Facebook">Facebook</a>
         </div>
         <div>
-          <strong>Legal</strong>
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
+          <strong data-i18n="legal">Legal</strong>
+          <a href="#" data-i18n="privacy">Privacy</a>
+          <a href="#" data-i18n="terms">Terms</a>
         </div>
       </div>
       <div class="container footer-bottom">
-        <span>(c) <span id="year"></span> Droidunclock. All rights reserved.</span>
+        <span>(c) <span id="year"></span> Droidunclock. <span data-i18n="rights">All rights reserved.</span></span>
       </div>
     </footer>
   </div>
 
-  <script type="module" src="js/script.js?v=9dfcfd3"></script>
+  <script type="module" src="js/script.js?v=lang1"></script>
 </body>
 </html>

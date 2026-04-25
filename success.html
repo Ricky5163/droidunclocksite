@@ -12,19 +12,23 @@
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
     rel="stylesheet"
   />
-  <link rel="stylesheet" href="css/styles.css?v=9dfcfd3" />
+  <link rel="stylesheet" href="css/styles.css?v=lang1" />
 </head>
 <body class="result-page">
   <main class="result-card glass-card">
-    <span class="eyebrow">Payment received</span>
-    <h1 id="msg">Processing confirmation...</h1>
-    <p id="detail" class="muted">We are validating the payment gateway return.</p>
+    <select class="language-select" data-language-select aria-label="Language">
+      <option value="en">EN</option><option value="pt">PT</option><option value="nl">NL</option>
+      <option value="es">ES</option><option value="fr">FR</option><option value="de">DE</option>
+    </select>
+    <span class="eyebrow" data-i18n="paymentReceived">Payment received</span>
+    <h1 id="msg" data-i18n="processingConfirmation">Processing confirmation...</h1>
+    <p id="detail" class="muted" data-i18n="validatingPayment">We are validating the payment gateway return.</p>
     <div class="result-actions">
-      <a class="btn btn--primary" href="shop.html">Back to shop</a>
-      <a class="btn btn--ghost" href="index.html">Homepage</a>
+      <a class="btn btn--primary" href="shop.html" data-i18n="backToShop">Back to shop</a>
+      <a class="btn btn--ghost" href="index.html" data-i18n="homepage">Homepage</a>
     </div>
   </main>
 
-  <script type="module" src="js/success.js?v=9dfcfd3"></script>
+  <script type="module" src="js/success.js?v=lang1"></script>
 </body>
 </html>

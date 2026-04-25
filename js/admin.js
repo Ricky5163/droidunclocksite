@@ -1,5 +1,6 @@
 import { createSupabaseBrowserClient, escapeHtml } from "./app-config.js";
 import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js";
+import { setupLanguageSelector } from "./i18n.js";
 import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js";
 
 const supabase = createSupabaseBrowserClient();
@@ -8,6 +9,7 @@ const form = document.getElementById("productForm");
 const productsElement = document.getElementById("productsAdmin");
 const ordersElement = document.getElementById("ordersAdmin");
 const logoutButton = document.getElementById("logoutBtn");
+setupLanguageSelector();
 
 const fields = {
   id: document.getElementById("productId"),

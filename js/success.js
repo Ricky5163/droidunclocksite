@@ -1,7 +1,9 @@
 import { clearCart } from "./app-config.js";
+import { setupLanguageSelector, t } from "./i18n.js";
 
 const messageElement = document.getElementById("msg");
 const detailElement = document.getElementById("detail");
+const currentLang = setupLanguageSelector();
 
 function setMessage(message, detail = "", type = "neutral") {
   if (messageElement) {
@@ -63,7 +65,7 @@ function setMessage(message, detail = "", type = "neutral") {
   }
 
   setMessage(
-    "Order registered.",
+    t("successTitle", currentLang),
     "If this return came from a payment provider, final confirmation will be sent by email.",
     "neutral"
   );

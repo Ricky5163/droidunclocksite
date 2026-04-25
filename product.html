@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=9dfcfd3" />
+  <link rel="stylesheet" href="css/styles.css?v=lang1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="dashboard-page">
@@ -19,7 +19,7 @@
         <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
         <div>
           <strong>Droidunclock</strong>
-          <span>Product details</span>
+          <span data-i18n="productDetails">Product details</span>
         </div>
       </a>
       <nav class="desktop-nav">
@@ -39,10 +39,10 @@
 
   <main class="dashboard-main">
     <section class="container product-detail" id="productDetail">
-      <p class="status-text">Loading product...</p>
+      <p class="status-text" data-i18n="loadingProduct">Loading product...</p>
     </section>
   </main>
 
-  <script type="module" src="js/product.js?v=9dfcfd3"></script>
+  <script type="module" src="js/product.js?v=lang1"></script>
 </body>
 </html>

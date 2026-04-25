@@ -39,6 +39,121 @@ export const translations = {
     payPayPal: "Pay with PayPal",
     successTitle: "Payment received",
     footerText: "Premium international phone repair, refurbished devices, and mobile parts."
+    ,
+    navDevices: "Devices",
+    navReviews: "Reviews",
+    navContact: "Contact",
+    whatsapp: "WhatsApp",
+    sameDayBadge: "Same-day repair available",
+    ratingProof: "4.9 customer rating",
+    warrantyProof: "Warranty included",
+    englishProof: "English-friendly",
+    readyToday: "Ready today",
+    screenEstimate: "Screen repair estimate",
+    batteryChecked: "Battery checked",
+    premiumParts: "Premium parts",
+    sameDayService: "Same-day service",
+    sameDayServiceText: "Fast turnaround on common repairs.",
+    warrantyIncluded: "Warranty included",
+    warrantyIncludedText: "Clear coverage after repair.",
+    transparency: "100% transparency",
+    transparencyText: "Diagnosis and pricing before work starts.",
+    englishService: "English-friendly service",
+    englishServiceText: "Simple support for international customers.",
+    repairsEyebrow: "Repairs",
+    servicesTitle: "Premium repair services without the waiting room energy.",
+    screenRepair: "Screen Repair",
+    screenRepairText: "Sharp display replacements for cracked glass, touch issues, and dead pixels.",
+    batteryReplacement: "Battery Replacement",
+    batteryReplacementText: "Restore battery life and reduce unexpected shutdowns with a clean replacement.",
+    chargingRepair: "Charging Port Repair",
+    chargingRepairText: "Fix loose cables, slow charging, and connection problems with careful diagnostics.",
+    waterDamage: "Water Damage Diagnosis",
+    waterDamageText: "Professional inspection after spills, rain exposure, or device failure.",
+    requestRepair: "Request Repair",
+    quoteEyebrow: "Quote",
+    quoteTitle: "Tell us what happened. We will reply with clear next steps.",
+    quoteText: "Built for WhatsApp first, so customers can move from question to booking quickly.",
+    deviceModel: "Device model",
+    serviceNeeded: "Service needed",
+    selectService: "Select a service",
+    refurbishedInquiry: "Refurbished device inquiry",
+    notes: "Notes",
+    notesPlaceholder: "Tell us the issue, preferred timing, and your city.",
+    sendWhatsapp: "Send via WhatsApp",
+    howItWorks: "How it works",
+    processTitle: "A clean repair flow from first message to pickup.",
+    contactUs: "Contact us",
+    contactUsText: "Send your model, issue, and preferred timing.",
+    diagnose: "Diagnose",
+    diagnoseText: "We confirm the likely repair, cost, and timeframe.",
+    repair: "Repair",
+    repairText: "Your device is handled with professional tools and tested parts.",
+    deliveryPickup: "Delivery / Pickup",
+    deliveryPickupText: "Collect your phone or arrange delivery where available.",
+    store: "Store",
+    featuredDevices: "Featured refurbished devices.",
+    viewShop: "View shop",
+    whyChoose: "Why choose us",
+    whyTitle: "Designed for people who need their phone back fast.",
+    fastTurnaround: "Fast turnaround",
+    fastTurnaroundText: "Common repairs are planned for same-day completion when parts are available.",
+    affordablePricing: "Affordable pricing",
+    affordablePricingText: "Clear quotes before repair, with no surprise charges at pickup.",
+    professionalTools: "Professional tools",
+    professionalToolsText: "Repairs are handled with clean processes, testing, and careful device handling.",
+    satisfaction: "Customer satisfaction",
+    satisfactionText: "Friendly support, transparent communication, and warranty-backed service.",
+    testimonials: "Testimonials",
+    testimonialsTitle: "Trusted by customers who value speed and clarity.",
+    finalCtaTitle: "Need your phone fixed today?",
+    finalCtaText: "Message Droidunclock now and get a clear quote before you commit.",
+    contactNow: "Contact Now (WhatsApp)",
+    footerDescription: "Premium repair and refurbished devices in the Netherlands.",
+    location: "Location",
+    links: "Links",
+    legal: "Legal",
+    privacy: "Privacy",
+    terms: "Terms",
+    rights: "All rights reserved.",
+    shopByNeed: "Shop by need",
+    search: "Search",
+    searchPlaceholder: "iPhone 13, Samsung screen, battery",
+    category: "Category",
+    allCategories: "All categories",
+    productsReady: "Products ready for repair, resale, and checkout.",
+    productDetails: "Product details",
+    loadingProduct: "Loading product...",
+    techDetails: "Technical details",
+    warrantyInfo: "Warranty information",
+    deliveryInfo: "Delivery information",
+    relatedProducts: "Related products",
+    reviewCartTitle: "Review your items before secure checkout.",
+    summary: "Summary",
+    chooseProducts: "Choose products or repair services to continue.",
+    secureCheckoutTitle: "Secure international checkout.",
+    secureCheckoutText: "Stripe and PayPal are created server-side. Card details are never stored by Droidunclock.",
+    order: "Order",
+    validatedSummary: "Validated summary",
+    loginRequired: "Login required",
+    signInCheckout: "Sign in to continue checkout.",
+    authProtects: "Supabase Auth protects customer checkout and order history.",
+    signIn: "Sign in",
+    backToCart: "Back to cart",
+    paymentReceived: "Payment received",
+    processingConfirmation: "Processing confirmation...",
+    validatingPayment: "We are validating the payment gateway return.",
+    backToShop: "Back to shop",
+    homepage: "Homepage",
+    adminDashboard: "Admin dashboard",
+    productManagement: "Product management",
+    addEditProduct: "Add or edit product",
+    saveProduct: "Save product",
+    newProduct: "New product",
+    inventory: "Inventory",
+    orders: "Orders",
+    orderManagement: "Order management",
+    logout: "Logout"
   },
   pt: {
     navRepairs: "Reparacoes",
@@ -247,6 +362,132 @@ export const translations = {
   }
 };
 
+const extraTranslations = {
+  pt: {
+    navDevices: "Dispositivos", navReviews: "Avaliacoes", navContact: "Contacto", whatsapp: "WhatsApp",
+    sameDayBadge: "Reparacao no mesmo dia disponivel", ratingProof: "Avaliacao 4.9", warrantyProof: "Garantia incluida", englishProof: "Atendimento em ingles",
+    readyToday: "Pronto hoje", screenEstimate: "Estimativa para ecra", batteryChecked: "Bateria verificada", premiumParts: "Pecas premium",
+    sameDayService: "Servico no mesmo dia", sameDayServiceText: "Rapidez nas reparacoes mais comuns.", warrantyIncluded: "Garantia incluida", warrantyIncludedText: "Cobertura clara apos a reparacao.",
+    transparency: "100% transparencia", transparencyText: "Diagnostico e preco antes de comecar.", englishService: "Atendimento em ingles", englishServiceText: "Suporte simples para clientes internacionais.",
+    repairsEyebrow: "Reparacoes", servicesTitle: "Servicos premium sem complicacoes.", screenRepair: "Troca de ecra", screenRepairText: "Substituicoes nitidas para vidro partido, toque e pixels mortos.",
+    batteryReplacement: "Troca de bateria", batteryReplacementText: "Recupera autonomia e evita desligamentos inesperados.", chargingRepair: "Reparacao da porta de carregamento", chargingRepairText: "Resolve cabos soltos, carregamento lento e falhas de ligacao.",
+    waterDamage: "Diagnostico de agua", waterDamageText: "Inspecao profissional apos liquidos, chuva ou falha do equipamento.", requestRepair: "Pedir reparacao",
+    quoteEyebrow: "Orcamento", quoteTitle: "Diz-nos o que aconteceu. Respondemos com os proximos passos.", quoteText: "Pensado para WhatsApp, para passar rapidamente da pergunta a marcacao.",
+    deviceModel: "Modelo do equipamento", serviceNeeded: "Servico necessario", selectService: "Seleciona um servico", refurbishedInquiry: "Pedido sobre recondicionado", notes: "Notas", notesPlaceholder: "Indica o problema, horario preferido e cidade.", sendWhatsapp: "Enviar por WhatsApp",
+    howItWorks: "Como funciona", processTitle: "Um fluxo claro desde a primeira mensagem ate a recolha.", contactUs: "Contacta-nos", contactUsText: "Envia modelo, problema e horario preferido.", diagnose: "Diagnostico", diagnoseText: "Confirmamos reparacao provavel, custo e prazo.", repair: "Reparacao", repairText: "O equipamento e tratado com ferramentas profissionais e pecas testadas.", deliveryPickup: "Entrega / Recolha", deliveryPickupText: "Recolhe o telefone ou combina entrega quando disponivel.",
+    store: "Loja", featuredDevices: "Dispositivos recondicionados em destaque.", viewShop: "Ver loja", whyChoose: "Porquê escolher-nos", whyTitle: "Criado para quem precisa do telefone de volta rapidamente.",
+    fastTurnaround: "Resposta rapida", fastTurnaroundText: "Reparacoes comuns planeadas para o mesmo dia quando ha pecas.", affordablePricing: "Precos acessiveis", affordablePricingText: "Orcamentos claros antes da reparacao, sem surpresas.", professionalTools: "Ferramentas profissionais", professionalToolsText: "Processos limpos, testes e cuidado no manuseamento.", satisfaction: "Satisfacao do cliente", satisfactionText: "Suporte amigavel, comunicacao transparente e garantia.",
+    testimonials: "Testemunhos", testimonialsTitle: "Clientes que valorizam rapidez e clareza.", finalCtaTitle: "Precisas do telefone reparado hoje?", finalCtaText: "Envia mensagem a Droidunclock e recebe um orcamento claro antes de avançares.", contactNow: "Contactar agora (WhatsApp)",
+    footerDescription: "Reparacao premium e dispositivos recondicionados nos Paises Baixos.", location: "Localizacao", links: "Links", legal: "Legal", privacy: "Privacidade", terms: "Termos", rights: "Todos os direitos reservados.",
+    shopByNeed: "Comprar por necessidade", search: "Pesquisar", searchPlaceholder: "iPhone 13, ecra Samsung, bateria", category: "Categoria", allCategories: "Todas as categorias", productsReady: "Produtos prontos para reparacao, revenda e checkout.",
+    productDetails: "Detalhes do produto", loadingProduct: "A carregar produto...", techDetails: "Detalhes tecnicos", warrantyInfo: "Informacao de garantia", deliveryInfo: "Informacao de entrega", relatedProducts: "Produtos relacionados",
+    reviewCartTitle: "Revê os itens antes do checkout seguro.", summary: "Resumo", chooseProducts: "Escolhe produtos ou servicos para continuar.", secureCheckoutTitle: "Checkout internacional seguro.", secureCheckoutText: "Stripe e PayPal sao criados no servidor. Dados de cartao nunca sao guardados pela Droidunclock.", order: "Encomenda", validatedSummary: "Resumo validado", loginRequired: "Login obrigatorio", signInCheckout: "Entra para continuar o checkout.", authProtects: "Supabase Auth protege o checkout e o historico.", signIn: "Entrar", backToCart: "Voltar ao carrinho",
+    paymentReceived: "Pagamento recebido", processingConfirmation: "A processar confirmacao...", validatingPayment: "Estamos a validar o retorno do gateway.", backToShop: "Voltar a loja", homepage: "Pagina inicial",
+    adminDashboard: "Painel admin", productManagement: "Gestao de produtos", addEditProduct: "Adicionar ou editar produto", saveProduct: "Guardar produto", newProduct: "Novo produto", inventory: "Inventario", orders: "Encomendas", orderManagement: "Gestao de encomendas", logout: "Sair"
+  },
+  nl: {
+    navDevices: "Toestellen", navReviews: "Reviews", navContact: "Contact", whatsapp: "WhatsApp",
+    sameDayBadge: "Reparatie op dezelfde dag beschikbaar", ratingProof: "4.9 klantbeoordeling", warrantyProof: "Garantie inbegrepen", englishProof: "Engelstalig",
+    readyToday: "Vandaag klaar", screenEstimate: "Schermreparatie schatting", batteryChecked: "Batterij gecontroleerd", premiumParts: "Premium onderdelen",
+    sameDayService: "Service dezelfde dag", sameDayServiceText: "Snelle doorlooptijd voor veelvoorkomende reparaties.", warrantyIncluded: "Garantie inbegrepen", warrantyIncludedText: "Duidelijke dekking na reparatie.",
+    transparency: "100% transparantie", transparencyText: "Diagnose en prijs voordat werk start.", englishService: "Engelstalige service", englishServiceText: "Eenvoudige support voor internationale klanten.",
+    repairsEyebrow: "Reparaties", servicesTitle: "Premium reparaties zonder gedoe.", screenRepair: "Schermreparatie", screenRepairText: "Scherpe displayvervanging voor glasbreuk, touchproblemen en dode pixels.",
+    batteryReplacement: "Batterij vervangen", batteryReplacementText: "Herstel batterijduur en voorkom onverwacht uitvallen.", chargingRepair: "Laadpoort reparatie", chargingRepairText: "Los losse kabels, langzaam laden en verbindingsproblemen op.",
+    waterDamage: "Waterschade diagnose", waterDamageText: "Professionele inspectie na morsen, regen of toesteluitval.", requestRepair: "Reparatie aanvragen",
+    quoteEyebrow: "Offerte", quoteTitle: "Vertel wat er gebeurde. Wij antwoorden met duidelijke stappen.", quoteText: "WhatsApp-first, zodat klanten snel van vraag naar boeking gaan.",
+    deviceModel: "Toestelmodel", serviceNeeded: "Benodigde service", selectService: "Selecteer een service", refurbishedInquiry: "Vraag over refurbished toestel", notes: "Notities", notesPlaceholder: "Beschrijf probleem, gewenste timing en stad.", sendWhatsapp: "Verstuur via WhatsApp",
+    howItWorks: "Hoe het werkt", processTitle: "Een duidelijk reparatieproces van bericht tot ophalen.", contactUs: "Neem contact op", contactUsText: "Stuur model, probleem en gewenste timing.", diagnose: "Diagnose", diagnoseText: "Wij bevestigen reparatie, kosten en termijn.", repair: "Reparatie", repairText: "Je toestel wordt behandeld met professionele tools en geteste onderdelen.", deliveryPickup: "Levering / ophalen", deliveryPickupText: "Haal je telefoon op of regel levering waar mogelijk.",
+    store: "Winkel", featuredDevices: "Uitgelichte refurbished toestellen.", viewShop: "Bekijk winkel", whyChoose: "Waarom ons", whyTitle: "Voor mensen die hun telefoon snel terug nodig hebben.",
+    fastTurnaround: "Snelle doorlooptijd", fastTurnaroundText: "Veelvoorkomende reparaties dezelfde dag wanneer onderdelen beschikbaar zijn.", affordablePricing: "Betaalbare prijzen", affordablePricingText: "Duidelijke offertes zonder verrassingen.", professionalTools: "Professionele tools", professionalToolsText: "Schone processen, testen en zorgvuldige behandeling.", satisfaction: "Klanttevredenheid", satisfactionText: "Vriendelijke support, transparante communicatie en garantie.",
+    testimonials: "Testimonials", testimonialsTitle: "Vertrouwd door klanten die snelheid en duidelijkheid waarderen.", finalCtaTitle: "Vandaag je telefoon laten repareren?", finalCtaText: "Stuur Droidunclock een bericht en krijg eerst een duidelijke offerte.", contactNow: "Contact nu (WhatsApp)",
+    footerDescription: "Premium reparatie en refurbished toestellen in Nederland.", location: "Locatie", links: "Links", legal: "Juridisch", privacy: "Privacy", terms: "Voorwaarden", rights: "Alle rechten voorbehouden.",
+    shopByNeed: "Shop op behoefte", search: "Zoeken", searchPlaceholder: "iPhone 13, Samsung scherm, batterij", category: "Categorie", allCategories: "Alle categorieen", productsReady: "Producten klaar voor reparatie, verkoop en checkout.",
+    productDetails: "Productdetails", loadingProduct: "Product laden...", techDetails: "Technische details", warrantyInfo: "Garantie-informatie", deliveryInfo: "Leveringsinformatie", relatedProducts: "Gerelateerde producten",
+    reviewCartTitle: "Controleer je items voor veilige checkout.", summary: "Samenvatting", chooseProducts: "Kies producten of services om door te gaan.", secureCheckoutTitle: "Veilige internationale checkout.", secureCheckoutText: "Stripe en PayPal worden server-side aangemaakt. Kaartgegevens worden nooit opgeslagen.", order: "Bestelling", validatedSummary: "Gevalideerde samenvatting", loginRequired: "Login vereist", signInCheckout: "Log in om checkout voort te zetten.", authProtects: "Supabase Auth beschermt checkout en bestelhistorie.", signIn: "Inloggen", backToCart: "Terug naar winkelwagen",
+    paymentReceived: "Betaling ontvangen", processingConfirmation: "Bevestiging verwerken...", validatingPayment: "We valideren de betalingsterugkeer.", backToShop: "Terug naar winkel", homepage: "Homepage",
+    adminDashboard: "Admin dashboard", productManagement: "Productbeheer", addEditProduct: "Product toevoegen of bewerken", saveProduct: "Product opslaan", newProduct: "Nieuw product", inventory: "Voorraad", orders: "Bestellingen", orderManagement: "Bestelbeheer", logout: "Uitloggen"
+  }
+};
+
+Object.entries(extraTranslations).forEach(([lang, values]) => {
+  Object.assign(translations[lang], values);
+});
+
+["es", "fr", "de"].forEach((lang) => {
+  Object.entries(translations.en).forEach(([key, value]) => {
+    if (!(key in translations[lang])) translations[lang][key] = value;
+  });
+});
+
+Object.assign(translations.es, {
+  navDevices: "Dispositivos", navReviews: "Resenas", navContact: "Contacto", sameDayBadge: "Reparacion el mismo dia disponible",
+  ratingProof: "Valoracion 4.9", warrantyProof: "Garantia incluida", englishProof: "Servicio en ingles", sameDayService: "Servicio el mismo dia",
+  sameDayServiceText: "Rapidez en reparaciones comunes.", warrantyIncludedText: "Cobertura clara despues de la reparacion.", transparency: "100% transparencia",
+  transparencyText: "Diagnostico y precio antes de empezar.", englishService: "Servicio en ingles", servicesTitle: "Servicios premium sin complicaciones.",
+  screenRepair: "Reparacion de pantalla", batteryReplacement: "Cambio de bateria", chargingRepair: "Reparacion de puerto de carga", waterDamage: "Diagnostico por agua",
+  requestRepair: "Solicitar reparacion", quoteTitle: "Cuentanos que paso. Responderemos con pasos claros.", deviceModel: "Modelo del dispositivo",
+  serviceNeeded: "Servicio necesario", selectService: "Selecciona un servicio", notes: "Notas", sendWhatsapp: "Enviar por WhatsApp",
+  howItWorks: "Como funciona", processTitle: "Un flujo claro desde el primer mensaje hasta la recogida.", contactUs: "Contactanos", diagnose: "Diagnostico",
+  repair: "Reparacion", deliveryPickup: "Entrega / Recogida", store: "Tienda", featuredDevices: "Dispositivos reacondicionados destacados.",
+  viewShop: "Ver tienda", whyChoose: "Por que elegirnos", whyTitle: "Creado para quien necesita recuperar su telefono rapido.", fastTurnaround: "Rapidez",
+  affordablePricing: "Precios accesibles", professionalTools: "Herramientas profesionales", satisfaction: "Satisfaccion del cliente",
+  testimonials: "Testimonios", testimonialsTitle: "Clientes que valoran rapidez y claridad.", finalCtaTitle: "Necesitas reparar tu telefono hoy?",
+  finalCtaText: "Escribe a Droidunclock y recibe un presupuesto claro antes de avanzar.", contactNow: "Contactar ahora (WhatsApp)",
+  footerDescription: "Reparacion premium y dispositivos reacondicionados en Paises Bajos.", location: "Ubicacion", privacy: "Privacidad", terms: "Terminos",
+  rights: "Todos los derechos reservados.", shopByNeed: "Comprar por necesidad", search: "Buscar", category: "Categoria", allCategories: "Todas las categorias",
+  productsReady: "Productos listos para reparacion, reventa y checkout.", productDetails: "Detalles del producto", loadingProduct: "Cargando producto...",
+  techDetails: "Detalles tecnicos", warrantyInfo: "Informacion de garantia", deliveryInfo: "Informacion de entrega", relatedProducts: "Productos relacionados",
+  reviewCartTitle: "Revisa tus articulos antes del pago seguro.", summary: "Resumen", secureCheckoutTitle: "Checkout internacional seguro.",
+  order: "Pedido", validatedSummary: "Resumen validado", loginRequired: "Login requerido", signIn: "Iniciar sesion", backToCart: "Volver al carrito",
+  paymentReceived: "Pago recibido", backToShop: "Volver a tienda", homepage: "Inicio", logout: "Salir"
+});
+
+Object.assign(translations.fr, {
+  navDevices: "Appareils", navReviews: "Avis", navContact: "Contact", sameDayBadge: "Reparation le jour meme disponible",
+  ratingProof: "Note client 4.9", warrantyProof: "Garantie incluse", englishProof: "Service en anglais", sameDayService: "Service le jour meme",
+  sameDayServiceText: "Delai rapide pour les reparations courantes.", warrantyIncludedText: "Couverture claire apres reparation.", transparency: "100% transparence",
+  transparencyText: "Diagnostic et prix avant intervention.", englishService: "Service en anglais", servicesTitle: "Services premium sans complication.",
+  screenRepair: "Reparation d'ecran", batteryReplacement: "Remplacement batterie", chargingRepair: "Reparation port de charge", waterDamage: "Diagnostic eau",
+  requestRepair: "Demander reparation", quoteTitle: "Dites-nous ce qui s'est passe. Nous repondons avec des etapes claires.", deviceModel: "Modele de l'appareil",
+  serviceNeeded: "Service requis", selectService: "Selectionner un service", notes: "Notes", sendWhatsapp: "Envoyer via WhatsApp",
+  howItWorks: "Fonctionnement", processTitle: "Un parcours clair du premier message au retrait.", contactUs: "Contactez-nous", diagnose: "Diagnostic",
+  repair: "Reparation", deliveryPickup: "Livraison / Retrait", store: "Boutique", featuredDevices: "Appareils reconditionnes en vedette.",
+  viewShop: "Voir boutique", whyChoose: "Pourquoi nous choisir", whyTitle: "Pour ceux qui ont besoin de recuperer leur telephone vite.", fastTurnaround: "Delai rapide",
+  affordablePricing: "Prix accessibles", professionalTools: "Outils professionnels", satisfaction: "Satisfaction client",
+  testimonials: "Temoignages", testimonialsTitle: "Des clients qui valorisent rapidite et clarte.", finalCtaTitle: "Besoin de reparer votre telephone aujourd'hui?",
+  finalCtaText: "Ecrivez a Droidunclock et recevez un devis clair avant de valider.", contactNow: "Contacter maintenant (WhatsApp)",
+  footerDescription: "Reparation premium et appareils reconditionnes aux Pays-Bas.", location: "Localisation", privacy: "Confidentialite", terms: "Conditions",
+  rights: "Tous droits reserves.", shopByNeed: "Acheter par besoin", search: "Recherche", category: "Categorie", allCategories: "Toutes les categories",
+  productsReady: "Produits prets pour reparation, revente et paiement.", productDetails: "Details produit", loadingProduct: "Chargement du produit...",
+  techDetails: "Details techniques", warrantyInfo: "Informations garantie", deliveryInfo: "Informations livraison", relatedProducts: "Produits associes",
+  reviewCartTitle: "Verifiez vos articles avant le paiement securise.", summary: "Resume", secureCheckoutTitle: "Paiement international securise.",
+  order: "Commande", validatedSummary: "Resume valide", loginRequired: "Connexion requise", signIn: "Connexion", backToCart: "Retour panier",
+  paymentReceived: "Paiement recu", backToShop: "Retour boutique", homepage: "Accueil", logout: "Deconnexion"
+});
+
+Object.assign(translations.de, {
+  navDevices: "Gerate", navReviews: "Bewertungen", navContact: "Kontakt", sameDayBadge: "Reparatur am selben Tag verfugbar",
+  ratingProof: "4.9 Kundenbewertung", warrantyProof: "Garantie inklusive", englishProof: "Englischsprachig", sameDayService: "Service am selben Tag",
+  sameDayServiceText: "Schnelle Bearbeitung gangiger Reparaturen.", warrantyIncludedText: "Klare Abdeckung nach der Reparatur.", transparency: "100% Transparenz",
+  transparencyText: "Diagnose und Preis vor Beginn.", englishService: "Englischsprachiger Service", servicesTitle: "Premium-Reparaturen ohne Umstande.",
+  screenRepair: "Display-Reparatur", batteryReplacement: "Akkuwechsel", chargingRepair: "Ladebuchse reparieren", waterDamage: "Wasserschaden-Diagnose",
+  requestRepair: "Reparatur anfragen", quoteTitle: "Sag uns, was passiert ist. Wir antworten mit klaren Schritten.", deviceModel: "Geratemodell",
+  serviceNeeded: "Benotigter Service", selectService: "Service auswahlen", notes: "Notizen", sendWhatsapp: "Per WhatsApp senden",
+  howItWorks: "So funktioniert es", processTitle: "Ein klarer Ablauf von Nachricht bis Abholung.", contactUs: "Kontakt aufnehmen", diagnose: "Diagnose",
+  repair: "Reparatur", deliveryPickup: "Lieferung / Abholung", store: "Shop", featuredDevices: "Ausgewahlte refurbished Gerate.",
+  viewShop: "Shop ansehen", whyChoose: "Warum wir", whyTitle: "Fur Menschen, die ihr Telefon schnell zuruck brauchen.", fastTurnaround: "Schnelle Bearbeitung",
+  affordablePricing: "Faire Preise", professionalTools: "Professionelle Tools", satisfaction: "Kundenzufriedenheit",
+  testimonials: "Bewertungen", testimonialsTitle: "Vertraut von Kunden, die Tempo und Klarheit schatzen.", finalCtaTitle: "Telefon heute reparieren lassen?",
+  finalCtaText: "Schreibe Droidunclock und erhalte zuerst ein klares Angebot.", contactNow: "Jetzt kontaktieren (WhatsApp)",
+  footerDescription: "Premium-Reparatur und refurbished Gerate in den Niederlanden.", location: "Standort", privacy: "Datenschutz", terms: "Bedingungen",
+  rights: "Alle Rechte vorbehalten.", shopByNeed: "Nach Bedarf kaufen", search: "Suchen", category: "Kategorie", allCategories: "Alle Kategorien",
+  productsReady: "Produkte bereit fur Reparatur, Weiterverkauf und Checkout.", productDetails: "Produktdetails", loadingProduct: "Produkt laden...",
+  techDetails: "Technische Details", warrantyInfo: "Garantieinformationen", deliveryInfo: "Lieferinformationen", relatedProducts: "Ahnliche Produkte",
+  reviewCartTitle: "Artikel vor sicherem Checkout prufen.", summary: "Zusammenfassung", secureCheckoutTitle: "Sicherer internationaler Checkout.",
+  order: "Bestellung", validatedSummary: "Validierte Zusammenfassung", loginRequired: "Login erforderlich", signIn: "Einloggen", backToCart: "Zuruck zum Warenkorb",
+  paymentReceived: "Zahlung erhalten", backToShop: "Zuruck zum Shop", homepage: "Homepage", logout: "Abmelden"
+});
+
 export const supportedLanguages = Object.keys(translations);
 
 export function detectLanguage() {
@@ -260,11 +501,15 @@ export function t(key, lang = detectLanguage()) {
   return translations[lang]?.[key] || translations.en[key] || key;
 }
 
-export function setLanguage(lang) {
+export function setLanguage(lang, options = {}) {
   const next = supportedLanguages.includes(lang) ? lang : "en";
+  const previous = localStorage.getItem("language");
   localStorage.setItem("language", next);
   document.documentElement.lang = next;
   applyTranslations(next);
+  if (options.reload && previous !== next) {
+    window.location.reload();
+  }
 }
 
 export function setupLanguageSelector(selector = "[data-language-select]") {
@@ -273,7 +518,7 @@ export function setupLanguageSelector(selector = "[data-language-select]") {
   document.documentElement.lang = lang;
   if (select) {
     select.value = lang;
-    select.addEventListener("change", () => setLanguage(select.value));
+    select.addEventListener("change", () => setLanguage(select.value, { reload: true }));
   }
   applyTranslations(lang);
   return lang;

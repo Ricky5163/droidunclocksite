@@ -72,21 +72,21 @@ function render(product, related = []) {
       </div>
       <div class="detail-panels">
         <section>
-          <h2>Technical details</h2>
+          <h2>${t("techDetails", currentLang)}</h2>
           <p>${escapeHtml(product.technical_details || "Technical information will be confirmed before dispatch or repair.")}</p>
         </section>
         <section>
-          <h2>Warranty information</h2>
+          <h2>${t("warrantyInfo", currentLang)}</h2>
           <p>${escapeHtml(product.warranty_info || "Warranty included for eligible products and repairs.")}</p>
         </section>
         <section>
-          <h2>Delivery information</h2>
+          <h2>${t("deliveryInfo", currentLang)}</h2>
           <p>${escapeHtml(product.delivery_info || "International shipping and Netherlands pickup options are available by arrangement.")}</p>
         </section>
       </div>
     </article>
     <section class="related-products">
-      <div class="section-head"><span class="eyebrow">Related</span><h2>Related products</h2></div>
+      <div class="section-head"><span class="eyebrow">${t("details", currentLang)}</span><h2>${t("relatedProducts", currentLang)}</h2></div>
       <div class="product-grid">
         ${related
           .slice(0, 3)
