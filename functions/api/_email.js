@@ -45,6 +45,13 @@ export function orderEmailHtml({ order, items, siteUrl }) {
       <b>Pagamento:</b> ${escapeHtml(order.payment_method || order.payment_provider || "")}
     </div>
 
+    <div style="background:#fff;border:1px solid #e5e7eb;padding:14px;border-radius:12px;margin:16px 0;">
+      <b>Cliente:</b> ${escapeHtml(order.customer_name || "")}<br/>
+      <b>Email:</b> ${escapeHtml(order.customer_email || "")}<br/>
+      <b>Telefone:</b> ${escapeHtml(order.customer_phone || "")}<br/>
+      <b>Morada:</b> ${escapeHtml(order.address || "")}, ${escapeHtml(order.postal_code || "")} ${escapeHtml(order.city || "")}, ${escapeHtml(order.country || "")}
+    </div>
+
     <table style="width:100%;border-collapse:collapse;">
       <thead>
         <tr>

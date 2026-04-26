@@ -2,6 +2,7 @@ import { sendEmail, orderEmailHtml } from "./_email.js";
 import {
   assertEnv,
   createServiceClient,
+  decryptOrderCustomer,
   json,
   normalizeEmail,
   readJson,
@@ -64,12 +65,13 @@ export async function onRequest(context) {
       return json(request, env, 500, { error: itemsError.message });
     }
 
-    const customerEmail = normalizeEmail(order.customer_email);
+    const decryptedOrder = await decryptOrderCustomer(order, env);
+    const customerEmail = normalizeEmail(decryptedOrder.customer_email);
     if (!customerEmail) {
       return json(request, env, 500, { error: "Email do cliente invalido." });
     }
 
-    const html = orderEmailHtml({ order, items, siteUrl: env.SITE_URL });
+    const html = orderEmailHtml({ order: decryptedOrder, items, siteUrl: env.SITE_URL });
 
     await sendEmail(env, {
       to: customerEmail,

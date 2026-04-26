@@ -88,6 +88,111 @@ export function normalizeCustomer(body = {}) {
   return { customer, missing };
 }
 
+export async function requireAdminAuth(request, env, supabase = createServiceClient(env)) {
+  const authorization = request.headers.get("authorization") || "";
+  const token = authorization.replace(/^Bearer\s+/i, "").trim();
+  if (!token) return null;
+
+  const { data: userData, error: userError } = await supabase.auth.getUser(token);
+  const email = normalizeEmail(userData?.user?.email);
+  if (userError || !email) return null;
+
+  const { data: admin, error: adminError } = await supabase
+    .from("admin_users")
+    .select("id,email,role")
+    .eq("email", email)
+    .maybeSingle();
+
+  return adminError || !admin ? null : { ...admin, user: userData.user };
+}
+
+export async function encryptOrderCustomer(customer, env) {
+  const encrypted = { ...customer };
+  for (const field of sensitiveOrderFields()) {
+    encrypted[field] = await encryptText(customer[field], env);
+  }
+  return encrypted;
+}
+
+export async function decryptOrderCustomer(order, env) {
+  const decrypted = { ...order };
+  for (const field of sensitiveOrderFields()) {
+    decrypted[field] = await decryptText(order[field], env);
+  }
+  return decrypted;
+}
+
+function sensitiveOrderFields() {
+  return ["customer_name", "customer_email", "customer_phone", "country", "address", "postal_code", "city"];
+}
+
+async function encryptText(value, env) {
+  const text = String(value || "");
+  const secret = orderDataSecret(env);
+  if (!secret || !text || text.startsWith("enc:v1:")) return text;
+
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await orderCryptoKey(secret);
+  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(text));
+
+  return `enc:v1:${base64FromBytes(iv)}:${base64FromBytes(new Uint8Array(encrypted))}`;
+}
+
+async function decryptText(value, env) {
+  const text = String(value || "");
+  const secrets = orderDataSecrets(env);
+  if (!secrets.length || !text.startsWith("enc:v1:")) return text;
+
+  const [, version, ivBase64, encryptedBase64] = text.split(":");
+  if (version !== "v1" || !ivBase64 || !encryptedBase64) return text;
+
+  for (const secret of secrets) {
+    try {
+      const key = await orderCryptoKey(secret);
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: bytesFromBase64(ivBase64) },
+        key,
+        bytesFromBase64(encryptedBase64)
+      );
+      return new TextDecoder().decode(decrypted);
+    } catch {
+      // Try the next server-side secret for older orders.
+    }
+  }
+
+  return "";
+}
+
+async function orderCryptoKey(secret) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret));
+  return crypto.subtle.importKey("raw", digest, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+}
+
+function base64FromBytes(bytes) {
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
+}
+
+function bytesFromBase64(value) {
+  return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+}
+
+function orderDataSecret(env) {
+  return orderDataSecrets(env)[0];
+}
+
+function orderDataSecrets(env) {
+  return [
+    env.CHECKOUT_DATA_SECRET,
+    env.ORDER_DATA_SECRET,
+    env.INTERNAL_API_SECRET,
+    env.SUPABASE_SERVICE_ROLE_KEY,
+  ].filter(Boolean);
+}
+
 export async function readJson(request) {
   return request.json().catch(() => ({}));
 }

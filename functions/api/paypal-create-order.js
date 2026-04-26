@@ -2,6 +2,7 @@ import {
   assertEnv,
   buildValidatedOrder,
   createServiceClient,
+  encryptOrderCustomer,
   ensureAllowedOrigin,
   handleOptions,
   json,
@@ -50,11 +51,12 @@ export async function onRequest(context) {
     const shippingCost = Math.max(0, Number(body.shipping_cost || 0));
     const totalAmount = Number((orderDraft.total + shippingCost).toFixed(2));
 
+    const secureCustomer = await encryptOrderCustomer(customer, env);
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
         {
-          ...customer,
+          ...secureCustomer,
           total_amount: totalAmount,
           payment_method: "paypal",
           payment_status: "pending",

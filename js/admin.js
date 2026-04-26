@@ -1,5 +1,5 @@
-import { buildAdminLoginRedirect, createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
-import { getCurrentUser, logoutAndRedirect } from "./auth-utils.js?v=auth5";
+﻿import { buildAdminLoginRedirect, createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
+import { getCurrentUser, getSession, logoutAndRedirect } from "./auth-utils.js?v=auth5";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
 
@@ -173,20 +173,38 @@ async function loadProducts() {
 }
 
 async function loadOrders() {
-  const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
-  if (error) throw error;
+  const session = await getSession();
+  const response = await fetch("/api/admin-orders", {
+    headers: {
+      Authorization: `Bearer ${session?.access_token || ""}`,
+    },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "Could not load orders.");
+
+  const data = payload.orders || [];
   const statuses = ["Pending", "Paid", "Processing", "Shipped", "Completed", "Cancelled"];
   ordersElement.innerHTML = `
     <table>
-      <thead><tr><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead>
+      <thead><tr><th>Customer</th><th>Delivery</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead>
       <tbody>
         ${(data || [])
           .map(
             (order) => `
               <tr>
-                <td><strong>${escapeHtml(order.customer_name || "")}</strong><br /><span>${escapeHtml(order.customer_email || "")}</span></td>
+                <td>
+                  <strong>${escapeHtml(order.customer_name || "")}</strong><br />
+                  <span>${escapeHtml(order.customer_email || "")}</span><br />
+                  <span>${escapeHtml(order.customer_phone || "")}</span>
+                </td>
+                <td>
+                  <strong>${escapeHtml(order.address || "")}</strong><br />
+                  <span>${escapeHtml([order.postal_code, order.city].filter(Boolean).join(" "))}</span><br />
+                  <span>${escapeHtml(order.country || "")}</span>
+                </td>
+                <td>${orderItemsSummary(order.items)}</td>
                 <td>${formatEuro(order.total_amount || 0)}</td>
-                <td>${escapeHtml(order.payment_method || "")} · ${escapeHtml(order.payment_status || "")}</td>
+                <td>${escapeHtml(order.payment_method || "")} / ${escapeHtml(order.payment_status || "")}</td>
                 <td>
                   <select data-order-status="${order.id}">
                     ${statuses.map((status) => `<option ${status === order.order_status ? "selected" : ""}>${status}</option>`).join("")}
@@ -206,6 +224,21 @@ async function loadOrders() {
       setStatus(error ? error.message : "Order status updated.", error ? "error" : "success");
     });
   });
+}
+
+function orderItemsSummary(items = []) {
+  if (!items.length) return `<span>No items</span>`;
+
+  return items
+    .map(
+      (item) => `
+        <div class="admin-order-item">
+          <strong>${escapeHtml(item.product_name || "")}</strong>
+          <span>${Number(item.quantity || 0)} x ${formatEuro(item.unit_price || 0)}</span>
+        </div>
+      `,
+    )
+    .join("");
 }
 
 form?.addEventListener("submit", async (event) => {

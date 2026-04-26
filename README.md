@@ -29,9 +29,12 @@ PAYPAL_CLIENT_SECRET=
 PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
 SITE_URL=https://your-domain.com
 INTERNAL_API_SECRET=
+CHECKOUT_DATA_SECRET=
 ```
 
 Use `https://api-m.paypal.com` for production PayPal.
+
+`CHECKOUT_DATA_SECRET` is recommended for encrypting checkout customer details at rest. If it is not set, the server falls back to existing private server-side secrets.
 
 For frontend runtime config, copy `js/env.example.js` to `js/env.js`, fill the public Supabase anon settings and WhatsApp number, then include it before page modules if you do not want to edit `js/app-config.js`.
 
