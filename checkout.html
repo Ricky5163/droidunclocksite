@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="css/styles.css?v=lang2" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="dashboard-page checkout-guarded">
+<body class="dashboard-page checkout-page checkout-guarded">
   <header class="site-header">
     <div class="container header-bar">
       <a class="brand" href="cart.html">
@@ -38,6 +38,12 @@
           <p class="muted" data-i18n="secureCheckoutText">Stripe and PayPal are created server-side. Card details are never stored by Droidunclock.</p>
         </div>
 
+        <div class="checkout-trust" aria-label="Checkout highlights">
+          <span>Encrypted checkout</span>
+          <span>Tracked delivery</span>
+          <span>Warranty included</span>
+        </div>
+
         <form class="form-grid" id="checkoutForm">
           <label><span data-i18n="fullName">Full name</span><input id="customerName" name="customer_name" required autocomplete="name" /></label>
           <label><span data-i18n="email">Email</span><input id="email" name="customer_email" type="email" required autocomplete="email" /></label>
@@ -59,8 +65,11 @@
       </section>
 
       <aside class="glass-card summary-card">
-        <span class="eyebrow" data-i18n="order">Order</span>
-        <h2 data-i18n="validatedSummary">Validated summary</h2>
+        <div class="summary-card__header">
+          <span class="eyebrow" data-i18n="order">Order</span>
+          <h2 data-i18n="validatedSummary">Validated summary</h2>
+          <p>Final stock and pricing are checked before payment opens.</p>
+        </div>
         <div id="orderSummary" class="checkout-summary"></div>
         <div class="summary-card__row"><span data-i18n="subtotal">Subtotal</span><strong id="orderSubtotal">€0.00</strong></div>
         <div class="summary-card__row"><span data-i18n="shipping">Shipping</span><strong id="orderShipping">€0.00</strong></div>
