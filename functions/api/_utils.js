@@ -187,6 +187,7 @@ export async function markOrderPaid(supabase, orderId, updates = {}) {
 
   if (currentError) throw new Error(currentError.message);
   if (currentOrder.payment_status === "paid") {
+    await retireSoldProducts(supabase, orderId);
     return { order: currentOrder, changed: false };
   }
 
@@ -216,29 +217,18 @@ export async function retireSoldProducts(supabase, orderId) {
 
   if (itemsError) throw new Error(itemsError.message);
 
-  const quantities = new Map();
+  const productIds = new Set();
   for (const item of items || []) {
     const productId = String(item.product_id || "").trim();
-    const quantity = Math.max(0, Number(item.quantity || 0));
-    if (!productId || quantity <= 0) continue;
-    quantities.set(productId, (quantities.get(productId) || 0) + quantity);
+    if (productId) productIds.add(productId);
   }
 
-  for (const [productId, quantity] of quantities.entries()) {
-    const { data: product, error: productError } = await supabase
-      .from("products")
-      .select("id,stock")
-      .eq("id", productId)
-      .single();
-
-    if (productError) throw new Error(productError.message);
-
-    const nextStock = Math.max(0, Number(product.stock || 0) - quantity);
+  for (const productId of productIds) {
     const { error: updateError } = await supabase
       .from("products")
       .update({
-        stock: nextStock,
-        active: nextStock > 0,
+        stock: 0,
+        active: false,
       })
       .eq("id", productId);
 

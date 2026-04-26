@@ -6,6 +6,7 @@ import {
   json,
   readJson,
   markOrderPaid,
+  retireSoldProducts,
   triggerOrderEmails,
 } from "./_utils.js";
 
@@ -63,6 +64,7 @@ export async function onRequest(context) {
     }
 
     if (order.payment_status === "paid") {
+      await retireSoldProducts(supabase, order.id);
       return json(request, env, 200, { ok: true, alreadyPaid: true, orderId: order.id });
     }
 

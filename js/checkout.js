@@ -1,4 +1,4 @@
-import { buildLoginRedirect, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
+import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
 import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js?v=auth5";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
@@ -79,7 +79,7 @@ function renderSummary(lines, subtotal) {
       .map(
         (line) => `
           <div class="checkout-line">
-            <div><strong>${line.name}</strong><p>${line.qty} x ${formatEuro(line.price)}</p></div>
+            <div><strong>${escapeHtml(line.name)}</strong><p>${line.qty} x ${formatEuro(line.price)}</p></div>
             <strong>${formatEuro(line.lineTotal)}</strong>
           </div>
         `,
