@@ -30,6 +30,8 @@ PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
 SITE_URL=https://your-domain.com
 INTERNAL_API_SECRET=
 CHECKOUT_DATA_SECRET=
+SHIPPING_COST=9.95
+FREE_SHIPPING_THRESHOLD=
 ```
 
 Use `https://api-m.paypal.com` for production PayPal.
@@ -37,6 +39,8 @@ Use `https://api-m.paypal.com` for production PayPal.
 `CHECKOUT_DATA_SECRET` is recommended for encrypting checkout customer details at rest. If it is not set, the server falls back to existing private server-side secrets.
 
 For frontend runtime config, copy `js/env.example.js` to `js/env.js`, fill the public Supabase anon settings and WhatsApp number, then include it before page modules if you do not want to edit `js/app-config.js`.
+
+`SHIPPING_COST` and `FREE_SHIPPING_THRESHOLD` are read only by the Cloudflare Functions. The checkout UI may display the expected shipping cost, but the final amount is always recalculated server-side.
 
 ## Supabase Setup
 
@@ -47,6 +51,8 @@ For frontend runtime config, copy `js/env.example.js` to `js/env.js`, fill the p
 5. Run the final `admin_users` insert in `supabase-schema.sql` to authorize that email.
 6. Admin is intentionally hidden from navigation: double-click the site logo to open `admin.html`.
 7. Add products in `admin.html`.
+
+Re-run `supabase-schema.sql` after pulling security updates. It includes the `stock_reserved_at` order column and the `reserve_order_stock` RPC used to decrement stock atomically after confirmed payment.
 
 ## Payment Security
 

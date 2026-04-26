@@ -53,8 +53,12 @@ create table if not exists public.orders (
   )),
   paypal_order_id text,
   stripe_payment_intent_id text,
+  stock_reserved_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+alter table public.orders
+add column if not exists stock_reserved_at timestamptz;
 
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),
@@ -123,6 +127,63 @@ drop policy if exists "Admins view order items" on public.order_items;
 create policy "Admins view order items"
 on public.order_items for select
 using (public.is_admin());
+
+create or replace function public.reserve_order_stock(p_order_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  order_row public.orders%rowtype;
+  item_row record;
+  updated_count integer;
+begin
+  select *
+  into order_row
+  from public.orders
+  where id = p_order_id
+  for update;
+
+  if not found then
+    raise exception 'Order not found.';
+  end if;
+
+  if order_row.stock_reserved_at is not null then
+    return;
+  end if;
+
+  if order_row.payment_status <> 'paid' then
+    raise exception 'Order is not paid.';
+  end if;
+
+  for item_row in
+    select product_id, quantity
+    from public.order_items
+    where order_id = p_order_id and product_id is not null
+  loop
+    update public.products
+    set
+      stock = stock - item_row.quantity,
+      active = (stock - item_row.quantity) > 0
+    where id = item_row.product_id
+      and active = true
+      and stock >= item_row.quantity;
+
+    get diagnostics updated_count = row_count;
+    if updated_count <> 1 then
+      raise exception 'Insufficient stock for product %.', item_row.product_id;
+    end if;
+  end loop;
+
+  update public.orders
+  set stock_reserved_at = now()
+  where id = p_order_id;
+end;
+$$;
+
+revoke execute on function public.reserve_order_stock(uuid) from public, anon, authenticated;
+grant execute on function public.reserve_order_stock(uuid) to service_role;
 
 create index if not exists products_slug_idx on public.products(slug);
 create index if not exists products_category_idx on public.products(category);

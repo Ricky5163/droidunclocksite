@@ -6,7 +6,6 @@ import {
   json,
   readJson,
   markOrderPaid,
-  retireSoldProducts,
   triggerOrderEmails,
 } from "./_utils.js";
 
@@ -51,7 +50,7 @@ export async function onRequest(context) {
     const supabase = createServiceClient(env);
     const { data: order, error: orderLookupError } = await supabase
       .from("orders")
-      .select("id,payment_status,paypal_order_id")
+      .select("id,payment_status,paypal_order_id,total_amount")
       .eq("paypal_order_id", paypalOrderId)
       .single();
 
@@ -64,7 +63,7 @@ export async function onRequest(context) {
     }
 
     if (order.payment_status === "paid") {
-      await retireSoldProducts(supabase, order.id);
+      await markOrderPaid(supabase, order.id);
       return json(request, env, 200, { ok: true, alreadyPaid: true, orderId: order.id });
     }
 
@@ -88,6 +87,11 @@ export async function onRequest(context) {
       });
     }
 
+    const validationError = validatePayPalCapture(data, order);
+    if (validationError) {
+      return json(request, env, 409, { error: validationError });
+    }
+
     const result = await markOrderPaid(supabase, order.id);
     if (result.changed) {
       await triggerOrderEmails(env, order.id);
@@ -97,6 +101,39 @@ export async function onRequest(context) {
   } catch (error) {
     return json(request, env, 500, { error: error?.message || "Erro" });
   }
+}
+
+function validatePayPalCapture(data, order) {
+  if (data?.status !== "COMPLETED") {
+    return "PayPal payment was not completed.";
+  }
+
+  const purchaseUnit = (data.purchase_units || []).find(
+    (unit) => String(unit.reference_id || "") === String(order.id)
+  );
+
+  if (!purchaseUnit) {
+    return "PayPal order reference mismatch.";
+  }
+
+  const capture = (purchaseUnit.payments?.captures || []).find((entry) => entry.status === "COMPLETED");
+  if (!capture) {
+    return "PayPal capture was not completed.";
+  }
+
+  const currency = capture.amount?.currency_code;
+  const value = Number(capture.amount?.value);
+  const expected = Number(order.total_amount || 0);
+
+  if (currency !== "EUR") {
+    return "PayPal capture currency mismatch.";
+  }
+
+  if (!Number.isFinite(value) || Math.abs(value - expected) > 0.01) {
+    return "PayPal capture amount mismatch.";
+  }
+
+  return "";
 }
 
 async function paypalToken(env) {

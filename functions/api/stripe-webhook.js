@@ -56,6 +56,11 @@ export async function onRequest(context) {
       const orderId = session?.metadata?.order_id;
 
       if (orderId) {
+        const validationError = await validateStripeSession(supabase, session, orderId);
+        if (validationError) {
+          return new Response(validationError, { status: 409 });
+        }
+
         const result = await markOrderPaid(supabase, orderId, {
           stripe_payment_intent_id: session.payment_intent ?? null,
         });
@@ -70,6 +75,34 @@ export async function onRequest(context) {
   } catch (error) {
     return new Response(error?.message || "Server error", { status: 500 });
   }
+}
+
+async function validateStripeSession(supabase, session, orderId) {
+  if (session.payment_status && session.payment_status !== "paid") {
+    return "Stripe session is not paid";
+  }
+
+  if (session.currency && String(session.currency).toLowerCase() !== "eur") {
+    return "Stripe currency mismatch";
+  }
+
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("id,total_amount")
+    .eq("id", orderId)
+    .single();
+
+  if (error || !order) {
+    return "Order not found";
+  }
+
+  const paidTotal = Number(session.amount_total || 0) / 100;
+  const expectedTotal = Number(order.total_amount || 0);
+  if (!Number.isFinite(paidTotal) || Math.abs(paidTotal - expectedTotal) > 0.01) {
+    return "Stripe amount mismatch";
+  }
+
+  return "";
 }
 
 async function verifyStripeSignature(rawBody, signatureHeader, secret) {

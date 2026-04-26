@@ -1,5 +1,5 @@
 import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
-import { hydrateUserEmail, getCurrentUser } from "./auth-utils.js?v=auth5";
+import { hydrateUserEmail, getCurrentUser, getSession } from "./auth-utils.js?v=auth5";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
@@ -140,12 +140,20 @@ async function startCheckout(endpoint, providerLabel) {
   setStatus(`Opening secure ${providerLabel} payment...`);
 
   try {
+    const session = await getSession();
+    if (!session?.access_token) {
+      showLoginGate();
+      throw new Error("Please sign in before checkout.");
+    }
+
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         ...customer,
-        shipping_cost: totals().shipping,
         cart: buildCheckoutPayload(orderLines),
       }),
     });

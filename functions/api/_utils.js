@@ -25,7 +25,7 @@ export function json(request, env, status, payload, extraHeaders = {}) {
 export function corsHeaders(request, env) {
   const headers = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Internal-Auth",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Internal-Auth",
     Vary: "Origin",
   };
 
@@ -104,6 +104,15 @@ export async function requireAdminAuth(request, env, supabase = createServiceCli
     .maybeSingle();
 
   return adminError || !admin ? null : { ...admin, user: userData.user };
+}
+
+export async function requireAuthenticatedUser(request, supabase) {
+  const authorization = request.headers.get("authorization") || "";
+  const token = authorization.replace(/^Bearer\s+/i, "").trim();
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  return error ? null : data?.user || null;
 }
 
 export async function encryptOrderCustomer(customer, env) {
@@ -283,16 +292,32 @@ export async function buildValidatedOrder(cart, supabase) {
   };
 }
 
+export function calculateShipping(customer, orderDraft, env) {
+  const baseShipping = numericEnv(env.SHIPPING_COST, 9.95);
+  const freeShippingThreshold = numericEnv(env.FREE_SHIPPING_THRESHOLD, 0);
+  const subtotal = Number(orderDraft?.total || 0);
+
+  if (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) return 0;
+  if (!orderDraft?.items?.length) return 0;
+
+  return Number(baseShipping.toFixed(2));
+}
+
+function numericEnv(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
+}
+
 export async function markOrderPaid(supabase, orderId, updates = {}) {
   const { data: currentOrder, error: currentError } = await supabase
     .from("orders")
-    .select("id,payment_status,order_status,customer_email,total_amount,payment_method")
+    .select("id,payment_status,order_status,customer_email,total_amount,payment_method,stock_reserved_at")
     .eq("id", orderId)
     .single();
 
   if (currentError) throw new Error(currentError.message);
   if (currentOrder.payment_status === "paid") {
-    await retireSoldProducts(supabase, orderId);
+    await reserveOrderStock(supabase, orderId);
     return { order: currentOrder, changed: false };
   }
 
@@ -304,41 +329,19 @@ export async function markOrderPaid(supabase, orderId, updates = {}) {
       ...updates,
     })
     .eq("id", orderId)
-    .select("id,payment_status,order_status,customer_email,total_amount,payment_method")
+    .select("id,payment_status,order_status,customer_email,total_amount,payment_method,stock_reserved_at")
     .single();
 
   if (updateError) throw new Error(updateError.message);
 
-  await retireSoldProducts(supabase, orderId);
+  await reserveOrderStock(supabase, orderId);
 
   return { order: updatedOrder, changed: true };
 }
 
-export async function retireSoldProducts(supabase, orderId) {
-  const { data: items, error: itemsError } = await supabase
-    .from("order_items")
-    .select("product_id,quantity")
-    .eq("order_id", orderId);
-
-  if (itemsError) throw new Error(itemsError.message);
-
-  const productIds = new Set();
-  for (const item of items || []) {
-    const productId = String(item.product_id || "").trim();
-    if (productId) productIds.add(productId);
-  }
-
-  for (const productId of productIds) {
-    const { error: updateError } = await supabase
-      .from("products")
-      .update({
-        stock: 0,
-        active: false,
-      })
-      .eq("id", productId);
-
-    if (updateError) throw new Error(updateError.message);
-  }
+export async function reserveOrderStock(supabase, orderId) {
+  const { error } = await supabase.rpc("reserve_order_stock", { p_order_id: orderId });
+  if (error) throw new Error(error.message);
 }
 
 export async function triggerOrderEmails(env, orderId) {

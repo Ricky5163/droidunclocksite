@@ -1,6 +1,7 @@
 import {
   assertEnv,
   buildValidatedOrder,
+  calculateShipping,
   createServiceClient,
   encryptOrderCustomer,
   ensureAllowedOrigin,
@@ -8,6 +9,7 @@ import {
   json,
   normalizeCustomer,
   readJson,
+  requireAuthenticatedUser,
 } from "./_utils.js";
 
 export async function onRequest(context) {
@@ -39,6 +41,12 @@ export async function onRequest(context) {
       return json(request, env, 500, { error: "Missing env: " + missing.join(", ") });
     }
 
+    const supabase = createServiceClient(env);
+    const user = await requireAuthenticatedUser(request, supabase);
+    if (!user) {
+      return json(request, env, 401, { error: "Authentication required." });
+    }
+
     const body = await readJson(request);
     const { customer, missing: missingCustomer } = normalizeCustomer(body);
 
@@ -46,9 +54,12 @@ export async function onRequest(context) {
       return json(request, env, 400, { error: "Missing customer fields: " + missingCustomer.join(", ") });
     }
 
-    const supabase = createServiceClient(env);
+    if (customer.customer_email !== String(user.email || "").trim().toLowerCase()) {
+      return json(request, env, 403, { error: "Customer email must match the authenticated account." });
+    }
+
     const orderDraft = await buildValidatedOrder(body.cart, supabase);
-    const shippingCost = Math.max(0, Number(body.shipping_cost || 0));
+    const shippingCost = calculateShipping(customer, orderDraft, env);
     const totalAmount = Number((orderDraft.total + shippingCost).toFixed(2));
 
     const secureCustomer = await encryptOrderCustomer(customer, env);
@@ -81,6 +92,7 @@ export async function onRequest(context) {
 
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
     if (itemsError) {
+      await supabase.from("orders").delete().eq("id", order.id);
       return json(request, env, 500, { error: itemsError.message });
     }
 
@@ -108,15 +120,28 @@ export async function onRequest(context) {
 
     const data = await paypalResponse.json().catch(() => ({}));
     if (!paypalResponse.ok) {
+      await supabase
+        .from("orders")
+        .update({ payment_status: "failed", order_status: "Cancelled" })
+        .eq("id", order.id);
+
       return json(request, env, 500, {
         error: data?.message || data?.error_description || "Erro PayPal",
       });
     }
 
-    await supabase.from("orders").update({ paypal_order_id: data.id }).eq("id", order.id);
+    const { error: paypalIdError } = await supabase.from("orders").update({ paypal_order_id: data.id }).eq("id", order.id);
+    if (paypalIdError) {
+      return json(request, env, 500, { error: paypalIdError.message });
+    }
 
     const approvalUrl = (data.links || []).find((link) => link.rel === "approve")?.href;
     if (!approvalUrl) {
+      await supabase
+        .from("orders")
+        .update({ payment_status: "failed", order_status: "Cancelled" })
+        .eq("id", order.id);
+
       return json(request, env, 500, { error: "Approval link nao encontrado." });
     }
 
