@@ -5,6 +5,7 @@ import {
   handleOptions,
   json,
   readJson,
+  markOrderPaid,
   triggerOrderEmails,
 } from "./_utils.js";
 
@@ -85,11 +86,10 @@ export async function onRequest(context) {
       });
     }
 
-    await supabase
-      .from("orders")
-      .update({ payment_status: "paid", order_status: "Paid" })
-      .eq("id", order.id);
-    await triggerOrderEmails(env, order.id);
+    const result = await markOrderPaid(supabase, order.id);
+    if (result.changed) {
+      await triggerOrderEmails(env, order.id);
+    }
 
     return json(request, env, 200, { ok: true, orderId: order.id, data });
   } catch (error) {

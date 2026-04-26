@@ -1402,6 +1402,30 @@ select:focus {
   color: var(--muted);
 }
 
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.admin-table td .status-pill--live {
+  color: #067647;
+  background: rgba(14, 159, 110, 0.11);
+  border: 1px solid rgba(14, 159, 110, 0.18);
+}
+
+.admin-table td .status-pill--sold {
+  color: #b42318;
+  background: rgba(217, 45, 32, 0.1);
+  border: 1px solid rgba(217, 45, 32, 0.16);
+}
+
 .admin-product {
   display: flex;
   align-items: center;

@@ -119,12 +119,21 @@ function resetForm() {
   fields.active.checked = true;
 }
 
+function productStatus(product) {
+  const stock = Math.max(0, Number(product.stock ?? 0));
+  if (stock <= 0 || !product.active) {
+    return `<span class="status-pill status-pill--sold">Sold</span>`;
+  }
+
+  return `<span class="status-pill status-pill--live">Live</span>`;
+}
+
 async function loadProducts() {
   const { data, error } = await supabase.from("products").select("*").order("created_at", { ascending: false });
   if (error) throw error;
   productsElement.innerHTML = `
     <table>
-      <thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Price</th><th></th></tr></thead>
+      <thead><tr><th>Product</th><th>Category</th><th>Status</th><th>Stock</th><th>Price</th><th></th></tr></thead>
       <tbody>
         ${(data || [])
           .map(
@@ -132,6 +141,7 @@ async function loadProducts() {
               <tr>
                 <td><div class="admin-product"><img src="${escapeHtml(getProductImage(product))}" alt="" /><strong>${escapeHtml(product.name)}</strong></div></td>
                 <td>${escapeHtml(product.category || "")}</td>
+                <td>${productStatus(product)}</td>
                 <td>${product.stock ?? 0}</td>
                 <td>${formatEuro(getEffectivePrice(product))}</td>
                 <td>

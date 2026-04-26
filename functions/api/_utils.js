@@ -203,7 +203,47 @@ export async function markOrderPaid(supabase, orderId, updates = {}) {
 
   if (updateError) throw new Error(updateError.message);
 
+  await retireSoldProducts(supabase, orderId);
+
   return { order: updatedOrder, changed: true };
+}
+
+export async function retireSoldProducts(supabase, orderId) {
+  const { data: items, error: itemsError } = await supabase
+    .from("order_items")
+    .select("product_id,quantity")
+    .eq("order_id", orderId);
+
+  if (itemsError) throw new Error(itemsError.message);
+
+  const quantities = new Map();
+  for (const item of items || []) {
+    const productId = String(item.product_id || "").trim();
+    const quantity = Math.max(0, Number(item.quantity || 0));
+    if (!productId || quantity <= 0) continue;
+    quantities.set(productId, (quantities.get(productId) || 0) + quantity);
+  }
+
+  for (const [productId, quantity] of quantities.entries()) {
+    const { data: product, error: productError } = await supabase
+      .from("products")
+      .select("id,stock")
+      .eq("id", productId)
+      .single();
+
+    if (productError) throw new Error(productError.message);
+
+    const nextStock = Math.max(0, Number(product.stock || 0) - quantity);
+    const { error: updateError } = await supabase
+      .from("products")
+      .update({
+        stock: nextStock,
+        active: nextStock > 0,
+      })
+      .eq("id", productId);
+
+    if (updateError) throw new Error(updateError.message);
+  }
 }
 
 export async function triggerOrderEmails(env, orderId) {

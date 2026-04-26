@@ -17,7 +17,8 @@ export async function fetchProductsByIds(ids) {
     .from("products")
     .select("id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,technical_details,warranty_info,delivery_info")
     .in("id", uniqueIds)
-    .eq("active", true);
+    .eq("active", true)
+    .gt("stock", 0);
 
   if (error) throw error;
   return data || [];
@@ -28,6 +29,7 @@ export async function fetchActiveProducts() {
     .from("products")
     .select("id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,technical_details,warranty_info,delivery_info")
     .eq("active", true)
+    .gt("stock", 0)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -42,6 +44,7 @@ export async function fetchProductBySlug(slugOrId) {
     .from("products")
     .select("id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,technical_details,warranty_info,delivery_info")
     .eq("active", true)
+    .gt("stock", 0)
     .eq("slug", value)
     .maybeSingle();
 
@@ -56,6 +59,7 @@ export async function fetchProductBySlug(slugOrId) {
     .from("products")
     .select("id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,technical_details,warranty_info,delivery_info")
     .eq("active", true)
+    .gt("stock", 0)
     .eq("id", value)
     .maybeSingle();
 
