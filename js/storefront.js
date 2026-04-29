@@ -10,56 +10,58 @@ import {
 const supabase = createSupabaseBrowserClient();
 
 const PRODUCT_COLUMNS = "id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,publish_at,technical_details,warranty_info,delivery_info";
+const LEGACY_PRODUCT_COLUMNS = PRODUCT_COLUMNS.replace(",publish_at", "");
 
-function availableProductsQuery() {
-  return supabase
+function availableProductsQuery(options = {}) {
+  const query = supabase
     .from("products")
-    .select(PRODUCT_COLUMNS)
+    .select(options.legacy ? LEGACY_PRODUCT_COLUMNS : PRODUCT_COLUMNS)
     .eq("active", true)
-    .gt("stock", 0)
-    .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`);
+    .gt("stock", 0);
+
+  return options.legacy ? query : query.or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`);
+}
+
+function isMissingPublishAt(error) {
+  return /publish_at/i.test(error?.message || "") || /publish_at/i.test(error?.details || "");
+}
+
+async function runProductsQuery(buildQuery) {
+  const { data, error } = await buildQuery(false);
+  if (!error) return data || [];
+  if (!isMissingPublishAt(error)) throw error;
+
+  const fallback = await buildQuery(true);
+  if (fallback.error) throw fallback.error;
+  return fallback.data || [];
 }
 
 export async function fetchProductsByIds(ids) {
   const uniqueIds = [...new Set((ids || []).map((id) => String(id || "").trim()).filter(Boolean))];
   if (!uniqueIds.length) return [];
 
-  const { data, error } = await availableProductsQuery()
-    .in("id", uniqueIds);
-
-  if (error) throw error;
-  return data || [];
+  return runProductsQuery((legacy) => availableProductsQuery({ legacy }).in("id", uniqueIds));
 }
 
 export async function fetchActiveProducts() {
-  const { data, error } = await availableProductsQuery()
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-  return data || [];
+  return runProductsQuery((legacy) => availableProductsQuery({ legacy }).order("created_at", { ascending: false }));
 }
 
 export async function fetchProductBySlug(slugOrId) {
   const value = String(slugOrId || "").trim();
   if (!value) return null;
 
-  const { data: slugMatch, error: slugError } = await availableProductsQuery()
-    .eq("slug", value)
-    .maybeSingle();
+  const slugResult = await runProductsQuery((legacy) => availableProductsQuery({ legacy }).eq("slug", value).limit(1));
+  const slugMatch = slugResult[0] || null;
 
-  if (slugError) throw slugError;
   if (slugMatch) return slugMatch;
 
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
     return null;
   }
 
-  const { data, error } = await availableProductsQuery()
-    .eq("id", value)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data;
+  const idResult = await runProductsQuery((legacy) => availableProductsQuery({ legacy }).eq("id", value).limit(1));
+  return idResult[0] || null;
 }
 
 export function buildCartDetails(products, cart = getCart()) {

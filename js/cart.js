@@ -1,5 +1,5 @@
 import { escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
-import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
+import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix1";
 import {
   buildCartDetails,
   fetchProductsByIds,
@@ -8,7 +8,7 @@ import {
   getProductImage,
   setCart,
   syncCartToStock,
-} from "./storefront.js?v=scheduled-products1";
+} from "./storefront.js?v=cart-fix1";
 
 const cartListElement = document.getElementById("cartList");
 const statusElement = document.getElementById("status");
@@ -155,6 +155,8 @@ async function render() {
     renderLines(details.lines, details.total);
     setStatus("");
   } catch (error) {
+    currentLines = [];
+    renderLines([], 0);
     setStatus(error.message || "Could not update cart.", "error");
   }
 }
