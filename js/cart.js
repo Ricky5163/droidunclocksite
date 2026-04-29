@@ -8,7 +8,7 @@ import {
   getProductImage,
   setCart,
   syncCartToStock,
-} from "./storefront.js?v=lang2";
+} from "./storefront.js?v=scheduled-products1";
 
 const cartListElement = document.getElementById("cartList");
 const statusElement = document.getElementById("status");
@@ -22,6 +22,7 @@ let currentLang = setupLanguageSelector();
 setupAdminLogoShortcut();
 
 const SHIPPING_COST = 9.95;
+const MAX_CART_QTY = 20;
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
@@ -48,18 +49,26 @@ function updateQuantity(productId, nextQty) {
   const cart = getCart().map((item) => ({ ...item }));
   const index = cart.findIndex((item) => item.id === String(productId));
   if (index === -1) return;
+
+  const line = currentLines.find((item) => String(item.id) === String(productId));
+  const maxQty = Math.max(1, Math.min(Number(line?.stock || MAX_CART_QTY), MAX_CART_QTY));
   if (nextQty <= 0) cart.splice(index, 1);
-  else cart[index].qty = nextQty;
+  else cart[index].qty = Math.min(Math.max(1, Number(nextQty) || 1), maxQty);
+
   setCart(cart);
   render();
+}
+
+function getLineMeta(line) {
+  return [line.brand, line.model, line.condition].filter(Boolean).join(" - ");
 }
 
 function renderLines(lines, subtotal) {
   if (!lines.length) {
     cartListElement.innerHTML = `
-      <div class="empty-state">
+      <div class="empty-state empty-state--premium">
         <h3>${t("emptyCart", currentLang)}</h3>
-        <p>Choose products or repair services to continue.</p>
+        <p>${t("chooseProducts", currentLang)}</p>
         <a class="btn btn--primary" href="shop.html">${t("shopNow", currentLang)}</a>
       </div>
     `;
@@ -68,15 +77,20 @@ function renderLines(lines, subtotal) {
   }
 
   cartListElement.innerHTML = lines
-    .map(
-      (line) => `
+    .map((line) => {
+      const maxQty = Math.min(line.stock, MAX_CART_QTY);
+      return `
         <article class="cart-line">
           <div class="cart-line__main">
             <img class="cart-line__image" src="${escapeHtml(getProductImage(line))}" alt="${escapeHtml(line.name)}" />
-            <div>
+            <div class="cart-line__copy">
               <p class="eyebrow">${escapeHtml(line.category || "Product")}</p>
               <h3>${escapeHtml(line.name)}</h3>
-              <p class="muted">${escapeHtml(line.brand || "")} ${escapeHtml(line.model || "")} · ${escapeHtml(line.condition || "")}</p>
+              <p class="muted">${escapeHtml(getLineMeta(line))}</p>
+              <div class="cart-line__meta">
+                <span>${formatEuro(line.price)} each</span>
+                <span>${line.stock} available</span>
+              </div>
             </div>
           </div>
           <div class="cart-line__controls">
@@ -85,15 +99,18 @@ function renderLines(lines, subtotal) {
             </span>
             <div class="qty-control">
               <button type="button" data-dec="${line.id}" aria-label="Decrease quantity">-</button>
-              <span>${line.qty}</span>
-              <button type="button" data-inc="${line.id}" aria-label="Increase quantity">+</button>
+              <input type="number" min="1" max="${maxQty}" value="${line.qty}" data-qty="${line.id}" aria-label="Quantity for ${escapeHtml(line.name)}" />
+              <button type="button" data-inc="${line.id}" aria-label="Increase quantity" ${line.qty >= maxQty ? "disabled" : ""}>+</button>
             </div>
-            <strong>${formatEuro(line.lineTotal)}</strong>
+            <div class="cart-line__price">
+              <span>Line total</span>
+              <strong>${formatEuro(line.lineTotal)}</strong>
+            </div>
             <button class="link-button" type="button" data-del="${line.id}">Remove</button>
           </div>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
 
   cartListElement.querySelectorAll("[data-dec]").forEach((button) => {
@@ -106,8 +123,12 @@ function renderLines(lines, subtotal) {
   cartListElement.querySelectorAll("[data-inc]").forEach((button) => {
     button.addEventListener("click", () => {
       const line = currentLines.find((item) => String(item.id) === button.dataset.inc);
-      if (line) updateQuantity(line.id, Math.min(line.qty + 1, line.stock));
+      if (line) updateQuantity(line.id, Math.min(line.qty + 1, line.stock, MAX_CART_QTY));
     });
+  });
+
+  cartListElement.querySelectorAll("[data-qty]").forEach((input) => {
+    input.addEventListener("change", () => updateQuantity(input.dataset.qty, Number(input.value)));
   });
 
   cartListElement.querySelectorAll("[data-del]").forEach((button) => {

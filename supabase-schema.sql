@@ -27,9 +27,13 @@ create table if not exists public.products (
   technical_details text,
   warranty_info text,
   delivery_info text,
+  publish_at timestamptz,
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+alter table public.products
+add column if not exists publish_at timestamptz;
 
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
@@ -99,7 +103,13 @@ $$;
 drop policy if exists "Public can read active products" on public.products;
 create policy "Public can read active products"
 on public.products for select
-using (active = true or public.is_admin());
+using (
+  public.is_admin()
+  or (
+    active = true
+    and (publish_at is null or publish_at <= now())
+  )
+);
 
 drop policy if exists "Admins manage products" on public.products;
 create policy "Admins manage products"
@@ -187,6 +197,7 @@ grant execute on function public.reserve_order_stock(uuid) to service_role;
 
 create index if not exists products_slug_idx on public.products(slug);
 create index if not exists products_category_idx on public.products(category);
+create index if not exists products_publish_at_idx on public.products(publish_at);
 create index if not exists orders_created_at_idx on public.orders(created_at desc);
 
 -- Create this email in Supabase Auth, then this row authorizes it for admin.html.

@@ -245,14 +245,15 @@ export async function buildValidatedOrder(cart, supabase) {
   const ids = normalizedCart.map((item) => item.id);
   const { data: products, error } = await supabase
     .from("products")
-    .select("id,name,price,discount_price,stock,active")
-    .in("id", ids);
+    .select("id,name,price,discount_price,stock,active,publish_at")
+    .in("id", ids)
+    .eq("active", true)
+    .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`);
 
   if (error) throw new Error(error.message);
 
   const productMap = new Map(
     (products || [])
-      .filter((product) => product?.active)
       .map((product) => [String(product.id), product])
   );
 

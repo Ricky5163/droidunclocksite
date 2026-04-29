@@ -1,7 +1,7 @@
 ﻿import { buildAdminLoginRedirect, createSupabaseBrowserClient, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
 import { getCurrentUser, getSession, logoutAndRedirect } from "./auth-utils.js?v=auth5";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
-import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=lang2";
+import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=scheduled-products1";
 
 const supabase = createSupabaseBrowserClient();
 const statusElement = document.getElementById("adminStatus");
@@ -27,6 +27,7 @@ const fields = {
   technicalDetails: document.getElementById("technicalDetails"),
   warrantyInfo: document.getElementById("warrantyInfo"),
   deliveryInfo: document.getElementById("deliveryInfo"),
+  publishAt: document.getElementById("publishAt"),
   active: document.getElementById("active"),
 };
 
@@ -75,6 +76,10 @@ async function assertAdmin() {
 }
 
 function productPayload() {
+  const publishAt = fields.publishAt.value
+    ? new Date(`${fields.publishAt.value}T00:00:00`).toISOString()
+    : null;
+
   return {
     name: fields.name.value.trim(),
     slug: slugify(`${fields.name.value}-${fields.model.value}`),
@@ -90,8 +95,20 @@ function productPayload() {
     technical_details: fields.technicalDetails.value.trim(),
     warranty_info: fields.warrantyInfo.value.trim(),
     delivery_info: fields.deliveryInfo.value.trim(),
+    publish_at: publishAt,
     active: fields.active.checked,
   };
+}
+
+function dateInputValue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function fillForm(product) {
@@ -109,6 +126,7 @@ function fillForm(product) {
   fields.technicalDetails.value = product.technical_details || "";
   fields.warrantyInfo.value = product.warranty_info || "";
   fields.deliveryInfo.value = product.delivery_info || "";
+  fields.publishAt.value = dateInputValue(product.publish_at);
   fields.active.checked = Boolean(product.active);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -125,6 +143,10 @@ function productStatus(product) {
     return `<span class="status-pill status-pill--sold">Sold</span>`;
   }
 
+  if (product.publish_at && new Date(product.publish_at) > new Date()) {
+    return `<span class="status-pill status-pill--scheduled">Scheduled</span>`;
+  }
+
   return `<span class="status-pill status-pill--live">Live</span>`;
 }
 
@@ -133,7 +155,7 @@ async function loadProducts() {
   if (error) throw error;
   productsElement.innerHTML = `
     <table>
-      <thead><tr><th>Product</th><th>Category</th><th>Status</th><th>Stock</th><th>Price</th><th></th></tr></thead>
+      <thead><tr><th>Product</th><th>Category</th><th>Status</th><th>Go live</th><th>Stock</th><th>Price</th><th></th></tr></thead>
       <tbody>
         ${(data || [])
           .map(
@@ -142,6 +164,7 @@ async function loadProducts() {
                 <td><div class="admin-product"><img src="${escapeHtml(getProductImage(product))}" alt="" /><strong>${escapeHtml(product.name)}</strong></div></td>
                 <td>${escapeHtml(product.category || "")}</td>
                 <td>${productStatus(product)}</td>
+                <td>${product.publish_at ? escapeHtml(dateInputValue(product.publish_at)) : "Now"}</td>
                 <td>${product.stock ?? 0}</td>
                 <td>${formatEuro(getEffectivePrice(product))}</td>
                 <td>

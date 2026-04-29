@@ -9,27 +9,30 @@ import {
 
 const supabase = createSupabaseBrowserClient();
 
+const PRODUCT_COLUMNS = "id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,publish_at,technical_details,warranty_info,delivery_info";
+
+function availableProductsQuery() {
+  return supabase
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .eq("active", true)
+    .gt("stock", 0)
+    .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`);
+}
+
 export async function fetchProductsByIds(ids) {
   const uniqueIds = [...new Set((ids || []).map((id) => String(id || "").trim()).filter(Boolean))];
   if (!uniqueIds.length) return [];
 
-  const { data, error } = await supabase
-    .from("products")
-    .select("id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,technical_details,warranty_info,delivery_info")
-    .in("id", uniqueIds)
-    .eq("active", true)
-    .gt("stock", 0);
+  const { data, error } = await availableProductsQuery()
+    .in("id", uniqueIds);
 
   if (error) throw error;
   return data || [];
 }
 
 export async function fetchActiveProducts() {
-  const { data, error } = await supabase
-    .from("products")
-    .select("id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,technical_details,warranty_info,delivery_info")
-    .eq("active", true)
-    .gt("stock", 0)
+  const { data, error } = await availableProductsQuery()
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -40,11 +43,7 @@ export async function fetchProductBySlug(slugOrId) {
   const value = String(slugOrId || "").trim();
   if (!value) return null;
 
-  const { data: slugMatch, error: slugError } = await supabase
-    .from("products")
-    .select("id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,technical_details,warranty_info,delivery_info")
-    .eq("active", true)
-    .gt("stock", 0)
+  const { data: slugMatch, error: slugError } = await availableProductsQuery()
     .eq("slug", value)
     .maybeSingle();
 
@@ -55,11 +54,7 @@ export async function fetchProductBySlug(slugOrId) {
     return null;
   }
 
-  const { data, error } = await supabase
-    .from("products")
-    .select("id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,technical_details,warranty_info,delivery_info")
-    .eq("active", true)
-    .gt("stock", 0)
+  const { data, error } = await availableProductsQuery()
     .eq("id", value)
     .maybeSingle();
 

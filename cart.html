@@ -4,23 +4,25 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Droidunclock | Cart</title>
-  <meta name="description" content="Review your Droidunclock cart with subtotal, shipping, and secure checkout." />
+  <meta name="description" content="Review your Droidunclock cart with quantity controls, live stock, shipping, and secure checkout." />
   <meta name="theme-color" content="#050608" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=lang2" />
+  <link rel="stylesheet" href="css/styles.css?v=cart-premium1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1"></script>
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page cart-page">
   <header class="site-header">
     <div class="container header-bar">
       <a class="brand" href="shop.html">
         <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
         <div><strong>Droidunclock</strong><span data-i18n="cartTitle">Shopping cart</span></div>
       </a>
-      <nav class="desktop-nav">
+      <nav class="desktop-nav" aria-label="Cart navigation">
+        <a href="repair.html" data-i18n="navRepairs">Repairs</a>
         <a href="shop.html" data-i18n="navShop">Shop</a>
+        <a href="checkout.html" data-i18n="checkout">Checkout</a>
         <select class="language-select" data-language-select aria-label="Language">
           <option value="en">EN</option><option value="pt">PT</option><option value="nl">NL</option>
           <option value="es">ES</option><option value="fr">FR</option><option value="de">DE</option>
@@ -30,28 +32,52 @@
   </header>
 
   <main class="dashboard-main">
+    <section class="cart-hero">
+      <div class="container cart-hero__inner">
+        <div>
+          <span class="badge badge--accent" data-i18n="trustPayments">Secure payments</span>
+          <h1 data-i18n="reviewCartTitle">Review your items before secure checkout.</h1>
+          <p data-i18n="cartPremiumText">Adjust quantities, confirm stock, and continue to protected Stripe or PayPal checkout.</p>
+        </div>
+        <div class="cart-hero__proof" aria-label="Checkout benefits">
+          <span data-i18n="trustWarranty">Warranty included</span>
+          <span data-i18n="trustShipping">International shipping</span>
+          <span data-i18n="trustSupport">Fast support</span>
+        </div>
+      </div>
+    </section>
+
     <div class="container checkout-layout">
-      <section class="glass-card">
+      <section class="glass-card cart-panel">
         <div class="section-head section-head--compact">
           <span class="eyebrow" data-i18n="cartTitle">Shopping cart</span>
-          <h1 data-i18n="reviewCartTitle">Review your items before secure checkout.</h1>
+          <h2 data-i18n="cartItemsTitle">Your selection</h2>
+          <p class="muted" data-i18n="cartItemsText">Every product is revalidated against live stock before payment.</p>
         </div>
         <p id="status" class="status-text" aria-live="polite"></p>
         <section id="cartList" class="cart-list"></section>
       </section>
 
-      <aside class="glass-card summary-card">
-        <span class="eyebrow" data-i18n="summary">Summary</span>
-        <div class="summary-card__row"><span data-i18n="subtotal">Subtotal</span><strong id="subtotal">€0.00</strong></div>
-        <div class="summary-card__row"><span data-i18n="shipping">Shipping</span><strong id="shipping">€0.00</strong></div>
-        <div class="summary-card__row summary-card__total-row"><span data-i18n="total">Total</span><strong id="total">€0.00</strong></div>
-        <p class="summary-card__meta" id="summaryCount">0 items</p>
+      <aside class="glass-card summary-card cart-summary">
+        <div class="summary-card__header">
+          <span class="eyebrow" data-i18n="summary">Summary</span>
+          <h2 data-i18n="orderSummaryTitle">Order summary</h2>
+          <p class="summary-card__meta" id="summaryCount">0 items</p>
+        </div>
+        <div class="summary-card__row"><span data-i18n="subtotal">Subtotal</span><strong id="subtotal">&euro;0.00</strong></div>
+        <div class="summary-card__row"><span data-i18n="shipping">Shipping</span><strong id="shipping">&euro;0.00</strong></div>
+        <div class="summary-card__row summary-card__total-row"><span data-i18n="total">Total</span><strong id="total">&euro;0.00</strong></div>
+        <div class="cart-assurance">
+          <strong data-i18n="protectedCheckout">Protected checkout</strong>
+          <span data-i18n="secureCheckoutText">Stripe and PayPal are created server-side. Card details are never stored by Droidunclock.</span>
+        </div>
         <a class="btn btn--primary btn--block" href="checkout.html" id="goCheckout" data-i18n="checkout">Checkout</a>
+        <a class="btn btn--ghost btn--block" href="shop.html" data-i18n="shopNow">Shop Now</a>
       </aside>
     </div>
   </main>
 
-  <script type="module" src="js/cart.js?v=auth5"></script>
+  <script type="module" src="js/cart.js?v=cart-premium1"></script>
   <script type="module" src="js/support-chat.js?v=chat1"></script>
 </body>
 </html>
