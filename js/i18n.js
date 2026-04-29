@@ -145,7 +145,6 @@ export const translations = {
     cartItemsTitle: "Your selection",
     cartItemsText: "Every product is revalidated against live stock before payment.",
     orderSummaryTitle: "Order summary",
-    protectedCheckout: "Protected checkout",
     summary: "Summary",
     chooseProducts: "Choose products or repair services to continue.",
     secureCheckoutTitle: "Secure international checkout.",

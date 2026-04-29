@@ -2063,8 +2063,7 @@ select:focus {
   gap: 10px;
 }
 
-.cart-hero__proof span,
-.cart-assurance {
+.cart-hero__proof span {
   border: 1px solid rgba(10, 22, 36, 0.08);
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.78);
@@ -2308,21 +2307,6 @@ select:focus {
 .cart-summary .summary-card__total-row strong {
   color: #075fd5;
   font-size: 1.5rem;
-}
-
-.cart-assurance {
-  display: grid;
-  gap: 7px;
-  padding: 16px;
-}
-
-.cart-assurance strong {
-  color: var(--ink);
-}
-
-.cart-assurance span {
-  color: var(--muted);
-  line-height: 1.55;
 }
 
 .checkout-page .summary-card {
