@@ -160,13 +160,24 @@
 
       <section class="section" id="services">
         <div class="container">
-          <div class="section-head reveal">
-            <span class="eyebrow" data-i18n="repairsEyebrow">Repairs</span>
-            <h2 data-i18n="servicesTitle">Premium repair services without the waiting room energy.</h2>
+          <div class="repair-section-head reveal">
+            <div class="section-head">
+              <span class="eyebrow" data-i18n="repairsEyebrow">Repairs</span>
+              <h2 data-i18n="servicesTitle">Premium repair services without the waiting room energy.</h2>
+              <p class="muted" data-i18n="servicesIntro">A calm, high-trust repair experience for the devices people rely on every day.</p>
+            </div>
+            <div class="repair-score" aria-label="Repair service score">
+              <span data-i18n="repairScoreLabel">Repair score</span>
+              <strong>4.9</strong>
+              <small data-i18n="repairScoreText">Same-day focused service</small>
+            </div>
           </div>
           <div class="service-grid">
             <article class="service-card reveal">
-              <i data-lucide="smartphone"></i>
+              <div class="service-card__top">
+                <span class="service-card__icon"><i data-lucide="smartphone"></i></span>
+                <span class="service-card__tag" data-i18n="popularRepair">Popular</span>
+              </div>
               <h3 data-i18n="screenRepair">Screen Repair</h3>
               <p data-i18n="screenRepairText">Sharp display replacements for cracked glass, touch issues, and dead pixels.</p>
               <div class="card-footer">
@@ -175,7 +186,10 @@
               </div>
             </article>
             <article class="service-card reveal">
-              <i data-lucide="battery-charging"></i>
+              <div class="service-card__top">
+                <span class="service-card__icon"><i data-lucide="battery-charging"></i></span>
+                <span class="service-card__tag" data-i18n="sameDayTag">Same-day</span>
+              </div>
               <h3 data-i18n="batteryReplacement">Battery Replacement</h3>
               <p data-i18n="batteryReplacementText">Restore battery life and reduce unexpected shutdowns with a clean replacement.</p>
               <div class="card-footer">
@@ -184,7 +198,10 @@
               </div>
             </article>
             <article class="service-card reveal">
-              <i data-lucide="plug-zap"></i>
+              <div class="service-card__top">
+                <span class="service-card__icon"><i data-lucide="plug-zap"></i></span>
+                <span class="service-card__tag" data-i18n="diagnosticTag">Diagnostic</span>
+              </div>
               <h3 data-i18n="chargingRepair">Charging Port Repair</h3>
               <p data-i18n="chargingRepairText">Fix loose cables, slow charging, and connection problems with careful diagnostics.</p>
               <div class="card-footer">
@@ -193,7 +210,10 @@
               </div>
             </article>
             <article class="service-card reveal">
-              <i data-lucide="droplets"></i>
+              <div class="service-card__top">
+                <span class="service-card__icon"><i data-lucide="droplets"></i></span>
+                <span class="service-card__tag" data-i18n="inspectionTag">Inspection</span>
+              </div>
               <h3 data-i18n="waterDamage">Water Damage Diagnosis</h3>
               <p data-i18n="waterDamageText">Professional inspection after spills, rain exposure, or device failure.</p>
               <div class="card-footer">
@@ -207,10 +227,28 @@
 
       <section class="section section--soft" id="quote">
         <div class="container quote-layout">
-          <div class="section-head reveal">
-            <span class="eyebrow" data-i18n="quoteEyebrow">Quote</span>
-            <h2 data-i18n="quoteTitle">Tell us what happened. We will reply with clear next steps.</h2>
-            <p class="muted" data-i18n="quoteText">Built for WhatsApp first, so customers can move from question to booking quickly.</p>
+          <div class="quote-showcase reveal">
+            <div class="section-head">
+              <span class="eyebrow" data-i18n="quoteEyebrow">Quote</span>
+              <h2 data-i18n="quoteTitle">Tell us what happened. We will reply with clear next steps.</h2>
+              <p class="muted" data-i18n="quoteText">Built for WhatsApp first, so customers can move from question to booking quickly.</p>
+            </div>
+            <div class="diagnostic-panel" aria-label="Repair diagnostic highlights">
+              <div class="diagnostic-phone">
+                <span class="diagnostic-phone__notch"></span>
+                <div class="diagnostic-phone__scan"></div>
+                <div class="diagnostic-phone__card">
+                  <i data-lucide="scan-line"></i>
+                  <strong data-i18n="diagnosticReady">Diagnostic ready</strong>
+                  <span data-i18n="diagnosticReadyText">Model, issue, timing, and quote path in one message.</span>
+                </div>
+              </div>
+              <div class="diagnostic-list">
+                <span><i data-lucide="shield-check"></i><span data-i18n="testedParts">Tested parts</span></span>
+                <span><i data-lucide="clock-3"></i><span data-i18n="clearTiming">Clear timing</span></span>
+                <span><i data-lucide="receipt-text"></i><span data-i18n="priceBeforeRepair">Price before repair</span></span>
+              </div>
+            </div>
           </div>
           <form id="quickForm" class="quote-form reveal">
             <label>
