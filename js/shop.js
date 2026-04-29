@@ -1,6 +1,6 @@
-import { escapeHtml, getCartCount, mergeCartItem, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
-import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
-import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=scheduled-products1";
+import { escapeHtml, getCartCount, mergeCartItem, setupAdminLogoShortcut } from "./app-config.js?v=cart-fix2";
+import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix2";
+import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=cart-fix2";
 
 const statusElement = document.getElementById("status");
 const gridElement = document.getElementById("grid");

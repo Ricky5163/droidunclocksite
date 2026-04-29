@@ -4,8 +4,9 @@ import {
   getEffectivePrice,
   getProductImage,
   getCart,
+  isValidProductId,
   setCart,
-} from "./app-config.js?v=auth5";
+} from "./app-config.js?v=cart-fix2";
 
 const supabase = createSupabaseBrowserClient();
 
@@ -37,7 +38,7 @@ async function runProductsQuery(buildQuery) {
 }
 
 export async function fetchProductsByIds(ids) {
-  const uniqueIds = [...new Set((ids || []).map((id) => String(id || "").trim()).filter(Boolean))];
+  const uniqueIds = [...new Set((ids || []).map((id) => String(id || "").trim()).filter(isValidProductId))];
   if (!uniqueIds.length) return [];
 
   return runProductsQuery((legacy) => availableProductsQuery({ legacy }).in("id", uniqueIds));

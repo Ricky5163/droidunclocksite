@@ -1,5 +1,5 @@
-import { escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
-import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix1";
+import { escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=cart-fix2";
+import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix2";
 import {
   buildCartDetails,
   fetchProductsByIds,
@@ -8,7 +8,7 @@ import {
   getProductImage,
   setCart,
   syncCartToStock,
-} from "./storefront.js?v=cart-fix1";
+} from "./storefront.js?v=cart-fix2";
 
 const cartListElement = document.getElementById("cartList");
 const statusElement = document.getElementById("status");

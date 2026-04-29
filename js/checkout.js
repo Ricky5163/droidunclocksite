@@ -8,7 +8,7 @@ import {
   formatEuro,
   getCart,
   syncCartToStock,
-} from "./storefront.js?v=scheduled-products1";
+} from "./storefront.js?v=cart-fix2";
 
 const SHIPPING_COST = 9.95;
 

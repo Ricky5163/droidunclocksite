@@ -88,6 +88,10 @@ export function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+export function isValidProductId(id) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id || "").trim());
+}
+
 export function getCart() {
   try {
     const stored = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -98,7 +102,7 @@ export function getCart() {
         id: String(item?.id || "").trim(),
         qty: Math.max(1, Math.min(20, Number(item?.qty || 1))),
       }))
-      .filter((item) => item.id);
+      .filter((item) => isValidProductId(item.id));
   } catch {
     return [];
   }
@@ -111,7 +115,7 @@ export function setCart(items) {
           id: String(item?.id || "").trim(),
           qty: Math.max(1, Math.min(20, Number(item?.qty || 1))),
         }))
-        .filter((item) => item.id)
+        .filter((item) => isValidProductId(item.id))
     : [];
 
   localStorage.setItem("cart", JSON.stringify(normalized));
@@ -129,7 +133,7 @@ export function getCartCount() {
 
 export function mergeCartItem(productId, maxStock = Infinity) {
   const id = String(productId || "").trim();
-  if (!id) return;
+  if (!isValidProductId(id)) return;
 
   const cart = getCart();
   const existing = cart.find((item) => item.id === id);
