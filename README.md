@@ -70,3 +70,13 @@ Output directory: repository root.
 Functions directory: `functions`.
 
 The project is a fast static frontend with Pages Functions for secure payment creation.
+
+To deploy manually from this workspace, set a Cloudflare API token first:
+
+```powershell
+Copy-Item .env.example .env
+# Edit .env and paste your token into CLOUDFLARE_API_TOKEN
+npm run deploy
+```
+
+The token must have Cloudflare Pages edit access for the `droidunclocksite` Pages project. Keep the real token in `.env` or your user environment, not in git.
