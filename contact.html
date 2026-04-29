@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en-NL">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock | Contact</title>
+  <meta name="description" content="Contact Droidunclock for phone repairs, device questions, WhatsApp support, and repair quotes in the Netherlands." />
+  <meta name="theme-color" content="#050608" />
+  <link rel="canonical" href="https://droidunclock.site/contact.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css?v=pages1" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+</head>
+<body data-keep-title="true">
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="container header-bar">
+        <a class="brand" href="index.html" aria-label="Droidunclock homepage"><img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" /><div><strong>Droidunclock</strong><span>Repair & refurbished devices</span></div></a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="repair.html" data-i18n="navRepairs">Repairs</a><a href="reviews.html" data-i18n="navReviews">Reviews</a><a href="contact.html" data-i18n="navContact">Contact</a>
+          <a class="btn btn--ghost btn--small" href="shop.html" data-i18n="navShop">Shop</a>
+          <a class="btn btn--primary btn--small" data-whatsapp-link href="#" target="_blank" rel="noopener"><span data-i18n="whatsapp">WhatsApp</span></a>
+          <select class="language-select" data-language-select aria-label="Language"><option value="en">EN</option><option value="pt">PT</option><option value="nl">NL</option><option value="es">ES</option><option value="fr">FR</option><option value="de">DE</option></select>
+        </nav>
+        <button class="icon-button menu-button" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu"></i></button>
+      </div>
+      <nav class="mobile-nav" id="mobileNav" aria-label="Mobile menu" aria-hidden="true">
+        <a href="repair.html" data-i18n="navRepairs">Repairs</a><a href="reviews.html" data-i18n="navReviews">Reviews</a><a href="contact.html" data-i18n="navContact">Contact</a><a href="shop.html" data-i18n="navShop">Shop</a><a data-whatsapp-link href="#" target="_blank" rel="noopener" data-i18n="whatsapp">WhatsApp</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page-hero">
+        <div class="container page-hero__inner reveal">
+          <span class="eyebrow" data-i18n="navContact">Contact</span>
+          <h1 data-i18n="finalCtaTitle">Need your phone fixed today?</h1>
+          <p data-i18n="finalCtaText">Message Droidunclock now and get a clear quote before you commit.</p>
+          <div class="hero-actions">
+            <a class="btn btn--light" data-whatsapp-link href="#" target="_blank" rel="noopener" data-i18n="contactNow">Contact Now (WhatsApp)</a>
+            <a class="btn btn--ghost" href="mailto:droidunclock@gmail.com?subject=Droidunclock%20repair%20request">Email</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-head reveal">
+            <span class="eyebrow" data-i18n="navContact">Contact</span>
+            <h2>Choose the fastest way to reach Droidunclock.</h2>
+            <p class="muted">Send your model, issue, city, and preferred timing so we can reply with a clear next step.</p>
+          </div>
+          <div class="contact-method-grid">
+            <article class="contact-method reveal">
+              <i data-lucide="message-circle"></i>
+              <strong>WhatsApp</strong>
+              <p>Best for quick repair quotes, availability, and photo-based diagnostics.</p>
+              <a class="btn btn--primary" data-whatsapp-link href="#" target="_blank" rel="noopener" data-i18n="contactNow">Contact Now (WhatsApp)</a>
+            </article>
+            <article class="contact-method reveal">
+              <i data-lucide="mail"></i>
+              <strong>Email</strong>
+              <p>Use email for order questions, detailed repair notes, or admin follow-up.</p>
+              <a class="btn btn--ghost" href="mailto:droidunclock@gmail.com?subject=Droidunclock%20repair%20request">droidunclock@gmail.com</a>
+            </article>
+            <article class="contact-method reveal">
+              <i data-lucide="map-pin"></i>
+              <strong data-i18n="location">Location</strong>
+              <p>Netherlands</p>
+              <span data-i18n="englishService">English-friendly service</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--soft" id="quote">
+        <div class="container quote-layout">
+          <div class="quote-showcase reveal">
+            <div class="section-head">
+              <span class="eyebrow" data-i18n="quoteEyebrow">Quote</span>
+              <h2 data-i18n="quoteTitle">Tell us what happened. We will reply with clear next steps.</h2>
+              <p class="muted" data-i18n="quoteText">Built for WhatsApp first, so customers can move from question to booking quickly.</p>
+            </div>
+          </div>
+          <form id="quickForm" class="quote-form reveal">
+            <label><span data-i18n="deviceModel">Device model</span><input name="model" type="text" placeholder="iPhone 13, Samsung S23, Pixel 8" required /></label>
+            <label><span data-i18n="serviceNeeded">Service needed</span><select name="service" required><option value="" disabled selected data-i18n="selectService">Select a service</option><option>Screen Repair</option><option>Battery Replacement</option><option>Charging Port Repair</option><option>Water Damage Diagnosis</option><option data-i18n="refurbishedInquiry">Refurbished device inquiry</option></select></label>
+            <label><span data-i18n="notes">Notes</span><textarea name="notes" rows="4" placeholder="Tell us the issue, preferred timing, and your city." data-i18n-placeholder="notesPlaceholder"></textarea></label>
+            <button class="btn btn--primary btn--block" type="submit" data-i18n="sendWhatsapp">Send via WhatsApp</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div><a class="brand brand--footer" href="index.html" aria-label="Droidunclock homepage"><img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" /><div><strong>Droidunclock</strong><span data-i18n="footerDescription">Premium repair and refurbished devices in the Netherlands.</span></div></a></div>
+        <div><strong data-i18n="navContact">Contact</strong><a href="contact.html" data-i18n="navContact">Contact</a><a data-whatsapp-link href="#" target="_blank" rel="noopener">WhatsApp</a><a href="mailto:droidunclock@gmail.com?subject=Droidunclock%20repair%20request">droidunclock@gmail.com</a></div>
+        <div><strong data-i18n="location">Location</strong><span>Netherlands</span><span data-i18n="englishService">English-friendly service</span></div>
+        <div><strong data-i18n="links">Links</strong><a href="repair.html" data-i18n="navRepairs">Repairs</a><a href="reviews.html" data-i18n="navReviews">Reviews</a><a href="shop.html" data-i18n="navShop">Shop</a></div>
+        <div><strong data-i18n="legal">Legal</strong><a href="legal.html" data-i18n="legal">Legal</a><a href="privacy.html" data-i18n="privacy">Privacy</a><a href="terms.html" data-i18n="terms">Terms</a></div>
+      </div>
+      <div class="container footer-bottom"><span>(c) <span id="year"></span> Droidunclock. <span data-i18n="rights">All rights reserved.</span></span></div>
+    </footer>
+  </div>
+  <script type="module" src="js/script.js?v=pages1"></script>
+  <script type="module" src="js/support-chat.js?v=chat1"></script>
+</body>
+</html>

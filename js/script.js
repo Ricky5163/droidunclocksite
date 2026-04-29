@@ -175,7 +175,9 @@ function setCurrentYear() {
   if (year) year.textContent = String(new Date().getFullYear());
 }
 
-document.title = `${SITE_NAME} | Fast Phone Repairs in the Netherlands`;
+if (!document.body.dataset.keepTitle) {
+  document.title = `${SITE_NAME} | Fast Phone Repairs in the Netherlands`;
+}
 setupLanguageSelector();
 setupAdminLogoShortcut();
 setWhatsAppLinks();
