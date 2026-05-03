@@ -11,6 +11,8 @@ const loginEmailInput = document.getElementById("loginEmail");
 const loginPasswordInput = document.getElementById("loginPassword");
 const signupEmailInput = document.getElementById("signupEmail");
 const signupPasswordInput = document.getElementById("signupPassword");
+const signupButton = signupForm?.querySelector("button[type='submit']");
+let signupCooldownTimer;
 
 function hasAuthCallbackParams() {
   const params = new URLSearchParams(window.location.search);
@@ -29,6 +31,39 @@ function setBusy(form, busy) {
   form.querySelectorAll("button, input").forEach((element) => {
     element.disabled = busy;
   });
+}
+
+function friendlyAuthError(error) {
+  const message = String(error?.message || error || "");
+  if (/rate limit|email rate/i.test(message)) {
+    return "Foram pedidos demasiados emails de confirmacao em pouco tempo. Espera alguns minutos e verifica o email/spam antes de tentar outra vez.";
+  }
+  if (/already registered|already exists|user already/i.test(message)) {
+    return "Este email ja tem uma conta. Tenta entrar ou confirma o email que recebeste.";
+  }
+  return message || "Nao foi possivel concluir a autenticacao.";
+}
+
+function startSignupCooldown(seconds = 60) {
+  if (!signupButton) return;
+  window.clearInterval(signupCooldownTimer);
+
+  let remaining = seconds;
+  const originalText = signupButton.textContent;
+  signupButton.disabled = true;
+  signupButton.textContent = `Aguarda ${remaining}s`;
+
+  signupCooldownTimer = window.setInterval(() => {
+    remaining -= 1;
+    if (remaining > 0) {
+      signupButton.textContent = `Aguarda ${remaining}s`;
+      return;
+    }
+
+    window.clearInterval(signupCooldownTimer);
+    signupButton.disabled = false;
+    signupButton.textContent = originalText;
+  }, 1000);
 }
 
 function showSignup(show) {
@@ -60,7 +95,7 @@ loginForm?.addEventListener("submit", async (event) => {
   setBusy(loginForm, false);
 
   if (error) {
-    setStatus(error.message, "error");
+    setStatus(friendlyAuthError(error), "error");
     return;
   }
 
@@ -100,11 +135,14 @@ signupForm?.addEventListener("submit", async (event) => {
   setBusy(signupForm, false);
 
   if (error) {
-    setStatus(error.message, "error");
+    setStatus(friendlyAuthError(error), "error");
+    if (/rate limit|email rate/i.test(String(error.message || ""))) {
+      startSignupCooldown(60);
+    }
     return;
   }
 
-  setStatus("Conta criada. Abre o email de confirmacao e clica no link para ativar a conta.", "success");
+  setStatus("Conta criada. Abre o email de confirmacao e clica no link para ativar a conta. Nao cries outra conta com o mesmo email.", "success");
   showSignup(false);
 });
 
