@@ -24,20 +24,28 @@ export const VALID_LOCAL_PATHS = new Set([
 let supabaseClient;
 
 export function createSupabaseBrowserClient() {
-  if (supabaseClient) return supabaseClient;
+  if (window.supabaseClient) {
+    supabaseClient = window.supabaseClient;
+    return supabaseClient;
+  }
+
+  if (supabaseClient) {
+    window.supabaseClient = supabaseClient;
+    return supabaseClient;
+  }
 
   if (!window.supabase?.createClient) {
     throw new Error("Supabase SDK indisponivel.");
   }
 
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
     },
   });
-  window.supabaseClient = supabaseClient;
+  supabaseClient = window.supabaseClient;
 
   return supabaseClient;
 }

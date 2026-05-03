@@ -1,5 +1,5 @@
 import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth8";
-import { getAccessToken, getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth8";
+import { getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth8";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
@@ -39,6 +39,12 @@ let orderSubtotal = 0;
 setupLanguageSelector();
 setupAdminLogoShortcut();
 syncAccountLinks().catch(() => null);
+
+async function getCheckoutAccessToken() {
+  const { data, error } = await window.supabaseClient.auth.getSession();
+  if (error) return null;
+  return data?.session?.access_token || null;
+}
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
@@ -143,10 +149,12 @@ async function startCheckout(endpoint, providerLabel) {
   setStatus(`Opening secure ${providerLabel} payment...`);
 
   try {
-    const accessToken = await getAccessToken({ wait: true, timeoutMs: 1000 });
+    const accessToken = await getCheckoutAccessToken();
     if (!accessToken) {
-      showLoginGate();
-      throw new Error("Precisas de iniciar sessao para continuar a compra.");
+      localStorage.setItem("redirect_after_login", "checkout");
+      setStatus("Sessao expirada. Faz login novamente.", "error");
+      window.location.href = "login.html";
+      return;
     }
 
     let response;

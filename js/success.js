@@ -1,10 +1,16 @@
 import { buildLoginRedirect, clearCart } from "./app-config.js?v=auth8";
-import { getAccessToken, rememberRedirectAfterLogin } from "./auth-utils.js?v=auth8";
+import { rememberRedirectAfterLogin } from "./auth-utils.js?v=auth8";
 import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 
 const messageElement = document.getElementById("msg");
 const detailElement = document.getElementById("detail");
 const currentLang = setupLanguageSelector();
+
+async function getPaymentReturnAccessToken() {
+  const { data, error } = await window.supabaseClient.auth.getSession();
+  if (error) return null;
+  return data?.session?.access_token || null;
+}
 
 function setMessage(message, detail = "", type = "neutral") {
   if (messageElement) {
@@ -27,7 +33,7 @@ function setMessage(message, detail = "", type = "neutral") {
     setMessage("Confirming PayPal payment...", "We are validating your order.", "neutral");
 
     try {
-      const accessToken = await getAccessToken({ wait: true, timeoutMs: 1200 });
+      const accessToken = await getPaymentReturnAccessToken();
       if (!accessToken) {
         rememberRedirectAfterLogin(`success.html?order=${encodeURIComponent(orderId || "")}&token=${encodeURIComponent(paypalOrderId)}`);
         window.location.href = buildLoginRedirect("success.html");
