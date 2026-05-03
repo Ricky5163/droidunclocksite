@@ -1,4 +1,5 @@
-import { escapeHtml, getCartCount, mergeCartItem, setupAdminLogoShortcut } from "./app-config.js?v=cart-fix2";
+import { buildLoginRedirect, escapeHtml, getCartCount, mergeCartItem, setupAdminLogoShortcut } from "./app-config.js?v=auth6";
+import { getCurrentUser } from "./auth-utils.js?v=auth6";
 import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix2";
 import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=cart-fix2";
 
@@ -9,6 +10,7 @@ const categoryElement = document.getElementById("category");
 const cartBadges = document.querySelectorAll("[data-cart-count]");
 
 let allProducts = [];
+let currentUser = null;
 let currentLang = setupLanguageSelector();
 setupAdminLogoShortcut();
 
@@ -156,6 +158,13 @@ function setButtonLoading(button, label) {
   }, 700);
 }
 
+async function requireLogin(next = "shop.html") {
+  currentUser = currentUser || (await getCurrentUser({ wait: true, timeoutMs: 1000 }).catch(() => null));
+  if (currentUser) return true;
+  window.location.href = buildLoginRedirect(next);
+  return false;
+}
+
 function productCard(product) {
   const stock = Math.max(0, Number(product.stock ?? 0));
   const price = Number(product.price || 0);
@@ -216,17 +225,26 @@ function renderProducts(products) {
       const id = button.getAttribute("data-add") || button.getAttribute("data-buy");
       const product = allProducts.find((item) => String(item.id) === id);
       if (!product) return;
-      mergeCartItem(product.id, Number(product.stock ?? 0));
-      updateCartBadge();
       if (button.hasAttribute("data-buy")) {
-        setButtonLoading(button, "Opening checkout...");
-        window.setTimeout(() => {
-          window.location.href = "checkout.html";
-        }, 180);
-      } else {
+        requireLogin("checkout.html").then((allowed) => {
+          if (!allowed) return;
+          mergeCartItem(product.id, Number(product.stock ?? 0));
+          updateCartBadge();
+          setButtonLoading(button, "Opening checkout...");
+          window.setTimeout(() => {
+            window.location.href = "checkout.html";
+          }, 180);
+        });
+        return;
+      }
+
+      requireLogin("shop.html").then((allowed) => {
+        if (!allowed) return;
+        mergeCartItem(product.id, Number(product.stock ?? 0));
+        updateCartBadge();
         setButtonLoading(button, "Added");
         setStatus(`${product.name} added to cart.`, "success");
-      }
+      });
     });
   });
 }
@@ -244,6 +262,7 @@ function applyFilters() {
 
 async function init() {
   updateCartBadge();
+  currentUser = await getCurrentUser({ wait: true, timeoutMs: 700 }).catch(() => null);
   setStatus("Loading refurbished phones...");
   try {
     const products = await fetchActiveProducts();

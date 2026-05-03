@@ -1,4 +1,5 @@
-import { escapeHtml, getCartCount, mergeCartItem, parseImages, setupAdminLogoShortcut } from "./app-config.js?v=cart-fix2";
+import { buildLoginRedirect, escapeHtml, getCartCount, mergeCartItem, parseImages, setupAdminLogoShortcut } from "./app-config.js?v=auth6";
+import { getCurrentUser } from "./auth-utils.js?v=auth6";
 import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix2";
 import { fetchActiveProducts, fetchProductBySlug, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=cart-fix2";
 
@@ -7,6 +8,7 @@ const cartBadges = document.querySelectorAll("[data-cart-count]");
 let currentLang = setupLanguageSelector();
 let currentProduct;
 let currentRelated = [];
+let currentUser = null;
 setupAdminLogoShortcut();
 
 function updateCartBadge() {
@@ -70,6 +72,13 @@ function setButtonLoading(button, label) {
     button.disabled = false;
     button.textContent = original;
   }, 700);
+}
+
+async function requireLogin(next = "shop.html") {
+  currentUser = currentUser || (await getCurrentUser({ wait: true, timeoutMs: 1000 }).catch(() => null));
+  if (currentUser) return true;
+  window.location.href = buildLoginRedirect(next);
+  return false;
 }
 
 function relatedCard(item) {
@@ -168,13 +177,15 @@ function render(product, related = []) {
     </section>
   `;
 
-  detailElement.querySelector("#addToCart")?.addEventListener("click", (event) => {
+  detailElement.querySelector("#addToCart")?.addEventListener("click", async (event) => {
+    if (!(await requireLogin(`product.html?slug=${encodeURIComponent(product.slug || product.id)}`))) return;
     mergeCartItem(product.id, stock);
     updateCartBadge();
     setButtonLoading(event.currentTarget, "Added");
   });
 
-  detailElement.querySelector("#buyNow")?.addEventListener("click", (event) => {
+  detailElement.querySelector("#buyNow")?.addEventListener("click", async (event) => {
+    if (!(await requireLogin("checkout.html"))) return;
     mergeCartItem(product.id, stock);
     setButtonLoading(event.currentTarget, "Opening checkout...");
     window.setTimeout(() => {
@@ -191,6 +202,7 @@ function render(product, related = []) {
 
 async function init() {
   updateCartBadge();
+  currentUser = await getCurrentUser({ wait: true, timeoutMs: 700 }).catch(() => null);
   const params = new URLSearchParams(window.location.search);
   const slug = params.get("slug") || params.get("id");
   try {

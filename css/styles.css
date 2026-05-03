@@ -161,71 +161,6 @@ button {
   color: var(--accent);
 }
 
-.account-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 330px;
-  min-height: 44px;
-  padding: 8px 10px;
-  border: 1px solid rgba(12, 26, 42, 0.1);
-  border-radius: 999px;
-  color: var(--muted-strong);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 10px 28px rgba(9, 18, 32, 0.08);
-}
-
-.account-status.is-authenticated {
-  border-color: rgba(14, 159, 110, 0.24);
-  background: rgba(240, 253, 248, 0.92);
-}
-
-.account-status__dot {
-  width: 10px;
-  height: 10px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: var(--danger);
-  box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.1);
-}
-
-.account-status.is-authenticated .account-status__dot {
-  background: var(--success);
-  box-shadow: 0 0 0 4px rgba(14, 159, 110, 0.12);
-}
-
-.account-status__copy {
-  display: grid;
-  min-width: 0;
-  gap: 1px;
-}
-
-.account-status__copy strong {
-  color: var(--ink);
-  font-size: 0.78rem;
-  line-height: 1.15;
-}
-
-.account-status__copy small {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 0.74rem;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.account-status__action {
-  min-height: 30px;
-  padding: 6px 10px;
-  border: 1px solid rgba(12, 26, 42, 0.1);
-  border-radius: 999px;
-  color: var(--ink);
-  background: #fff;
-  font-size: 0.78rem;
-  font-weight: 900;
-}
-
 .icon-button,
 .menu-button {
   display: none;
@@ -3070,14 +3005,6 @@ select:focus {
 
   .admin-metric {
     min-height: 124px;
-  }
-
-  .site-header .account-status {
-    max-width: min(320px, calc(100vw - 150px));
-  }
-
-  .site-header .account-status__copy small {
-    max-width: 150px;
   }
 
   .menu-button {

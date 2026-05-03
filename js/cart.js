@@ -1,4 +1,5 @@
-import { escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=cart-fix2";
+import { buildLoginRedirect, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth6";
+import { getCurrentUser } from "./auth-utils.js?v=auth6";
 import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix2";
 import {
   buildCartDetails,
@@ -23,6 +24,14 @@ setupAdminLogoShortcut();
 
 const SHIPPING_COST = 9.95;
 const MAX_CART_QTY = 20;
+
+checkoutButton?.addEventListener("click", async (event) => {
+  const user = await getCurrentUser({ wait: true, timeoutMs: 1000 }).catch(() => null);
+  if (user) return;
+
+  event.preventDefault();
+  window.location.href = buildLoginRedirect("checkout.html");
+});
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
