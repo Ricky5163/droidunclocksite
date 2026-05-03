@@ -10,9 +10,20 @@ const supabase = createSupabaseBrowserClient();
 const SESSION_WAIT_TIMEOUT = 3000;
 const SESSION_WAIT_INTERVAL = 100;
 const REDIRECT_AFTER_LOGIN_KEY = "redirect_after_login";
+const REDIRECT_ALIASES = {
+  checkout: "checkout.html",
+  cart: "cart.html",
+  account: "account.html",
+  shop: "shop.html",
+};
 
 function delay(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function normalizeRedirectPath(path, fallback = DEFAULT_LOGIN_REDIRECT) {
+  const value = String(path || "").trim();
+  return sanitizeReturnPath(REDIRECT_ALIASES[value] || value, fallback);
 }
 
 export async function getSession() {
@@ -33,11 +44,14 @@ export async function waitForSession(timeoutMs = SESSION_WAIT_TIMEOUT) {
   return session;
 }
 
+export async function getAuthenticatedSession(options = {}) {
+  const session = options.wait ? await waitForSession(options.timeoutMs) : await getSession();
+  return session?.access_token ? session : null;
+}
+
 export async function getCurrentUser(options = {}) {
-  if (options.wait) {
-    const session = await waitForSession(options.timeoutMs);
-    if (!session) return null;
-  }
+  const session = await getAuthenticatedSession(options);
+  if (!session) return null;
 
   const { data, error } = await supabase.auth.getUser();
   if (error) return null;
@@ -45,20 +59,20 @@ export async function getCurrentUser(options = {}) {
 }
 
 export function rememberRedirectAfterLogin(path = DEFAULT_LOGIN_REDIRECT) {
-  const target = sanitizeReturnPath(path, DEFAULT_LOGIN_REDIRECT);
+  const target = normalizeRedirectPath(path, DEFAULT_LOGIN_REDIRECT);
   localStorage.setItem(REDIRECT_AFTER_LOGIN_KEY, target);
   return target;
 }
 
 export function consumeRedirectAfterLogin(fallback = DEFAULT_LOGIN_REDIRECT) {
-  const target = sanitizeReturnPath(localStorage.getItem(REDIRECT_AFTER_LOGIN_KEY), fallback);
+  const target = normalizeRedirectPath(localStorage.getItem(REDIRECT_AFTER_LOGIN_KEY), fallback);
   localStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY);
   return target;
 }
 
 export function peekRedirectAfterLogin(fallback = "") {
   const stored = localStorage.getItem(REDIRECT_AFTER_LOGIN_KEY);
-  return stored ? sanitizeReturnPath(stored, fallback || DEFAULT_LOGIN_REDIRECT) : fallback;
+  return stored ? normalizeRedirectPath(stored, fallback || DEFAULT_LOGIN_REDIRECT) : fallback;
 }
 
 export async function isAdminUser(user) {
@@ -84,7 +98,8 @@ export async function getAuthenticatedRedirectTarget(user) {
 
 export async function requireAuth(options = {}) {
   const redirectTo = options.redirectTo || DEFAULT_LOGIN_REDIRECT;
-  const user = await getCurrentUser({ wait: true });
+  const session = await getAuthenticatedSession({ wait: true, timeoutMs: options.timeoutMs });
+  const user = session ? await getCurrentUser() : null;
 
   if (!user) {
     rememberRedirectAfterLogin(redirectTo);
@@ -98,7 +113,8 @@ export async function requireAuth(options = {}) {
 export async function redirectIfAuthenticated(options = {}) {
   if (getPostLoginTarget() === "admin.html") return null;
 
-  const user = await getCurrentUser({ wait: true, timeoutMs: options.timeoutMs || 800 });
+  const session = await getAuthenticatedSession({ wait: true, timeoutMs: options.timeoutMs || 800 });
+  const user = session ? await getCurrentUser() : null;
   if (!user) return null;
 
   window.location.href = await getAuthenticatedRedirectTarget(user);

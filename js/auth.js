@@ -1,5 +1,6 @@
 import { buildAuthEmailRedirect } from "./app-config.js?v=auth6";
 import {
+  getAuthenticatedSession,
   getAuthenticatedRedirectTarget,
   logoutAndRedirect,
   peekRedirectAfterLogin,
@@ -88,9 +89,9 @@ loginForm?.addEventListener("submit", async (event) => {
   setBusy(loginForm, true);
   setStatus("A validar credenciais...", "neutral");
 
-  const data = new FormData(loginForm);
-  const email = String(loginEmailInput?.value || data.get("email") || "").trim().toLowerCase();
-  const password = String(loginPasswordInput?.value || data.get("password") || "");
+  const formData = new FormData(loginForm);
+  const email = String(loginEmailInput?.value || formData.get("email") || "").trim().toLowerCase();
+  const password = String(loginPasswordInput?.value || formData.get("password") || "");
 
   if (!email) {
     setBusy(loginForm, false);
@@ -98,7 +99,7 @@ loginForm?.addEventListener("submit", async (event) => {
     return;
   }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   setBusy(loginForm, false);
 
   if (error) {
@@ -106,8 +107,13 @@ loginForm?.addEventListener("submit", async (event) => {
     return;
   }
 
+  const session = data?.session || (await waitForSession());
+  if (!session?.access_token) {
+    setStatus("Sessao expirada ou nao autenticada. Inicia sessao para continuar.", "error");
+    return;
+  }
+
   setStatus("Sessao iniciada com sucesso. A redirecionar...", "success");
-  const session = await waitForSession();
   window.location.href = await getAuthenticatedRedirectTarget(session?.user);
 });
 
@@ -168,6 +174,19 @@ if (hasAuthCallback) {
   setStatus("A validar email e a iniciar sessao...", "neutral");
 }
 
-redirectIfAuthenticated({ timeoutMs: hasAuthCallback ? 5000 : 800 }).catch((error) => {
+const redirectPromise = redirectIfAuthenticated({ timeoutMs: hasAuthCallback ? 5000 : 800 }).catch((error) => {
   setStatus(error.message || "Erro ao validar a sessao.", "error");
+  return null;
 });
+
+if (hasAuthCallback) {
+  redirectPromise.then(async (user) => {
+    if (user) return;
+    const session = await getAuthenticatedSession({ wait: true, timeoutMs: 1400 });
+    if (session?.access_token && session.user) {
+      window.location.href = await getAuthenticatedRedirectTarget(session.user);
+      return;
+    }
+    setStatus("Email confirmado. Inicia sessao para continuar o checkout.", "success");
+  });
+}

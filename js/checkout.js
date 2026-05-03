@@ -1,5 +1,5 @@
 import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
-import { hydrateUserEmail, getCurrentUser, getSession, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth6";
+import { getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth6";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
@@ -62,7 +62,7 @@ function showLoginGate() {
   checkoutGateElement?.classList.remove("hidden");
   rememberRedirectAfterLogin("checkout.html");
   if (checkoutLoginLink) checkoutLoginLink.href = buildLoginRedirect("checkout.html");
-  setStatus("Precisas de iniciar sessao para continuar.", "error");
+  setStatus("Sessao expirada ou nao autenticada. Inicia sessao para continuar.", "error");
 }
 
 function totals() {
@@ -143,16 +143,10 @@ async function startCheckout(endpoint, providerLabel) {
   setStatus(`Opening secure ${providerLabel} payment...`);
 
   try {
-    const user = await getCurrentUser({ wait: true, timeoutMs: 1000 });
-    if (!user) {
-      showLoginGate();
-      throw new Error("Precisas de iniciar sessao para continuar.");
-    }
-
-    const session = await getSession();
+    const session = await getAuthenticatedSession({ wait: true, timeoutMs: 1000 });
     if (!session?.access_token) {
       showLoginGate();
-      throw new Error("Precisas de iniciar sessao para continuar.");
+      throw new Error("Sessao expirada ou nao autenticada. Inicia sessao para continuar.");
     }
 
     const response = await fetch(endpoint, {
@@ -183,8 +177,8 @@ stripeButton?.addEventListener("click", () => startCheckout("/api/create-checkou
 paypalButton?.addEventListener("click", () => startCheckout("/api/paypal-create-order", "PayPal"));
 
 (async function init() {
-  const user = await getCurrentUser({ wait: true, timeoutMs: 1200 }).catch(() => null);
-  if (!user) {
+  const session = await getAuthenticatedSession({ wait: true, timeoutMs: 1200 }).catch(() => null);
+  if (!session?.access_token) {
     showLoginGate();
     return;
   }
