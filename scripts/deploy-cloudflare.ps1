@@ -23,7 +23,7 @@ if (-not $env:CLOUDFLARE_API_TOKEN) {
 
 Push-Location $repoRoot
 try {
-  npx --yes wrangler pages deploy . --project-name=droidunclocksite --branch=main
+  npx --yes wrangler pages deploy . --project-name=droidunlocksite --branch=main
 } finally {
   Pop-Location
 }

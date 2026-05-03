@@ -1,7 +1,9 @@
-node_modules/
-assets/node_modules/
 .env
-.wrangler/
+.git
+.github
+node_modules
+assets/node_modules
+*.log
 *-desktop.png
 *-mobile.png
 *-desktop-minimal.png
