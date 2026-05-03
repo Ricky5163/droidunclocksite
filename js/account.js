@@ -1,5 +1,5 @@
-import { escapeHtml, formatEuro, getCartCount, setupAdminLogoShortcut } from "./app-config.js?v=auth8";
-import { logoutAndRedirect, requireAuth, supabase } from "./auth-utils.js?v=auth8";
+import { escapeHtml, formatEuro, getCartCount, setupAdminLogoShortcut } from "./app-config.js?v=auth9";
+import { logoutAndRedirect, requireAuth, supabase } from "./auth-utils.js?v=auth9";
 
 const statusElement = document.getElementById("accountStatus");
 const nameElement = document.getElementById("accountName");

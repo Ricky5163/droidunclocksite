@@ -1,14 +1,13 @@
 import {
-  createSupabaseBrowserClient,
   formatEuro,
   getEffectivePrice,
   getProductImage,
   getCart,
   isValidProductId,
   setCart,
-} from "./app-config.js?v=cart-fix2";
+} from "./app-config.js?v=auth9";
 
-const supabase = createSupabaseBrowserClient();
+const supabase = window.supabaseClient;
 
 const PRODUCT_COLUMNS = "id,name,slug,brand,model,category,description,price,discount_price,condition,stock,images,image_url,active,created_at,publish_at,technical_details,warranty_info,delivery_info";
 const LEGACY_PRODUCT_COLUMNS = PRODUCT_COLUMNS.replace(",publish_at", "");

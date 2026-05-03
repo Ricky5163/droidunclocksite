@@ -1,4 +1,4 @@
-import { buildWhatsAppUrl } from "./app-config.js?v=auth5";
+import { buildWhatsAppUrl } from "./app-config.js?v=auth9";
 import { detectLanguage } from "./i18n.js?v=lang2";
 
 const copy = {

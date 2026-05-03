@@ -1,12 +1,11 @@
 import {
   DEFAULT_LOGIN_REDIRECT,
   buildLoginRedirect,
-  createSupabaseBrowserClient,
   getPostLoginTarget,
   sanitizeReturnPath,
-} from "./app-config.js?v=auth8";
+} from "./app-config.js?v=auth9";
 
-const supabase = createSupabaseBrowserClient();
+const supabase = window.supabaseClient;
 const SESSION_WAIT_TIMEOUT = 3000;
 const SESSION_WAIT_INTERVAL = 100;
 const REDIRECT_AFTER_LOGIN_KEY = "redirect_after_login";

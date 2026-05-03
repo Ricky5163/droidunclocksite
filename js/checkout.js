@@ -1,5 +1,5 @@
-import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth8";
-import { getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth8";
+import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth9";
+import { getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth9";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
@@ -8,7 +8,7 @@ import {
   formatEuro,
   getCart,
   syncCartToStock,
-} from "./storefront.js?v=cart-fix2";
+} from "./storefront.js?v=auth9";
 
 const SHIPPING_COST = 9.95;
 
@@ -39,12 +39,6 @@ let orderSubtotal = 0;
 setupLanguageSelector();
 setupAdminLogoShortcut();
 syncAccountLinks().catch(() => null);
-
-async function getCheckoutAccessToken() {
-  const { data, error } = await window.supabaseClient.auth.getSession();
-  if (error) return null;
-  return data?.session?.access_token || null;
-}
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
@@ -149,13 +143,22 @@ async function startCheckout(endpoint, providerLabel) {
   setStatus(`Opening secure ${providerLabel} payment...`);
 
   try {
-    const accessToken = await getCheckoutAccessToken();
-    if (!accessToken) {
+    const { data: { session } = {} } = await window.supabaseClient.auth.getSession();
+    console.log("[checkout auth]", {
+      hasClient: !!window.supabaseClient,
+      hasSession: !!session,
+      hasToken: !!session?.access_token,
+      userId: session?.user?.id || null,
+    });
+
+    if (!session?.access_token) {
       localStorage.setItem("redirect_after_login", "checkout");
       setStatus("Sessao expirada. Faz login novamente.", "error");
       window.location.href = "login.html";
       return;
     }
+
+    const accessToken = session.access_token;
 
     let response;
     try {

@@ -21,33 +21,26 @@ export const VALID_LOCAL_PATHS = new Set([
   "cancel.html",
 ]);
 
-let supabaseClient;
-
-export function createSupabaseBrowserClient() {
-  if (window.supabaseClient) {
-    supabaseClient = window.supabaseClient;
-    return supabaseClient;
-  }
-
-  if (supabaseClient) {
-    window.supabaseClient = supabaseClient;
-    return supabaseClient;
-  }
-
-  if (!window.supabase?.createClient) {
-    throw new Error("Supabase SDK indisponivel.");
-  }
-
-  window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+if (window.supabase?.createClient && !window.supabaseClient) {
+  window.supabaseClient = window.supabaseClient || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
     },
   });
-  supabaseClient = window.supabaseClient;
+}
 
-  return supabaseClient;
+export function createSupabaseBrowserClient() {
+  if (window.supabaseClient) {
+    return window.supabaseClient;
+  }
+
+  if (!window.supabase?.createClient) {
+    throw new Error("Supabase SDK indisponivel.");
+  }
+
+  throw new Error("Supabase client nao foi inicializado. Confirma que a CDN Supabase carrega antes dos modulos.");
 }
 
 export function formatEuro(value) {

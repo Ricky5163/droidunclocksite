@@ -1,4 +1,4 @@
-import { buildAuthEmailRedirect } from "./app-config.js?v=auth8";
+import { buildAuthEmailRedirect } from "./app-config.js?v=auth9";
 import {
   getAuthenticatedSession,
   getAuthenticatedRedirectTarget,
@@ -7,7 +7,7 @@ import {
   redirectIfAuthenticated,
   supabase,
   waitForSession,
-} from "./auth-utils.js?v=auth8";
+} from "./auth-utils.js?v=auth9";
 
 const statusElement = document.getElementById("status");
 const loginForm = document.getElementById("loginForm");
