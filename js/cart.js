@@ -1,5 +1,5 @@
 import { buildLoginRedirect, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth6";
-import { getCurrentUser } from "./auth-utils.js?v=auth6";
+import { getCurrentUser, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth6";
 import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix2";
 import {
   buildCartDetails,
@@ -21,6 +21,7 @@ const summaryCountElement = document.getElementById("summaryCount");
 let currentLines = [];
 let currentLang = setupLanguageSelector();
 setupAdminLogoShortcut();
+syncAccountLinks().catch(() => null);
 
 const SHIPPING_COST = 9.95;
 const MAX_CART_QTY = 20;
@@ -30,6 +31,8 @@ checkoutButton?.addEventListener("click", async (event) => {
   if (user) return;
 
   event.preventDefault();
+  rememberRedirectAfterLogin("checkout.html");
+  setStatus("Precisas de iniciar sessao para continuar.", "error");
   window.location.href = buildLoginRedirect("checkout.html");
 });
 

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Droidunclock | Minha Conta</title>
+  <meta name="description" content="Area de cliente Droidunclock para gerir perfil, moradas, encomendas e envios." />
+  <meta name="theme-color" content="#050608" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css?v=account1" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+</head>
+<body class="dashboard-page account-page">
+  <header class="site-header">
+    <div class="container header-bar">
+      <a class="brand" href="shop.html">
+        <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
+        <div>
+          <strong>Droidunclock</strong>
+          <span>Minha Conta</span>
+        </div>
+      </a>
+      <nav class="desktop-nav" aria-label="Account navigation">
+        <a href="shop.html">Loja</a>
+        <a href="cart.html" data-cart-count>Carrinho</a>
+        <a href="account.html" data-account-link>Minha Conta</a>
+        <button class="btn btn--ghost btn--small" id="logoutBtn" type="button">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="account-hero">
+      <div class="container account-hero__inner">
+        <div>
+          <span class="badge badge--accent">Area do cliente</span>
+          <h1>Minha Conta</h1>
+          <p>Gere os teus dados, consulta encomendas e acompanha envios Droidunclock.</p>
+        </div>
+        <div class="account-hero__actions">
+          <a class="btn btn--light" href="shop.html">Continuar compras</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="container account-shell" aria-live="polite">
+      <aside class="account-sidebar glass-card">
+        <div class="account-person">
+          <span id="accountInitials">DU</span>
+          <div>
+            <strong id="accountName">A carregar...</strong>
+            <small id="accountEmail">Sessao segura</small>
+          </div>
+        </div>
+        <nav class="account-tabs" aria-label="Seccoes da conta">
+          <button class="is-active" type="button" data-tab="profile">
+            <i data-lucide="user-round"></i>
+            <span>Perfil</span>
+          </button>
+          <button type="button" data-tab="orders">
+            <i data-lucide="package-check"></i>
+            <span>Encomendas</span>
+          </button>
+          <button type="button" data-tab="addresses">
+            <i data-lucide="map-pin"></i>
+            <span>Enderecos</span>
+          </button>
+        </nav>
+      </aside>
+
+      <section class="account-content">
+        <p id="accountStatus" class="status-text" aria-live="polite"></p>
+
+        <section class="account-panel glass-card is-active" data-panel="profile">
+          <div class="section-head section-head--compact">
+            <span class="eyebrow">Perfil</span>
+            <h2>Dados do utilizador</h2>
+            <p class="muted">O email vem da autenticacao Supabase e nao e editado aqui.</p>
+          </div>
+
+          <form id="profileForm" class="form-grid account-form">
+            <label>Nome<input id="profileName" name="full_name" autocomplete="name" /></label>
+            <label>Email<input id="profileEmail" type="email" disabled /></label>
+            <label>Telefone<input id="profilePhone" name="phone" autocomplete="tel" /></label>
+            <div class="form-row">
+              <label>Cidade<input id="profileCity" name="city" autocomplete="address-level2" /></label>
+              <label>Codigo postal<input id="profilePostalCode" name="postal_code" autocomplete="postal-code" /></label>
+            </div>
+            <label>Morada principal<input id="profileAddress" name="address" autocomplete="street-address" /></label>
+            <label>Pais<input id="profileCountry" name="country" autocomplete="country-name" /></label>
+            <button class="btn btn--primary" type="submit">Guardar alteracoes</button>
+          </form>
+        </section>
+
+        <section class="account-panel glass-card" data-panel="orders">
+          <div class="section-head section-head--compact">
+            <span class="eyebrow">Encomendas</span>
+            <h2>Historico e envios</h2>
+            <p class="muted">Mostramos apenas encomendas associadas a tua sessao.</p>
+          </div>
+          <div id="ordersList" class="orders-list">
+            <div class="account-skeleton"></div>
+            <div class="account-skeleton"></div>
+          </div>
+        </section>
+
+        <section class="account-panel glass-card" data-panel="addresses">
+          <div class="section-head section-head--compact">
+            <span class="eyebrow">Enderecos</span>
+            <h2>Morada principal</h2>
+            <p class="muted">Usada para preencher dados mais rapido. A morada final da encomenda continua guardada na propria encomenda.</p>
+          </div>
+          <div id="addressSummary" class="address-summary"></div>
+          <a class="btn btn--ghost" href="#profileForm" data-open-profile>Editar dados</a>
+        </section>
+      </section>
+
+      <aside class="order-detail glass-card" id="orderDetail">
+        <div class="empty-state">
+          <h3>Seleciona uma encomenda</h3>
+          <p>O detalhe aparece aqui com produtos, envio e morada usada.</p>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module" src="js/account.js?v=account1"></script>
+  <script type="module" src="js/support-chat.js?v=chat1"></script>
+</body>
+</html>

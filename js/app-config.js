@@ -15,6 +15,7 @@ export const VALID_LOCAL_PATHS = new Set([
   "product.html",
   "cart.html",
   "checkout.html",
+  "account.html",
   "admin.html",
   "success.html",
   "cancel.html",

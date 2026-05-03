@@ -1,5 +1,12 @@
 import { buildAuthEmailRedirect } from "./app-config.js?v=auth6";
-import { getAuthenticatedRedirectTarget, logoutAndRedirect, redirectIfAuthenticated, supabase, waitForSession } from "./auth-utils.js?v=auth6";
+import {
+  getAuthenticatedRedirectTarget,
+  logoutAndRedirect,
+  peekRedirectAfterLogin,
+  redirectIfAuthenticated,
+  supabase,
+  waitForSession,
+} from "./auth-utils.js?v=auth6";
 
 const statusElement = document.getElementById("status");
 const loginForm = document.getElementById("loginForm");
@@ -129,7 +136,7 @@ signupForm?.addEventListener("submit", async (event) => {
     email,
     password,
     options: {
-      emailRedirectTo: buildAuthEmailRedirect("shop.html"),
+      emailRedirectTo: buildAuthEmailRedirect(peekRedirectAfterLogin("shop.html")),
     },
   });
   setBusy(signupForm, false);

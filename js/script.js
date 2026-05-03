@@ -1,4 +1,5 @@
 import { SITE_NAME, buildWhatsAppUrl, formatEuro, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
+import { syncAccountLinks } from "./auth-utils.js?v=auth6";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 
 const defaultMessage = [
@@ -180,6 +181,7 @@ if (!document.body.dataset.keepTitle) {
 }
 setupLanguageSelector();
 setupAdminLogoShortcut();
+syncAccountLinks().catch(() => null);
 setWhatsAppLinks();
 setupMenu();
 setupQuickForm();

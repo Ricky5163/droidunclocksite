@@ -3,11 +3,13 @@ import {
   buildLoginRedirect,
   createSupabaseBrowserClient,
   getPostLoginTarget,
+  sanitizeReturnPath,
 } from "./app-config.js?v=auth6";
 
 const supabase = createSupabaseBrowserClient();
 const SESSION_WAIT_TIMEOUT = 3000;
 const SESSION_WAIT_INTERVAL = 100;
+const REDIRECT_AFTER_LOGIN_KEY = "redirect_after_login";
 
 function delay(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -32,8 +34,31 @@ export async function waitForSession(timeoutMs = SESSION_WAIT_TIMEOUT) {
 }
 
 export async function getCurrentUser(options = {}) {
-  const session = options.wait ? await waitForSession(options.timeoutMs) : await getSession();
-  return session?.user || null;
+  if (options.wait) {
+    const session = await waitForSession(options.timeoutMs);
+    if (!session) return null;
+  }
+
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return null;
+  return data?.user || null;
+}
+
+export function rememberRedirectAfterLogin(path = DEFAULT_LOGIN_REDIRECT) {
+  const target = sanitizeReturnPath(path, DEFAULT_LOGIN_REDIRECT);
+  localStorage.setItem(REDIRECT_AFTER_LOGIN_KEY, target);
+  return target;
+}
+
+export function consumeRedirectAfterLogin(fallback = DEFAULT_LOGIN_REDIRECT) {
+  const target = sanitizeReturnPath(localStorage.getItem(REDIRECT_AFTER_LOGIN_KEY), fallback);
+  localStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY);
+  return target;
+}
+
+export function peekRedirectAfterLogin(fallback = "") {
+  const stored = localStorage.getItem(REDIRECT_AFTER_LOGIN_KEY);
+  return stored ? sanitizeReturnPath(stored, fallback || DEFAULT_LOGIN_REDIRECT) : fallback;
 }
 
 export async function isAdminUser(user) {
@@ -50,6 +75,8 @@ export async function isAdminUser(user) {
 
 export async function getAuthenticatedRedirectTarget(user) {
   const params = new URLSearchParams(window.location.search);
+  const storedTarget = peekRedirectAfterLogin("");
+  if (storedTarget) return consumeRedirectAfterLogin(DEFAULT_LOGIN_REDIRECT);
   if (params.has("next")) return getPostLoginTarget();
 
   return (await isAdminUser(user)) ? "admin.html" : DEFAULT_LOGIN_REDIRECT;
@@ -60,6 +87,7 @@ export async function requireAuth(options = {}) {
   const user = await getCurrentUser({ wait: true });
 
   if (!user) {
+    rememberRedirectAfterLogin(redirectTo);
     window.location.href = buildLoginRedirect(redirectTo);
     return null;
   }
@@ -90,11 +118,11 @@ export async function syncAccountLinks() {
 
   links.forEach((link) => {
     if (user) {
-      link.href = "shop.html";
-      link.textContent = "Area do cliente";
+      link.href = "account.html";
+      link.textContent = "Minha Conta";
     } else {
       link.href = "login.html";
-      link.textContent = "Entrar";
+      link.textContent = "Login";
     }
   });
 
