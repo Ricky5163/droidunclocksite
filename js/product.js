@@ -6,6 +6,7 @@ const detailElement = document.getElementById("productDetail");
 const cartBadges = document.querySelectorAll("[data-cart-count]");
 let currentLang = setupLanguageSelector();
 let currentProduct;
+let currentRelated = [];
 setupAdminLogoShortcut();
 
 function updateCartBadge() {
@@ -16,29 +17,80 @@ function updateCartBadge() {
 
 function demoProduct() {
   return {
-    id: "demo-iphone-13",
-    slug: "iphone-13-refurbished",
-    name: "iPhone 13 128GB",
+    id: "22222222-2222-4222-8222-222222222222",
+    slug: "iphone-12-128gb-refurbished",
+    name: "iPhone 12 128GB",
     brand: "Apple",
-    model: "iPhone 13",
+    model: "iPhone 12",
     category: "Refurbished Phones",
     condition: "Excellent",
+    condition_label: "Like New",
+    battery_health: "89%",
+    warranty: "6 months",
     stock: 4,
     price: 449,
     discount_price: 399,
-    description: "Refurbished, tested, unlocked, and ready for worldwide delivery.",
-    technical_details: "128GB storage, unlocked, tested display, battery health checked.",
-    warranty_info: "Warranty included. Coverage depends on product category and local law.",
-    delivery_info: "International shipping available. Netherlands repair pickup by arrangement.",
+    description: "Smartphone fully functional and tested, with battery in good condition and no structural damage. Unlocked for European networks and prepared for daily use.",
+    technical_details: "128GB storage, unlocked, tested OLED display, tested Face ID, checked cameras, clean speakers, and reliable charging.",
+    warranty_info: "6-month Droidunclock warranty for eligible hardware faults. The device is inspected before dispatch and packed securely.",
+    delivery_info: "Fast delivery in the Netherlands. European delivery available where supported at checkout.",
     images: [
-      "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1603891128711-11b4b03bb138?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&w=1200&q=80",
     ],
   };
 }
 
+function batteryLabel(product) {
+  return product.battery_health || product.batteryHealth || "85%+";
+}
+
+function warrantyLabel(product) {
+  const warrantyInfo = product.warranty_info ? String(product.warranty_info) : "";
+  return product.warranty || warrantyInfo.match(/\d+\s*(months?|dias?|days?)/i)?.[0] || "6 months";
+}
+
+function conditionText(product) {
+  const condition = product.condition || product.condition_label || "Excellent";
+  if (/excellent|like new|como novo/i.test(condition)) {
+    return "Excellent condition, with no visible structural damage and minimal signs of use.";
+  }
+  if (/good|very good|used|usado/i.test(condition)) {
+    return "Very good working condition, with normal light signs of previous use.";
+  }
+  return "Professionally inspected, cleaned, and tested before dispatch.";
+}
+
+function setButtonLoading(button, label) {
+  const original = button.textContent;
+  button.disabled = true;
+  button.textContent = label;
+  window.setTimeout(() => {
+    button.disabled = false;
+    button.textContent = original;
+  }, 700);
+}
+
+function relatedCard(item) {
+  return `
+    <article class="product-card product-card--compact">
+      <a class="product-card__media" href="product.html?slug=${encodeURIComponent(item.slug || item.id)}">
+        <img class="product-card__image" src="${escapeHtml(getProductImage(item))}" alt="${escapeHtml(item.name)}" />
+      </a>
+      <div class="product-card__body">
+        <span class="availability availability--ok">${escapeHtml(item.condition || "Refurbished")}</span>
+        <h3>${escapeHtml(item.name)}</h3>
+        <p class="product-meta">${escapeHtml(item.brand || "Droidunclock")}</p>
+        <strong>${formatEuro(getEffectivePrice(item))}</strong>
+      </div>
+    </article>
+  `;
+}
+
 function render(product, related = []) {
   currentProduct = product;
+  currentRelated = related;
   const images = parseImages(product.images);
   const gallery = images.length ? images : [getProductImage(product)];
   const stock = Math.max(0, Number(product.stock ?? 0));
@@ -54,69 +106,80 @@ function render(product, related = []) {
       </div>
     </div>
     <article class="product-buybox">
-      <span class="eyebrow">${escapeHtml(product.category || "Product")}</span>
+      <span class="eyebrow">Refurbished phone</span>
       <h1>${escapeHtml(product.name)}</h1>
-      <p class="muted">${escapeHtml(product.description || "")}</p>
+      <p class="muted">${escapeHtml(product.description || "Professionally tested refurbished phone with warranty and secure checkout.")}</p>
       <div class="product-specs product-specs--large">
         <span>${escapeHtml(product.brand || "Brand")}</span>
         <span>${escapeHtml(product.model || "Model")}</span>
-        <span>${escapeHtml(product.condition || "New")}</span>
+        <span>${escapeHtml(product.condition || "Refurbished")}</span>
         <span>${stock > 0 ? t("inStock", currentLang) : t("outOfStock", currentLang)}</span>
       </div>
       <div class="price-stack price-stack--hero">
         ${effectivePrice < price ? `<span>${formatEuro(price)}</span>` : ""}
         <strong>${formatEuro(effectivePrice)}</strong>
       </div>
+      <div class="product-confidence-grid">
+        <section>
+          <span>Condition</span>
+          <strong>${escapeHtml(product.condition || "Excellent")}</strong>
+          <p>${escapeHtml(conditionText(product))}</p>
+        </section>
+        <section>
+          <span>Battery</span>
+          <strong>${escapeHtml(batteryLabel(product))}</strong>
+          <p>Estimated battery health checked during inspection.</p>
+        </section>
+        <section>
+          <span>Warranty</span>
+          <strong>${escapeHtml(warrantyLabel(product))}</strong>
+          <p>Coverage included for eligible hardware faults.</p>
+        </section>
+      </div>
       <div class="hero-actions">
-        <button class="btn btn--ghost" id="addToCart">${t("addToCart", currentLang)}</button>
-        <button class="btn btn--primary" id="buyNow">${t("buyNow", currentLang)}</button>
+        <button class="btn btn--ghost" id="addToCart" ${stock > 0 ? "" : "disabled"}>${t("addToCart", currentLang)}</button>
+        <button class="btn btn--primary btn--xl" id="buyNow" ${stock > 0 ? "" : "disabled"}>${t("buyNow", currentLang)}</button>
+      </div>
+      <div class="checkout-trust-row" aria-label="Trust information">
+        <span>Fast delivery in the Netherlands</span>
+        <span>14-day returns</span>
+        <span>Secure Stripe / PayPal payment</span>
       </div>
       <div class="detail-panels">
         <section>
           <h2>${t("techDetails", currentLang)}</h2>
-          <p>${escapeHtml(product.technical_details || "Technical information will be confirmed before dispatch or repair.")}</p>
+          <p>${escapeHtml(product.technical_details || "Display, battery, cameras, speakers, charging, buttons, and network reliability are checked before dispatch.")}</p>
         </section>
         <section>
           <h2>${t("warrantyInfo", currentLang)}</h2>
-          <p>${escapeHtml(product.warranty_info || "Warranty included for eligible products and repairs.")}</p>
+          <p>${escapeHtml(product.warranty_info || "6-month warranty for eligible refurbished phones, plus clear support if something is not as described.")}</p>
         </section>
         <section>
           <h2>${t("deliveryInfo", currentLang)}</h2>
-          <p>${escapeHtml(product.delivery_info || "International shipping and Netherlands pickup options are available by arrangement.")}</p>
+          <p>${escapeHtml(product.delivery_info || "Fast delivery in the Netherlands. European shipping options are shown at checkout when available.")}</p>
         </section>
       </div>
     </article>
     <section class="related-products">
-      <div class="section-head"><span class="eyebrow">${t("details", currentLang)}</span><h2>${t("relatedProducts", currentLang)}</h2></div>
+      <div class="section-head"><span class="eyebrow">More options</span><h2>${t("relatedProducts", currentLang)}</h2></div>
       <div class="product-grid">
-        ${related
-          .slice(0, 3)
-          .map(
-            (item) => `
-              <article class="product-card">
-                <a class="product-card__media" href="product.html?slug=${encodeURIComponent(item.slug || item.id)}">
-                  <img class="product-card__image" src="${escapeHtml(getProductImage(item))}" alt="${escapeHtml(item.name)}" />
-                </a>
-                <div class="product-card__body">
-                  <h3>${escapeHtml(item.name)}</h3>
-                  <strong>${formatEuro(getEffectivePrice(item))}</strong>
-                </div>
-              </article>
-            `,
-          )
-          .join("")}
+        ${related.length ? related.slice(0, 3).map(relatedCard).join("") : relatedCard(demoProduct())}
       </div>
     </section>
   `;
 
-  detailElement.querySelector("#addToCart")?.addEventListener("click", () => {
+  detailElement.querySelector("#addToCart")?.addEventListener("click", (event) => {
     mergeCartItem(product.id, stock);
     updateCartBadge();
+    setButtonLoading(event.currentTarget, "Added");
   });
 
-  detailElement.querySelector("#buyNow")?.addEventListener("click", () => {
+  detailElement.querySelector("#buyNow")?.addEventListener("click", (event) => {
     mergeCartItem(product.id, stock);
-    window.location.href = "checkout.html";
+    setButtonLoading(event.currentTarget, "Opening checkout...");
+    window.setTimeout(() => {
+      window.location.href = "checkout.html";
+    }, 180);
   });
 
   detailElement.querySelectorAll(".product-gallery__thumbs img").forEach((thumb) => {
@@ -145,7 +208,7 @@ async function init() {
 document.querySelector("[data-language-select]")?.addEventListener("change", () => {
   currentLang = localStorage.getItem("language") || "en";
   updateCartBadge();
-  if (currentProduct) render(currentProduct, []);
+  if (currentProduct) render(currentProduct, currentRelated);
 });
 
 init();

@@ -92,10 +92,18 @@ create table if not exists public.order_items (
 
 create table if not exists public.admin_users (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
   email text unique not null,
   role text not null default 'admin',
   created_at timestamptz not null default now()
 );
+
+alter table public.admin_users
+add column if not exists user_id uuid references auth.users(id) on delete cascade;
+
+create unique index if not exists admin_users_user_id_key
+on public.admin_users(user_id)
+where user_id is not null;
 
 alter table public.products enable row level security;
 alter table public.orders enable row level security;
@@ -112,56 +120,90 @@ as $$
   select exists (
     select 1
     from public.admin_users
-    where email = auth.jwt() ->> 'email'
+    where admin_users.user_id = auth.uid()
   );
 $$;
 
+revoke execute on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated, service_role;
+
 drop policy if exists "Public can read active products" on public.products;
-create policy "Public can read active products"
+drop policy if exists "Anyone can read active products" on public.products;
+create policy "Anyone can read active products"
 on public.products for select
+to anon, authenticated
 using (
-  public.is_admin()
-  or (
-    active = true
-    and (publish_at is null or publish_at <= now())
-  )
+  active = true
+  and (publish_at is null or publish_at <= now())
 );
 
-drop policy if exists "Admins manage products" on public.products;
-create policy "Admins manage products"
-on public.products for all
+drop policy if exists "Admins can read all products" on public.products;
+create policy "Admins can read all products"
+on public.products for select
+to authenticated
+using (public.is_admin());
+
+drop policy if exists "Admins can insert products" on public.products;
+create policy "Admins can insert products"
+on public.products for insert
+to authenticated
+with check (public.is_admin());
+
+drop policy if exists "Admins can update products" on public.products;
+create policy "Admins can update products"
+on public.products for update
+to authenticated
 using (public.is_admin())
 with check (public.is_admin());
 
-drop policy if exists "Admins read admin users" on public.admin_users;
-create policy "Admins read admin users"
-on public.admin_users for select
+drop policy if exists "Admins can delete products" on public.products;
+create policy "Admins can delete products"
+on public.products for delete
+to authenticated
 using (public.is_admin());
+
+drop policy if exists "Admins manage products" on public.products;
+
+drop policy if exists "Admins read admin users" on public.admin_users;
+drop policy if exists "Admins can read admin users" on public.admin_users;
+create policy "Admins can read admin users"
+on public.admin_users for select
+to authenticated
+using (public.is_admin());
+
+drop policy if exists "Customers can view own orders" on public.orders;
+create policy "Customers can view own orders"
+on public.orders for select
+to authenticated
+using (auth.uid() = user_id);
 
 drop policy if exists "Admins view orders" on public.orders;
-create policy "Admins view orders"
+drop policy if exists "Admins can view all orders" on public.orders;
+create policy "Admins can view all orders"
 on public.orders for select
+to authenticated
 using (public.is_admin());
 
+drop policy if exists "Customers can create own orders" on public.orders;
+create policy "Customers can create own orders"
+on public.orders for insert
+to authenticated
+with check (auth.uid() = user_id);
+
 drop policy if exists "Admins update orders" on public.orders;
-create policy "Admins update orders"
+drop policy if exists "Admins can update orders" on public.orders;
+create policy "Admins can update orders"
 on public.orders for update
+to authenticated
 using (public.is_admin())
 with check (public.is_admin());
 
 drop policy if exists "Customers view own orders" on public.orders;
-create policy "Customers view own orders"
-on public.orders for select
-using (auth.uid() = user_id);
 
-drop policy if exists "Admins view order items" on public.order_items;
-create policy "Admins view order items"
+drop policy if exists "Customers can view own order items" on public.order_items;
+create policy "Customers can view own order items"
 on public.order_items for select
-using (public.is_admin());
-
-drop policy if exists "Customers view own order items" on public.order_items;
-create policy "Customers view own order items"
-on public.order_items for select
+to authenticated
 using (
   exists (
     select 1
@@ -170,6 +212,15 @@ using (
       and orders.user_id = auth.uid()
   )
 );
+
+drop policy if exists "Admins view order items" on public.order_items;
+drop policy if exists "Admins can view all order items" on public.order_items;
+create policy "Admins can view all order items"
+on public.order_items for select
+to authenticated
+using (public.is_admin());
+
+drop policy if exists "Customers view own order items" on public.order_items;
 
 create or replace function public.reserve_order_stock(p_order_id uuid)
 returns void
@@ -350,7 +401,12 @@ create index if not exists products_publish_at_idx on public.products(publish_at
 create index if not exists orders_created_at_idx on public.orders(created_at desc);
 create index if not exists orders_user_id_idx on public.orders(user_id);
 
--- Create this email in Supabase Auth, then this row authorizes it for admin.html.
-insert into public.admin_users (email, role)
-values ('admin@droidunclock.site', 'owner')
-on conflict (email) do update set role = excluded.role;
+-- Create this email in Supabase Auth first, then this row authorizes it for admin.html.
+insert into public.admin_users (user_id, email, role)
+select id, email, 'owner'
+from auth.users
+where email = 'admin@droidunclock.site'
+on conflict (email) do update
+set
+  user_id = excluded.user_id,
+  role = excluded.role;

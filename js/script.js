@@ -1,36 +1,35 @@
-import { SITE_NAME, buildWhatsAppUrl, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
+import { SITE_NAME, buildWhatsAppUrl, formatEuro, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 
 const defaultMessage = [
-  "Hello Droidunclock, I came from the website and need help with my phone.",
+  "Hello Droidunclock, I came from the website and need help choosing a refurbished phone.",
   "",
-  "Device model:",
-  "Service needed:",
+  "Preferred model:",
+  "Budget:",
   "City:",
-  "Preferred timing:",
 ].join("\n");
 
 const featuredDevices = [
   {
-    name: "iPhone 13",
+    name: "iPhone 12 128GB",
     condition: "Excellent",
+    battery: "89% battery",
     price: 399,
-    image:
-      "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=900&q=80",
+    image: "https://images.unsplash.com/photo-1603891128711-11b4b03bb138?auto=format&fit=crop&w=900&q=80",
   },
   {
-    name: "Samsung Galaxy S22",
+    name: "Samsung Galaxy S22 128GB",
     condition: "Excellent",
+    battery: "90% battery",
     price: 349,
-    image:
-      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=900&q=80",
+    image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=900&q=80",
   },
   {
-    name: "Google Pixel 7",
-    condition: "Good",
-    price: 329,
-    image:
-      "https://images.unsplash.com/photo-1664478546384-d57ffe74a78c?auto=format&fit=crop&w=900&q=80",
+    name: "iPhone 13 128GB",
+    condition: "As new",
+    battery: "91% battery",
+    price: 499,
+    image: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=900&q=80",
   },
 ];
 
@@ -123,11 +122,12 @@ function renderFeaturedProducts() {
                 <div>
                   <span class="availability availability--ok">${device.condition}</span>
                   <h3>${device.name}</h3>
+                  <p class="product-meta">Refurbished - ${device.battery} - 6-month warranty</p>
                 </div>
-                <strong>€${device.price}</strong>
+                <strong>${formatEuro(device.price)}</strong>
               </div>
-              <p class="product-card__description">Tested, cleaned, and ready for a second life.</p>
-              <a class="btn btn--primary btn--block" href="shop.html">Buy Now</a>
+              <p class="product-card__description">Fully tested, unlocked, cleaned, and ready for fast delivery in the Netherlands.</p>
+              <a class="btn btn--primary btn--block" href="shop.html">View Products</a>
             </div>
           </article>
         `,
@@ -176,7 +176,7 @@ function setCurrentYear() {
 }
 
 if (!document.body.dataset.keepTitle) {
-  document.title = `${SITE_NAME} | Fast Phone Repairs in the Netherlands`;
+  document.title = `${SITE_NAME} | Refurbished Phones in the Netherlands`;
 }
 setupLanguageSelector();
 setupAdminLogoShortcut();

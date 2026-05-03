@@ -99,12 +99,13 @@ export async function requireAdminAuth(request, env, supabase = createServiceCli
 
   const { data: userData, error: userError } = await supabase.auth.getUser(token);
   const email = normalizeEmail(userData?.user?.email);
-  if (userError || !email) return null;
+  const userId = userData?.user?.id;
+  if (userError || !email || !userId) return null;
 
   const { data: admin, error: adminError } = await supabase
     .from("admin_users")
-    .select("id,email,role")
-    .eq("email", email)
+    .select("id,user_id,email,role")
+    .eq("user_id", userId)
     .maybeSingle();
 
   return adminError || !admin ? null : { ...admin, user: userData.user };
