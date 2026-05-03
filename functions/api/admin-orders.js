@@ -1,7 +1,6 @@
 import {
   assertEnv,
   createServiceClient,
-  decryptOrderCustomer,
   json,
   requireAdminAuth,
 } from "./_utils.js";
@@ -27,7 +26,7 @@ export async function onRequest(context) {
 
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
-      .select("id,customer_name,customer_email,customer_phone,country,address,postal_code,city,total_amount,payment_method,payment_status,order_status,created_at")
+      .select("id,user_id,customer_name,customer_email,customer_phone,country,address,postal_code,city,total_amount,payment_currency,payment_method,payment_status,order_status,created_at")
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -56,9 +55,8 @@ export async function onRequest(context) {
 
     const safeOrders = [];
     for (const order of orders || []) {
-      const decrypted = await decryptOrderCustomer(order, env);
       safeOrders.push({
-        ...decrypted,
+        ...order,
         items: itemsByOrder.get(order.id) || [],
       });
     }

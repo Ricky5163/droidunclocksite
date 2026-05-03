@@ -1,16 +1,18 @@
 import {
+  assertCheckoutAllowed,
   assertEnv,
   buildValidatedOrder,
   calculateShipping,
   createServiceClient,
-  encryptOrderCustomer,
   ensureAllowedOrigin,
   handleOptions,
   json,
   normalizeCustomer,
+  orderExpiresAt,
   readJson,
   requireAuthenticatedUser,
 } from "./_utils.js";
+import { encryptSensitiveData, normalizeSensitiveOrderData } from "./_encryption.js";
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -58,20 +60,25 @@ export async function onRequest(context) {
       return json(request, env, 403, { error: "Customer email must match the authenticated account." });
     }
 
-    const orderDraft = await buildValidatedOrder(body.cart, supabase);
+    const checkoutCart = await assertCheckoutAllowed(supabase, user.id, body.cart);
+    const orderDraft = await buildValidatedOrder(checkoutCart, supabase);
     const shippingCost = calculateShipping(customer, orderDraft, env);
     const totalAmount = Number((orderDraft.total + shippingCost).toFixed(2));
+    const encryptedNotes = await encryptSensitiveData(normalizeSensitiveOrderData(body), env);
 
-    const secureCustomer = await encryptOrderCustomer(customer, env);
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
         {
-          ...secureCustomer,
+          user_id: user.id,
+          ...customer,
           total_amount: totalAmount,
+          payment_currency: "EUR",
           payment_method: "paypal",
           payment_status: "pending",
           order_status: "Pending",
+          encrypted_notes: encryptedNotes,
+          expires_at: orderExpiresAt(),
         },
       ])
       .select("id")

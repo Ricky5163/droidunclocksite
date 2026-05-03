@@ -1,4 +1,5 @@
 import { clearCart } from "./app-config.js?v=auth5";
+import { getSession } from "./auth-utils.js?v=auth5";
 import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 
 const messageElement = document.getElementById("msg");
@@ -26,9 +27,17 @@ function setMessage(message, detail = "", type = "neutral") {
     setMessage("Confirming PayPal payment...", "We are validating your order.", "neutral");
 
     try {
+      const session = await getSession();
+      if (!session?.access_token) {
+        throw new Error("Please sign in to confirm this PayPal order.");
+      }
+
       const response = await fetch("/api/paypal-capture-order", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ paypalOrderId, orderId }),
       });
 

@@ -37,6 +37,7 @@ add column if not exists publish_at timestamptz;
 
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
   customer_name text not null,
   customer_email text not null,
   customer_phone text not null,
@@ -45,6 +46,7 @@ create table if not exists public.orders (
   postal_code text not null,
   city text not null,
   total_amount numeric(10,2) not null check (total_amount >= 0),
+  payment_currency text not null default 'EUR',
   payment_method text not null check (payment_method in ('stripe','paypal')),
   payment_status text not null default 'pending',
   order_status text not null default 'Pending' check (order_status in (
@@ -57,12 +59,26 @@ create table if not exists public.orders (
   )),
   paypal_order_id text,
   stripe_payment_intent_id text,
+  encrypted_notes jsonb,
   stock_reserved_at timestamptz,
+  expires_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 alter table public.orders
 add column if not exists stock_reserved_at timestamptz;
+
+alter table public.orders
+add column if not exists user_id uuid references auth.users(id) on delete set null;
+
+alter table public.orders
+add column if not exists payment_currency text not null default 'EUR';
+
+alter table public.orders
+add column if not exists encrypted_notes jsonb;
+
+alter table public.orders
+add column if not exists expires_at timestamptz;
 
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),
@@ -133,10 +149,27 @@ on public.orders for update
 using (public.is_admin())
 with check (public.is_admin());
 
+drop policy if exists "Customers view own orders" on public.orders;
+create policy "Customers view own orders"
+on public.orders for select
+using (auth.uid() = user_id);
+
 drop policy if exists "Admins view order items" on public.order_items;
 create policy "Admins view order items"
 on public.order_items for select
 using (public.is_admin());
+
+drop policy if exists "Customers view own order items" on public.order_items;
+create policy "Customers view own order items"
+on public.order_items for select
+using (
+  exists (
+    select 1
+    from public.orders
+    where orders.id = order_items.order_id
+      and orders.user_id = auth.uid()
+  )
+);
 
 create or replace function public.reserve_order_stock(p_order_id uuid)
 returns void
@@ -195,10 +228,127 @@ $$;
 revoke execute on function public.reserve_order_stock(uuid) from public, anon, authenticated;
 grant execute on function public.reserve_order_stock(uuid) to service_role;
 
+create or replace function public.mark_order_paid_after_stock(
+  p_order_id uuid,
+  p_stripe_payment_intent_id text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  order_row public.orders%rowtype;
+  item_row record;
+  updated_count integer;
+begin
+  select *
+  into order_row
+  from public.orders
+  where id = p_order_id
+  for update;
+
+  if not found then
+    raise exception 'Order not found.';
+  end if;
+
+  if order_row.payment_status = 'paid' and order_row.stock_reserved_at is not null then
+    return jsonb_build_object(
+      'ok', true,
+      'changed', false,
+      'payment_status', order_row.payment_status,
+      'order_status', order_row.order_status
+    );
+  end if;
+
+  for item_row in
+    select
+      order_items.product_id,
+      order_items.quantity,
+      products.name as product_name,
+      products.stock,
+      products.active
+    from public.order_items
+    join public.products on products.id = order_items.product_id
+    where order_items.order_id = p_order_id
+      and order_items.product_id is not null
+    for update of products
+  loop
+    if item_row.active is not true or item_row.stock < item_row.quantity then
+      update public.orders
+      set
+        payment_status = 'payment_confirmed_stock_failed',
+        stripe_payment_intent_id = coalesce(p_stripe_payment_intent_id, stripe_payment_intent_id)
+      where id = p_order_id;
+
+      return jsonb_build_object(
+        'ok', false,
+        'changed', false,
+        'payment_status', 'payment_confirmed_stock_failed',
+        'order_status', order_row.order_status,
+        'error', 'Insufficient stock for product ' || coalesce(item_row.product_name, item_row.product_id::text) || '.'
+      );
+    end if;
+  end loop;
+
+  for item_row in
+    select product_id, quantity
+    from public.order_items
+    where order_id = p_order_id
+      and product_id is not null
+  loop
+    update public.products
+    set
+      stock = stock - item_row.quantity,
+      active = (stock - item_row.quantity) > 0
+    where id = item_row.product_id
+      and active = true
+      and stock >= item_row.quantity;
+
+    get diagnostics updated_count = row_count;
+    if updated_count <> 1 then
+      update public.orders
+      set
+        payment_status = 'payment_confirmed_stock_failed',
+        stripe_payment_intent_id = coalesce(p_stripe_payment_intent_id, stripe_payment_intent_id)
+      where id = p_order_id;
+
+      return jsonb_build_object(
+        'ok', false,
+        'changed', false,
+        'payment_status', 'payment_confirmed_stock_failed',
+        'order_status', order_row.order_status,
+        'error', 'Insufficient stock for product ' || item_row.product_id || '.'
+      );
+    end if;
+  end loop;
+
+  update public.orders
+  set
+    payment_status = 'paid',
+    order_status = 'Paid',
+    stock_reserved_at = coalesce(stock_reserved_at, now()),
+    stripe_payment_intent_id = coalesce(p_stripe_payment_intent_id, stripe_payment_intent_id)
+  where id = p_order_id
+  returning * into order_row;
+
+  return jsonb_build_object(
+    'ok', true,
+    'changed', true,
+    'payment_status', order_row.payment_status,
+    'order_status', order_row.order_status
+  );
+end;
+$$;
+
+revoke execute on function public.mark_order_paid_after_stock(uuid, text) from public, anon, authenticated;
+grant execute on function public.mark_order_paid_after_stock(uuid, text) to service_role;
+
 create index if not exists products_slug_idx on public.products(slug);
 create index if not exists products_category_idx on public.products(category);
 create index if not exists products_publish_at_idx on public.products(publish_at);
 create index if not exists orders_created_at_idx on public.orders(created_at desc);
+create index if not exists orders_user_id_idx on public.orders(user_id);
 
 -- Create this email in Supabase Auth, then this row authorizes it for admin.html.
 insert into public.admin_users (email, role)

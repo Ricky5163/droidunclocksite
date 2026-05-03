@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CHECKOUT_PENDING_LIMIT = 3;
+const CHECKOUT_PENDING_WINDOW_MINUTES = 15;
+export const ORDER_EXPIRY_MINUTES = 30;
+export const MAX_CHECKOUT_ITEMS = 20;
 
 export function createServiceClient(env) {
   return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
@@ -115,93 +119,6 @@ export async function requireAuthenticatedUser(request, supabase) {
   return error ? null : data?.user || null;
 }
 
-export async function encryptOrderCustomer(customer, env) {
-  const encrypted = { ...customer };
-  for (const field of sensitiveOrderFields()) {
-    encrypted[field] = await encryptText(customer[field], env);
-  }
-  return encrypted;
-}
-
-export async function decryptOrderCustomer(order, env) {
-  const decrypted = { ...order };
-  for (const field of sensitiveOrderFields()) {
-    decrypted[field] = await decryptText(order[field], env);
-  }
-  return decrypted;
-}
-
-function sensitiveOrderFields() {
-  return ["customer_name", "customer_email", "customer_phone", "country", "address", "postal_code", "city"];
-}
-
-async function encryptText(value, env) {
-  const text = String(value || "");
-  const secret = orderDataSecret(env);
-  if (!secret || !text || text.startsWith("enc:v1:")) return text;
-
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await orderCryptoKey(secret);
-  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(text));
-
-  return `enc:v1:${base64FromBytes(iv)}:${base64FromBytes(new Uint8Array(encrypted))}`;
-}
-
-async function decryptText(value, env) {
-  const text = String(value || "");
-  const secrets = orderDataSecrets(env);
-  if (!secrets.length || !text.startsWith("enc:v1:")) return text;
-
-  const [, version, ivBase64, encryptedBase64] = text.split(":");
-  if (version !== "v1" || !ivBase64 || !encryptedBase64) return text;
-
-  for (const secret of secrets) {
-    try {
-      const key = await orderCryptoKey(secret);
-      const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: bytesFromBase64(ivBase64) },
-        key,
-        bytesFromBase64(encryptedBase64)
-      );
-      return new TextDecoder().decode(decrypted);
-    } catch {
-      // Try the next server-side secret for older orders.
-    }
-  }
-
-  return "";
-}
-
-async function orderCryptoKey(secret) {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret));
-  return crypto.subtle.importKey("raw", digest, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
-}
-
-function base64FromBytes(bytes) {
-  let binary = "";
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-  return btoa(binary);
-}
-
-function bytesFromBase64(value) {
-  return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
-}
-
-function orderDataSecret(env) {
-  return orderDataSecrets(env)[0];
-}
-
-function orderDataSecrets(env) {
-  return [
-    env.CHECKOUT_DATA_SECRET,
-    env.ORDER_DATA_SECRET,
-    env.INTERNAL_API_SECRET,
-    env.SUPABASE_SERVICE_ROLE_KEY,
-  ].filter(Boolean);
-}
-
 export async function readJson(request) {
   return request.json().catch(() => ({}));
 }
@@ -234,6 +151,37 @@ export function normalizeCart(cart) {
   }
 
   return [...quantities.entries()].map(([id, qty]) => ({ id, qty }));
+}
+
+export async function assertCheckoutAllowed(supabase, userId, cart) {
+  const normalizedCart = normalizeCart(cart);
+  if (!normalizedCart.length) {
+    throw new Error("Carrinho invalido.");
+  }
+
+  const itemCount = normalizedCart.reduce((sum, item) => sum + item.qty, 0);
+  if (itemCount > MAX_CHECKOUT_ITEMS) {
+    throw new Error(`O pedido nao pode ter mais de ${MAX_CHECKOUT_ITEMS} itens.`);
+  }
+
+  const windowStart = new Date(Date.now() - CHECKOUT_PENDING_WINDOW_MINUTES * 60 * 1000).toISOString();
+  const { count, error } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("payment_status", "pending")
+    .gte("created_at", windowStart);
+
+  if (error) throw new Error(error.message);
+  if (Number(count || 0) >= CHECKOUT_PENDING_LIMIT) {
+    throw new Error("Demasiadas tentativas de checkout recentes. Aguarda alguns minutos e tenta novamente.");
+  }
+
+  return normalizedCart;
+}
+
+export function orderExpiresAt() {
+  return new Date(Date.now() + ORDER_EXPIRY_MINUTES * 60 * 1000).toISOString();
 }
 
 export async function buildValidatedOrder(cart, supabase) {
@@ -310,34 +258,24 @@ function numericEnv(value, fallback) {
 }
 
 export async function markOrderPaid(supabase, orderId, updates = {}) {
-  const { data: currentOrder, error: currentError } = await supabase
-    .from("orders")
-    .select("id,payment_status,order_status,customer_email,total_amount,payment_method,stock_reserved_at")
-    .eq("id", orderId)
-    .single();
+  const { data, error } = await supabase.rpc("mark_order_paid_after_stock", {
+    p_order_id: orderId,
+    p_stripe_payment_intent_id: updates.stripe_payment_intent_id ?? null,
+  });
 
-  if (currentError) throw new Error(currentError.message);
-  if (currentOrder.payment_status === "paid") {
-    await reserveOrderStock(supabase, orderId);
-    return { order: currentOrder, changed: false };
+  if (error) throw new Error(error.message);
+  if (!data?.ok) {
+    throw new Error(data?.error || "Pagamento confirmado, mas nao foi possivel reservar stock.");
   }
 
-  const { data: updatedOrder, error: updateError } = await supabase
-    .from("orders")
-    .update({
-      payment_status: "paid",
-      order_status: "Paid",
-      ...updates,
-    })
-    .eq("id", orderId)
-    .select("id,payment_status,order_status,customer_email,total_amount,payment_method,stock_reserved_at")
-    .single();
-
-  if (updateError) throw new Error(updateError.message);
-
-  await reserveOrderStock(supabase, orderId);
-
-  return { order: updatedOrder, changed: true };
+  return {
+    order: {
+      id: orderId,
+      payment_status: data.payment_status,
+      order_status: data.order_status,
+    },
+    changed: Boolean(data.changed),
+  };
 }
 
 export async function reserveOrderStock(supabase, orderId) {

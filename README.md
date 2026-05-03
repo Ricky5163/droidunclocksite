@@ -29,14 +29,14 @@ PAYPAL_CLIENT_SECRET=
 PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
 SITE_URL=https://your-domain.com
 INTERNAL_API_SECRET=
-CHECKOUT_DATA_SECRET=
+ENCRYPTION_KEY=
 SHIPPING_COST=9.95
 FREE_SHIPPING_THRESHOLD=
 ```
 
 Use `https://api-m.paypal.com` for production PayPal.
 
-`CHECKOUT_DATA_SECRET` is recommended for encrypting checkout customer details at rest. If it is not set, the server falls back to existing private server-side secrets.
+`ENCRYPTION_KEY` is used only by Cloudflare Functions to encrypt optional sensitive order notes before they are inserted into Supabase. Use exactly 32 bytes, 64 hex characters, or base64 that decodes to 32 bytes. Do not expose this key in frontend JavaScript. Core order fields such as name, email, phone, address, products, totals, payment IDs, payment method, order status, and dates stay readable in the database because they are needed for shipping, support, invoices, and admin workflows.
 
 For frontend runtime config, copy `js/env.example.js` to `js/env.js`, fill the public Supabase anon settings and WhatsApp number, then include it before page modules if you do not want to edit `js/app-config.js`.
 
@@ -57,7 +57,8 @@ Re-run `supabase-schema.sql` after pulling security updates. It includes the `st
 ## Payment Security
 
 - Stripe and PayPal secret keys are used only inside Cloudflare Pages Functions.
-- The frontend never stores card details or gateway secrets.
+- The frontend never stores card details, CVV, gateway secrets, or passwords.
+- Orders store only payment provider, payment ID, payment status, amount, and currency.
 - Product prices and stock are revalidated server-side before payment sessions are created.
 - Stripe payment confirmation should use the `stripe-webhook` function with `STRIPE_WEBHOOK_SECRET`.
 

@@ -1,8 +1,7 @@
-import { sendEmail, orderEmailHtml } from "./_email.js";
+import { sendEmail, adminOrderEmailHtml, orderEmailHtml } from "./_email.js";
 import {
   assertEnv,
   createServiceClient,
-  decryptOrderCustomer,
   json,
   normalizeEmail,
   readJson,
@@ -65,13 +64,13 @@ export async function onRequest(context) {
       return json(request, env, 500, { error: itemsError.message });
     }
 
-    const decryptedOrder = await decryptOrderCustomer(order, env);
-    const customerEmail = normalizeEmail(decryptedOrder.customer_email);
+    const customerEmail = normalizeEmail(order.customer_email);
     if (!customerEmail) {
       return json(request, env, 500, { error: "Email do cliente invalido." });
     }
 
-    const html = orderEmailHtml({ order: decryptedOrder, items, siteUrl: env.SITE_URL });
+    const html = orderEmailHtml({ order, items, siteUrl: env.SITE_URL });
+    const adminHtml = adminOrderEmailHtml({ order, items, siteUrl: env.SITE_URL });
 
     await sendEmail(env, {
       to: customerEmail,
@@ -82,7 +81,7 @@ export async function onRequest(context) {
     await sendEmail(env, {
       to: env.EMAIL_TO,
       subject: `Nova encomenda paga #${order.id} - EUR ${Number(order.total_amount || 0).toFixed(2)}`,
-      html,
+      html: adminHtml,
     });
 
     return json(request, env, 200, { ok: true });

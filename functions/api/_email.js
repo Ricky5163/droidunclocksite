@@ -41,7 +41,7 @@ export function orderEmailHtml({ order, items, siteUrl }) {
     <div style="background:#f5f7fb;padding:14px;border-radius:12px;margin:16px 0;">
       <b>Encomenda:</b> ${order.id}<br/>
       <b>Status:</b> ${escapeHtml(order.order_status || order.payment_status || "")}<br/>
-      <b>Total:</b> EUR ${Number(order.total_amount || order.total || 0).toFixed(2)}<br/>
+      <b>Total:</b> ${escapeHtml(order.payment_currency || "EUR")} ${Number(order.total_amount || order.total || 0).toFixed(2)}<br/>
       <b>Pagamento:</b> ${escapeHtml(order.payment_method || order.payment_provider || "")}
     </div>
 
@@ -69,6 +69,54 @@ export function orderEmailHtml({ order, items, siteUrl }) {
     </p>
 
     <p style="color:#6b7280;margin-top:20px;">- Droidunclock</p>
+  </div>`;
+}
+
+export function adminOrderEmailHtml({ order, items, siteUrl }) {
+  const rows = items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding:8px;border-bottom:1px solid #eee;">${escapeHtml(item.product_name || item.name || "")}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${item.quantity || item.qty}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">EUR ${Number(item.unit_price || item.price || 0).toFixed(2)}</td>
+      </tr>`
+    )
+    .join("");
+
+  return `
+  <div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#111827;">
+    <h2 style="margin:0 0 12px;">Droidunclock - Nova encomenda paga</h2>
+
+    <div style="background:#f5f7fb;padding:14px;border-radius:12px;margin:16px 0;">
+      <b>Encomenda:</b> ${order.id}<br/>
+      <b>Status:</b> ${escapeHtml(order.order_status || order.payment_status || "")}<br/>
+      <b>Total:</b> ${escapeHtml(order.payment_currency || "EUR")} ${Number(order.total_amount || order.total || 0).toFixed(2)}<br/>
+      <b>Pagamento:</b> ${escapeHtml(order.payment_method || order.payment_provider || "")}<br/>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;padding:14px;border-radius:12px;margin:16px 0;">
+      <b>Cliente:</b> ${escapeHtml(order.customer_name || "")}<br/>
+      <b>Email:</b> ${escapeHtml(order.customer_email || "")}<br/>
+      <b>Telefone:</b> ${escapeHtml(order.customer_phone || "")}<br/>
+      <b>Morada:</b> ${escapeHtml(order.address || "")}, ${escapeHtml(order.postal_code || "")} ${escapeHtml(order.city || "")}, ${escapeHtml(order.country || "")}
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Produto</th>
+          <th style="text-align:center;padding:8px;border-bottom:2px solid #ddd;">Qtd</th>
+          <th style="text-align:right;padding:8px;border-bottom:2px solid #ddd;">Preco</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <p style="margin-top:16px;">
+      Admin:
+      <a href="${siteUrl}/admin.html">${siteUrl}/admin.html</a>.
+    </p>
   </div>`;
 }
 

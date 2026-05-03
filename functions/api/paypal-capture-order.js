@@ -6,6 +6,7 @@ import {
   json,
   readJson,
   markOrderPaid,
+  requireAuthenticatedUser,
   triggerOrderEmails,
 } from "./_utils.js";
 
@@ -48,9 +49,14 @@ export async function onRequest(context) {
     }
 
     const supabase = createServiceClient(env);
+    const user = await requireAuthenticatedUser(request, supabase);
+    if (!user) {
+      return json(request, env, 401, { error: "Authentication required." });
+    }
+
     const { data: order, error: orderLookupError } = await supabase
       .from("orders")
-      .select("id,payment_status,paypal_order_id,total_amount")
+      .select("id,user_id,payment_status,paypal_order_id,total_amount")
       .eq("paypal_order_id", paypalOrderId)
       .single();
 
@@ -62,9 +68,16 @@ export async function onRequest(context) {
       return json(request, env, 400, { error: "Order mismatch." });
     }
 
-    if (order.payment_status === "paid") {
-      await markOrderPaid(supabase, order.id);
-      return json(request, env, 200, { ok: true, alreadyPaid: true, orderId: order.id });
+    if (String(order.user_id || "") !== String(user.id || "")) {
+      return json(request, env, 403, { error: "Order does not belong to the authenticated user." });
+    }
+
+    if (order.payment_status !== "pending") {
+      return json(request, env, 409, {
+        error: "Order is not pending payment.",
+        orderId: order.id,
+        paymentStatus: order.payment_status,
+      });
     }
 
     const token = await paypalToken(env);
@@ -83,7 +96,6 @@ export async function onRequest(context) {
     if (!captureResponse.ok) {
       return json(request, env, 500, {
         error: data?.message || "Erro capture PayPal",
-        raw: data,
       });
     }
 
@@ -92,12 +104,26 @@ export async function onRequest(context) {
       return json(request, env, 409, { error: validationError });
     }
 
-    const result = await markOrderPaid(supabase, order.id);
+    let result;
+    try {
+      result = await markOrderPaid(supabase, order.id);
+    } catch (error) {
+      return json(request, env, 409, {
+        error: error?.message || "Pagamento confirmado, mas nao foi possivel reservar stock.",
+        orderId: order.id,
+        paymentStatus: "payment_confirmed_stock_failed",
+      });
+    }
+
     if (result.changed) {
       await triggerOrderEmails(env, order.id);
     }
 
-    return json(request, env, 200, { ok: true, orderId: order.id, data });
+    return json(request, env, 200, {
+      ok: true,
+      orderId: order.id,
+      paymentStatus: result.order.payment_status,
+    });
   } catch (error) {
     return json(request, env, 500, { error: error?.message || "Erro" });
   }
