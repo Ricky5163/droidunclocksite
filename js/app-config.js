@@ -7,7 +7,7 @@ const SUPABASE_ANON_KEY =
 
 export const SITE_NAME = "Droidunclock";
 export const WHATSAPP_NUMBER = runtimeConfig.WHATSAPP_NUMBER || "351965782553";
-export const DEFAULT_LOGIN_REDIRECT = "shop.html";
+export const DEFAULT_LOGIN_REDIRECT = "account.html";
 export const VALID_LOCAL_PATHS = new Set([
   "index.html",
   "login.html",
@@ -37,6 +37,7 @@ export function createSupabaseBrowserClient() {
       detectSessionInUrl: true,
     },
   });
+  window.supabaseClient = supabaseClient;
 
   return supabaseClient;
 }

@@ -1,5 +1,5 @@
-import { buildLoginRedirect, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth6";
-import { getAuthenticatedSession, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth6";
+import { buildLoginRedirect, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth8";
+import { getAuthenticatedSession, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth8";
 import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix2";
 import {
   buildCartDetails,

@@ -1,5 +1,5 @@
-import { buildLoginRedirect, escapeHtml, getCartCount, mergeCartItem, parseImages, setupAdminLogoShortcut } from "./app-config.js?v=auth6";
-import { getCurrentUser, syncAccountLinks } from "./auth-utils.js?v=auth6";
+import { buildLoginRedirect, escapeHtml, getCartCount, mergeCartItem, parseImages, setupAdminLogoShortcut } from "./app-config.js?v=auth8";
+import { getCurrentUser, syncAccountLinks } from "./auth-utils.js?v=auth8";
 import { setupLanguageSelector, t } from "./i18n.js?v=cart-fix2";
 import { fetchActiveProducts, fetchProductBySlug, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=cart-fix2";
 

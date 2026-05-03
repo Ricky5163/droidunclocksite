@@ -1,5 +1,5 @@
-import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth5";
-import { getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth6";
+import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth8";
+import { getAccessToken, getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth8";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
@@ -143,26 +143,31 @@ async function startCheckout(endpoint, providerLabel) {
   setStatus(`Opening secure ${providerLabel} payment...`);
 
   try {
-    const session = await getAuthenticatedSession({ wait: true, timeoutMs: 1000 });
-    if (!session?.access_token) {
+    const accessToken = await getAccessToken({ wait: true, timeoutMs: 1000 });
+    if (!accessToken) {
       showLoginGate();
-      throw new Error("Sessao expirada ou nao autenticada. Inicia sessao para continuar.");
+      throw new Error("Precisas de iniciar sessao para continuar a compra.");
     }
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...customer,
-        cart: buildCheckoutPayload(orderLines),
-      }),
-    });
+    let response;
+    try {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...customer,
+          cart: buildCheckoutPayload(orderLines),
+        }),
+      });
+    } catch (networkError) {
+      throw new Error(`Nao foi possivel contactar ${endpoint}. Verifica o dominio/CORS e tenta novamente.`);
+    }
 
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "Could not start payment.");
+    if (!response.ok) throw new Error(data.error || `Erro ${response.status} ao iniciar ${providerLabel}.`);
 
     const redirectUrl = data.url || data.approval_url || data.approvalUrl;
     if (!redirectUrl) throw new Error("Payment provider did not return a redirect URL.");

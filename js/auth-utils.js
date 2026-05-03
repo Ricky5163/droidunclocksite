@@ -4,7 +4,7 @@ import {
   createSupabaseBrowserClient,
   getPostLoginTarget,
   sanitizeReturnPath,
-} from "./app-config.js?v=auth6";
+} from "./app-config.js?v=auth8";
 
 const supabase = createSupabaseBrowserClient();
 const SESSION_WAIT_TIMEOUT = 3000;
@@ -16,6 +16,7 @@ const REDIRECT_ALIASES = {
   account: "account.html",
   shop: "shop.html",
 };
+let accountLinksSubscription;
 
 function delay(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -26,27 +27,36 @@ function normalizeRedirectPath(path, fallback = DEFAULT_LOGIN_REDIRECT) {
   return sanitizeReturnPath(REDIRECT_ALIASES[value] || value, fallback);
 }
 
-export async function getSession() {
+export async function getCurrentSession() {
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
   return data?.session || null;
 }
 
+export async function getSession() {
+  return getCurrentSession();
+}
+
 export async function waitForSession(timeoutMs = SESSION_WAIT_TIMEOUT) {
   const deadline = Date.now() + timeoutMs;
-  let session = await getSession();
+  let session = await getCurrentSession();
 
   while (!session && Date.now() < deadline) {
     await delay(SESSION_WAIT_INTERVAL);
-    session = await getSession();
+    session = await getCurrentSession();
   }
 
   return session;
 }
 
 export async function getAuthenticatedSession(options = {}) {
-  const session = options.wait ? await waitForSession(options.timeoutMs) : await getSession();
+  const session = options.wait ? await waitForSession(options.timeoutMs) : await getCurrentSession();
   return session?.access_token ? session : null;
+}
+
+export async function getAccessToken(options = {}) {
+  const session = await getAuthenticatedSession(options);
+  return session?.access_token || null;
 }
 
 export async function getCurrentUser(options = {}) {
@@ -125,11 +135,14 @@ export async function logoutAndRedirect(target = "login.html") {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 
+  localStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY);
+  await syncAccountLinks();
   window.location.href = target;
 }
 
 export async function syncAccountLinks() {
-  const user = await getCurrentUser().catch(() => null);
+  const session = await getAuthenticatedSession().catch(() => null);
+  const user = session?.user || null;
   const links = document.querySelectorAll("[data-account-link]");
 
   links.forEach((link) => {
@@ -141,6 +154,12 @@ export async function syncAccountLinks() {
       link.textContent = "Login";
     }
   });
+
+  if (!accountLinksSubscription) {
+    accountLinksSubscription = supabase.auth.onAuthStateChange(() => {
+      syncAccountLinks().catch(() => null);
+    });
+  }
 
   return user;
 }
