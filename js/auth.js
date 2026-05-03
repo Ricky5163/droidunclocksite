@@ -1,4 +1,5 @@
-import { getAuthenticatedRedirectTarget, logoutAndRedirect, redirectIfAuthenticated, supabase, waitForSession } from "./auth-utils.js?v=auth5";
+import { buildAuthEmailRedirect } from "./app-config.js?v=auth6";
+import { getAuthenticatedRedirectTarget, logoutAndRedirect, redirectIfAuthenticated, supabase, waitForSession } from "./auth-utils.js?v=auth6";
 
 const statusElement = document.getElementById("status");
 const loginForm = document.getElementById("loginForm");
@@ -10,6 +11,12 @@ const loginEmailInput = document.getElementById("loginEmail");
 const loginPasswordInput = document.getElementById("loginPassword");
 const signupEmailInput = document.getElementById("signupEmail");
 const signupPasswordInput = document.getElementById("signupPassword");
+
+function hasAuthCallbackParams() {
+  const params = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  return params.has("code") || hash.has("access_token") || hash.has("refresh_token") || hash.get("type") === "signup";
+}
 
 function setStatus(message, type = "neutral") {
   if (!statusElement) return;
@@ -83,7 +90,13 @@ signupForm?.addEventListener("submit", async (event) => {
     return;
   }
 
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: buildAuthEmailRedirect("shop.html"),
+    },
+  });
   setBusy(signupForm, false);
 
   if (error) {
@@ -91,7 +104,7 @@ signupForm?.addEventListener("submit", async (event) => {
     return;
   }
 
-  setStatus("Conta criada. Confirma o email se a verificacao estiver ativa.", "success");
+  setStatus("Conta criada. Abre o email de confirmacao e clica no link para ativar a conta.", "success");
   showSignup(false);
 });
 
@@ -105,6 +118,11 @@ logoutButton?.addEventListener("click", async () => {
   }
 });
 
-redirectIfAuthenticated().catch((error) => {
+const hasAuthCallback = hasAuthCallbackParams();
+if (hasAuthCallback) {
+  setStatus("A validar email e a iniciar sessao...", "neutral");
+}
+
+redirectIfAuthenticated({ timeoutMs: hasAuthCallback ? 5000 : 800 }).catch((error) => {
   setStatus(error.message || "Erro ao validar a sessao.", "error");
 });

@@ -165,6 +165,13 @@ export function buildLoginRedirect(path = window.location.pathname.split("/").po
   return `login.html?next=${encodeURIComponent(safePath)}`;
 }
 
+export function buildAuthEmailRedirect(path = DEFAULT_LOGIN_REDIRECT) {
+  const safePath = sanitizeReturnPath(path, DEFAULT_LOGIN_REDIRECT);
+  const url = new URL("login.html", window.location.origin);
+  url.searchParams.set("next", safePath);
+  return url.toString();
+}
+
 export function buildAdminLoginRedirect() {
   return buildLoginRedirect("admin.html");
 }
