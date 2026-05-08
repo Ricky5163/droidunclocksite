@@ -52,7 +52,7 @@ export async function onRequest(context) {
 
     const supabase = createServiceClient(env);
     const authClient = createAuthClient(env);
-    const user = await requireAuthenticatedUser(request, authClient);
+    const user = await requireAuthenticatedUser(request, authClient, env);
     if (!user) {
       return json(request, env, 401, { error: "Authentication required." });
     }

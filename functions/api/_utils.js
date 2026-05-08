@@ -7,11 +7,11 @@ export const ORDER_EXPIRY_MINUTES = 30;
 export const MAX_CHECKOUT_ITEMS = 20;
 
 export function createServiceClient(env) {
-  return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+  return createClient(cleanEnvValue(env.SUPABASE_URL), cleanEnvValue(env.SUPABASE_SERVICE_ROLE_KEY));
 }
 
 export function createAuthClient(env) {
-  return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+  return createClient(cleanEnvValue(env.SUPABASE_URL), cleanEnvValue(env.SUPABASE_ANON_KEY), {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -20,8 +20,12 @@ export function createAuthClient(env) {
   });
 }
 
+function cleanEnvValue(value) {
+  return String(value || "").trim();
+}
+
 export function assertEnv(env, names) {
-  return names.filter((name) => !env[name]);
+  return names.filter((name) => !cleanEnvValue(env[name]));
 }
 
 export function json(request, env, status, payload, extraHeaders = {}) {
@@ -121,25 +125,35 @@ export async function requireAdminAuth(request, env, supabase = createServiceCli
   return adminError || !admin ? null : { ...admin, user: userData.user };
 }
 
-export async function requireAuthenticatedUser(request, supabase) {
+export async function requireAuthenticatedUser(request, supabase, env = {}) {
   const authorization = request.headers.get("Authorization") || request.headers.get("authorization") || "";
   const hasAuthHeader = Boolean(authorization);
   const hasBearer = /^Bearer\s+/i.test(authorization);
   const token = hasBearer ? authorization.replace(/^Bearer\s+/i, "").trim() : "";
 
   if (!token) {
-    console.warn("[auth] user token missing", {
+    logAuthDebug(env, { hasAuthHeader, hasBearer, tokenLength: 0, getUserErrorMessage: null });
+    return null;
+  }
+
+  let data;
+  let error;
+  try {
+    const result = await supabase.auth.getUser(token);
+    data = result.data;
+    error = result.error;
+  } catch (authError) {
+    logAuthDebug(env, {
       hasAuthHeader,
       hasBearer,
-      tokenLength: 0,
-      getUserErrorMessage: null,
+      tokenLength: token.length,
+      getUserErrorMessage: authError?.message || "Auth request failed",
     });
     return null;
   }
 
-  const { data, error } = await supabase.auth.getUser(token);
   if (error || !data?.user) {
-    console.warn("[auth] user token rejected", {
+    logAuthDebug(env, {
       hasAuthHeader,
       hasBearer,
       tokenLength: token.length,
@@ -149,6 +163,17 @@ export async function requireAuthenticatedUser(request, supabase) {
   }
 
   return data.user;
+}
+
+function logAuthDebug(env, details) {
+  console.warn("[auth debug]", {
+    hasAuthHeader: Boolean(details.hasAuthHeader),
+    hasBearer: Boolean(details.hasBearer),
+    tokenLength: Number(details.tokenLength || 0),
+    hasSupabaseUrl: Boolean(cleanEnvValue(env.SUPABASE_URL)),
+    hasAnonKey: Boolean(cleanEnvValue(env.SUPABASE_ANON_KEY)),
+    getUserErrorMessage: details.getUserErrorMessage || null,
+  });
 }
 
 export async function readJson(request) {

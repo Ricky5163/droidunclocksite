@@ -177,6 +177,20 @@ function updatePaymentAvailability(options = {}) {
   return !disabled;
 }
 
+async function getFreshCheckoutSession() {
+  const refreshed = await window.supabaseClient.auth.refreshSession().catch((error) => {
+    console.warn("[checkout auth refresh]", { errorMessage: error?.message || "Refresh failed" });
+    return null;
+  });
+
+  if (refreshed?.data?.session?.access_token) {
+    return refreshed.data.session;
+  }
+
+  const { data: { session } = {} } = await window.supabaseClient.auth.getSession();
+  return session || null;
+}
+
 async function loadOrder() {
   orderLoadError = "";
   const cart = getCart();
@@ -206,7 +220,7 @@ async function startCheckout(endpoint, providerLabel) {
   setStatus(`Opening secure ${providerLabel} payment...`);
 
   try {
-    const { data: { session } = {} } = await window.supabaseClient.auth.getSession();
+    const session = await getFreshCheckoutSession();
     console.log("[checkout auth]", {
       hasClient: !!window.supabaseClient,
       hasSession: !!session,
