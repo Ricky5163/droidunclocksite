@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CHECKOUT_PENDING_LIMIT = 3;
 const CHECKOUT_PENDING_WINDOW_MINUTES = 15;
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const ORDER_EXPIRY_MINUTES = 30;
 export const MAX_CHECKOUT_ITEMS = 20;
 
@@ -30,14 +31,44 @@ export function assertEnv(env, names) {
 
 export function formatSupabaseError(error) {
   if (!error) return "Supabase error.";
+
+  const props = Object.fromEntries(
+    Object.getOwnPropertyNames(error)
+      .map((key) => [key, error[key]])
+      .filter(([, value]) => value)
+  );
+  const serialized = safeJson(error);
+
   return [
-    error.message,
-    error.details,
-    error.hint,
-    error.code ? `code=${error.code}` : "",
+    error.message || props.message,
+    error.details || props.details,
+    error.hint || props.hint,
+    error.code || props.code ? `code=${error.code || props.code}` : "",
+    serialized && serialized !== "{}" ? serialized : "",
   ]
     .filter(Boolean)
     .join(" | ") || "Supabase error.";
+}
+
+function safeJson(value) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "";
+  }
+}
+
+function logSupabaseError(stage, error, context = {}) {
+  console.warn("[supabase debug]", {
+    stage,
+    message: error?.message || null,
+    code: error?.code || null,
+    details: error?.details || null,
+    hint: error?.hint || null,
+    productIds: context.productIds || undefined,
+    cartItemCount: context.cartItemCount,
+    queryVariant: context.queryVariant || undefined,
+  });
 }
 
 export function json(request, env, status, payload, extraHeaders = {}) {
@@ -214,7 +245,7 @@ export function normalizeCart(cart) {
   for (const entry of cart) {
     const id = String(entry?.id || "").trim();
     const qty = Math.max(1, Math.min(20, Number(entry?.qty || 1)));
-    if (!id) continue;
+    if (!id || !UUID_REGEX.test(id)) continue;
 
     quantities.set(id, Math.min((quantities.get(id) || 0) + qty, 20));
   }
@@ -241,7 +272,10 @@ export async function assertCheckoutAllowed(supabase, userId, cart) {
     .eq("payment_status", "pending")
     .gte("created_at", windowStart);
 
-  if (error) throw new Error(formatSupabaseError(error));
+  if (error) {
+    logSupabaseError("checkout_pending_count", error, { cartItemCount: normalizedCart.length });
+    throw new Error(formatSupabaseError(error));
+  }
   if (Number(count || 0) >= CHECKOUT_PENDING_LIMIT) {
     throw new Error("Demasiadas tentativas de checkout recentes. Aguarda alguns minutos e tenta novamente.");
   }
@@ -260,14 +294,7 @@ export async function buildValidatedOrder(cart, supabase) {
   }
 
   const ids = normalizedCart.map((item) => item.id);
-  const { data: products, error } = await supabase
-    .from("products")
-    .select("id,name,price,discount_price,stock,active,publish_at")
-    .in("id", ids)
-    .eq("active", true)
-    .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`);
-
-  if (error) throw new Error(formatSupabaseError(error));
+  const products = await fetchCheckoutProducts(supabase, ids);
 
   const productMap = new Map(
     (products || [])
@@ -308,6 +335,74 @@ export async function buildValidatedOrder(cart, supabase) {
     items,
     total: Number(total.toFixed(2)),
   };
+}
+
+async function fetchCheckoutProducts(supabase, ids) {
+  const variants = [
+    {
+      name: "active_publish_discount",
+      columns: "id,name,price,discount_price,stock,active,publish_at",
+      publishFilter: true,
+    },
+    {
+      name: "active_discount",
+      columns: "id,name,price,discount_price,stock,active",
+      publishFilter: false,
+    },
+    {
+      name: "active_publish_basic",
+      columns: "id,name,price,stock,active,publish_at",
+      publishFilter: true,
+    },
+    {
+      name: "active_basic",
+      columns: "id,name,price,stock,active",
+      publishFilter: false,
+    },
+  ];
+
+  let lastError = null;
+  for (const variant of variants) {
+    let query = supabase
+      .from("products")
+      .select(variant.columns)
+      .in("id", ids)
+      .eq("active", true);
+
+    if (variant.publishFilter) {
+      query = query.or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`);
+    }
+
+    const { data, error } = await query;
+    if (!error) {
+      console.log("[checkout products]", {
+        queryVariant: variant.name,
+        productIds: ids,
+        foundCount: data?.length || 0,
+      });
+      return data || [];
+    }
+
+    lastError = error;
+    logSupabaseError("checkout_products_query", error, {
+      productIds: ids,
+      cartItemCount: ids.length,
+      queryVariant: variant.name,
+    });
+
+    if (!isMissingOptionalProductColumn(error)) break;
+  }
+
+  throw new Error(formatSupabaseError(lastError));
+}
+
+function isMissingOptionalProductColumn(error) {
+  const message = [error?.message, error?.details, error?.hint, error?.code]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return message.includes("publish_at") || message.includes("discount_price") || message.includes("schema cache");
 }
 
 export function calculateShipping(customer, orderDraft, env) {
