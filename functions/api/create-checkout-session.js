@@ -17,6 +17,7 @@ import { encryptSensitiveData, normalizeSensitiveOrderData } from "./_encryption
 
 export async function onRequest(context) {
   const { request, env } = context;
+  let stage = "start";
 
   try {
     if (request.method === "OPTIONS") {
@@ -47,11 +48,13 @@ export async function onRequest(context) {
 
     const supabase = createServiceClient(env);
     const authClient = createAuthClient(env);
+    stage = "auth";
     const user = await requireAuthenticatedUser(request, authClient, env);
     if (!user) {
       return json(request, env, 401, { error: "Authentication required." });
     }
 
+    stage = "read_body";
     const body = await readJson(request);
     const { customer, missing: missingCustomer } = normalizeCustomer(body);
 
@@ -63,12 +66,14 @@ export async function onRequest(context) {
       return json(request, env, 403, { error: "Customer email must match the authenticated account." });
     }
 
+    stage = "validate_cart";
     const checkoutCart = await assertCheckoutAllowed(supabase, user.id, body.cart);
     const orderDraft = await buildValidatedOrder(checkoutCart, supabase);
     const shippingCost = calculateShipping(customer, orderDraft, env);
     const totalAmount = Number((orderDraft.total + shippingCost).toFixed(2));
     const encryptedNotes = await encryptSensitiveData(normalizeSensitiveOrderData(body), env);
 
+    stage = "create_order";
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
@@ -88,6 +93,7 @@ export async function onRequest(context) {
       .single();
 
     if (orderError) {
+      console.warn("[checkout backend]", { provider: "stripe", stage, errorMessage: orderError.message });
       return json(request, env, 500, { error: orderError.message });
     }
 
@@ -103,9 +109,11 @@ export async function onRequest(context) {
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
     if (itemsError) {
       await supabase.from("orders").delete().eq("id", order.id);
+      console.warn("[checkout backend]", { provider: "stripe", stage: "create_order_items", errorMessage: itemsError.message });
       return json(request, env, 500, { error: itemsError.message });
     }
 
+    stage = "stripe_create_session";
     const form = new URLSearchParams();
     form.set("mode", "payment");
     form.set("customer_email", customer.customer_email);
@@ -140,6 +148,18 @@ export async function onRequest(context) {
     });
 
     const session = await stripeResponse.json().catch(() => ({}));
+    console.log("[checkout backend]", {
+      provider: "stripe",
+      stage,
+      status: stripeResponse.status,
+      ok: stripeResponse.ok,
+      hasRedirectUrl: Boolean(session?.url),
+      orderId: order.id,
+      totalAmount,
+      currency: "eur",
+      itemCount: orderDraft.items.length,
+    });
+
     if (!stripeResponse.ok || !session.url) {
       await supabase
         .from("orders")
@@ -151,8 +171,10 @@ export async function onRequest(context) {
       });
     }
 
-    return json(request, env, 200, { url: session.url });
+    return json(request, env, 200, { url: session.url, sessionUrl: session.url });
   } catch (error) {
-    return json(request, env, 500, { error: error?.message || "Erro" });
+    const message = error?.message || String(error || "") || `Erro no checkout Stripe (${stage}).`;
+    console.warn("[checkout backend]", { provider: "stripe", stage, errorMessage: message });
+    return json(request, env, 500, { error: message });
   }
 }

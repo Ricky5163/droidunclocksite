@@ -17,6 +17,7 @@ import { encryptSensitiveData, normalizeSensitiveOrderData } from "./_encryption
 
 export async function onRequest(context) {
   const { request, env } = context;
+  let stage = "start";
 
   try {
     if (request.method === "OPTIONS") {
@@ -47,11 +48,13 @@ export async function onRequest(context) {
 
     const supabase = createServiceClient(env);
     const authClient = createAuthClient(env);
+    stage = "auth";
     const user = await requireAuthenticatedUser(request, authClient, env);
     if (!user) {
       return json(request, env, 401, { error: "Authentication required." });
     }
 
+    stage = "read_body";
     const body = await readJson(request);
     const { customer, missing: missingCustomer } = normalizeCustomer(body);
 
@@ -63,12 +66,14 @@ export async function onRequest(context) {
       return json(request, env, 403, { error: "Customer email must match the authenticated account." });
     }
 
+    stage = "validate_cart";
     const checkoutCart = await assertCheckoutAllowed(supabase, user.id, body.cart);
     const orderDraft = await buildValidatedOrder(checkoutCart, supabase);
     const shippingCost = calculateShipping(customer, orderDraft, env);
     const totalAmount = Number((orderDraft.total + shippingCost).toFixed(2));
     const encryptedNotes = await encryptSensitiveData(normalizeSensitiveOrderData(body), env);
 
+    stage = "create_order";
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
@@ -88,6 +93,7 @@ export async function onRequest(context) {
       .single();
 
     if (orderError) {
+      console.warn("[checkout backend]", { provider: "paypal", stage, errorMessage: orderError.message });
       return json(request, env, 500, { error: orderError.message });
     }
 
@@ -103,10 +109,13 @@ export async function onRequest(context) {
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
     if (itemsError) {
       await supabase.from("orders").delete().eq("id", order.id);
+      console.warn("[checkout backend]", { provider: "paypal", stage: "create_order_items", errorMessage: itemsError.message });
       return json(request, env, 500, { error: itemsError.message });
     }
 
+    stage = "paypal_token";
     const token = await paypalToken(env);
+    stage = "paypal_create_order";
     const paypalResponse = await fetch(`${env.PAYPAL_API_BASE}/v2/checkout/orders`, {
       method: "POST",
       headers: {
@@ -129,6 +138,19 @@ export async function onRequest(context) {
     });
 
     const data = await paypalResponse.json().catch(() => ({}));
+    const approvalUrl = (data.links || []).find((link) => link.rel === "approve")?.href;
+    console.log("[checkout backend]", {
+      provider: "paypal",
+      stage,
+      status: paypalResponse.status,
+      ok: paypalResponse.ok,
+      hasApprovalUrl: Boolean(approvalUrl),
+      orderId: order.id,
+      totalAmount,
+      currency: "EUR",
+      itemCount: orderDraft.items.length,
+    });
+
     if (!paypalResponse.ok) {
       await supabase
         .from("orders")
@@ -142,10 +164,10 @@ export async function onRequest(context) {
 
     const { error: paypalIdError } = await supabase.from("orders").update({ paypal_order_id: data.id }).eq("id", order.id);
     if (paypalIdError) {
+      console.warn("[checkout backend]", { provider: "paypal", stage: "save_paypal_order_id", errorMessage: paypalIdError.message });
       return json(request, env, 500, { error: paypalIdError.message });
     }
 
-    const approvalUrl = (data.links || []).find((link) => link.rel === "approve")?.href;
     if (!approvalUrl) {
       await supabase
         .from("orders")
@@ -157,11 +179,15 @@ export async function onRequest(context) {
 
     return json(request, env, 200, {
       approval_url: approvalUrl,
+      approvalUrl,
       paypal_order_id: data.id,
+      orderID: data.id,
       order_id: order.id,
     });
   } catch (error) {
-    return json(request, env, 500, { error: error?.message || "Erro" });
+    const message = error?.message || String(error || "") || `Erro no checkout PayPal (${stage}).`;
+    console.warn("[checkout backend]", { provider: "paypal", stage, errorMessage: message });
+    return json(request, env, 500, { error: message });
   }
 }
 
@@ -179,7 +205,7 @@ async function paypalToken(env) {
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data?.error_description || "Erro token PayPal");
+    throw new Error(data?.error_description || data?.error || "Erro token PayPal");
   }
 
   return data.access_token;

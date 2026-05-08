@@ -191,6 +191,33 @@ async function getFreshCheckoutSession() {
   return session || null;
 }
 
+async function readCheckoutResponse(response, providerLabel, endpoint) {
+  const rawBody = await response.text().catch(() => "");
+  let body = {};
+
+  if (rawBody) {
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      body = { error: rawBody.slice(0, 500) };
+    }
+  }
+
+  console.log("[checkout response]", {
+    provider: providerLabel,
+    endpoint,
+    status: response.status,
+    ok: response.ok,
+    body,
+  });
+
+  return body;
+}
+
+function getPaymentRedirectUrl(data) {
+  return data?.url || data?.sessionUrl || data?.session_url || data?.approvalUrl || data?.approval_url || data?.approveUrl;
+}
+
 async function loadOrder() {
   orderLoadError = "";
   const cart = getCart();
@@ -256,13 +283,22 @@ async function startCheckout(endpoint, providerLabel) {
       throw new Error(`Nao foi possivel contactar ${endpoint}. Verifica o dominio/CORS e tenta novamente.`);
     }
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || `Erro ${response.status} ao iniciar ${providerLabel}.`);
+    const data = await readCheckoutResponse(response, providerLabel, endpoint);
+    if (!response.ok) {
+      throw new Error(data.error || `Erro ${response.status} ao iniciar ${providerLabel}.`);
+    }
 
-    const redirectUrl = data.url || data.approval_url || data.approvalUrl;
-    if (!redirectUrl) throw new Error("Payment provider did not return a redirect URL.");
+    const redirectUrl = getPaymentRedirectUrl(data);
+    if (!redirectUrl) {
+      throw new Error(`${providerLabel} nao devolveu URL de pagamento.`);
+    }
     window.location.href = redirectUrl;
   } catch (error) {
+    console.warn("[checkout error]", {
+      provider: providerLabel,
+      endpoint,
+      errorMessage: error?.message || "Payment error.",
+    });
     setBusy(false);
     updatePaymentAvailability();
     setStatus(error.message || "Payment error.", "error");
