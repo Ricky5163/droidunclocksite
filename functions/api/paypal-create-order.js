@@ -1,17 +1,18 @@
 import {
-  assertCheckoutAllowed,
   assertEnv,
-  buildValidatedOrder,
   calculateShipping,
   createAuthClient,
   createServiceClient,
   ensureAllowedOrigin,
+  formatSupabaseError,
   handleOptions,
+  isCheckoutValidationError,
   json,
   normalizeCustomer,
   orderExpiresAt,
   readJson,
   requireAuthenticatedUser,
+  validateCheckoutCart,
 } from "./_utils.js";
 import { encryptSensitiveData, normalizeSensitiveOrderData } from "./_encryption.js";
 
@@ -67,8 +68,18 @@ export async function onRequest(context) {
     }
 
     stage = "validate_cart";
-    const checkoutCart = await assertCheckoutAllowed(supabase, user.id, body.cart);
-    const orderDraft = await buildValidatedOrder(checkoutCart, supabase);
+    let orderDraft;
+    try {
+      orderDraft = await validateCheckoutCart(supabase, user.id, body.cart, env);
+    } catch (error) {
+      const code = isCheckoutValidationError(error) ? error.code : classifyCheckoutFailure(error, stage);
+      const status = isCheckoutValidationError(error) ? error.status : code === "invalid_stock" ? 409 : 400;
+      return checkoutError(request, env, status, code, readableError(error, "Carrinho invalido."), {
+        stage,
+        cartItemCount: Array.isArray(body.cart) ? body.cart.length : 0,
+      });
+    }
+
     const shippingCost = calculateShipping(customer, orderDraft, env);
     const totalAmount = Number((orderDraft.total + shippingCost).toFixed(2));
     const encryptedNotes = await encryptSensitiveData(normalizeSensitiveOrderData(body), env);
@@ -93,8 +104,10 @@ export async function onRequest(context) {
       .single();
 
     if (orderError) {
-      console.warn("[checkout backend]", { provider: "paypal", stage, errorMessage: orderError.message });
-      return json(request, env, 500, { error: orderError.message });
+      return checkoutError(request, env, 500, "database_error", formatSupabaseError(orderError), {
+        stage,
+        dbCode: orderError.code || null,
+      });
     }
 
     const orderItems = orderDraft.items.map((item) => ({
@@ -109,8 +122,11 @@ export async function onRequest(context) {
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
     if (itemsError) {
       await supabase.from("orders").delete().eq("id", order.id);
-      console.warn("[checkout backend]", { provider: "paypal", stage: "create_order_items", errorMessage: itemsError.message });
-      return json(request, env, 500, { error: itemsError.message });
+      return checkoutError(request, env, 500, "database_error", formatSupabaseError(itemsError), {
+        stage: "create_order_items",
+        dbCode: itemsError.code || null,
+        orderId: order.id,
+      });
     }
 
     stage = "paypal_token";
@@ -186,9 +202,38 @@ export async function onRequest(context) {
     });
   } catch (error) {
     const message = error?.message || String(error || "") || `Erro no checkout PayPal (${stage}).`;
-    console.warn("[checkout backend]", { provider: "paypal", stage, errorMessage: message });
-    return json(request, env, 500, { error: message });
+    const code = classifyCheckoutFailure(error, stage);
+    return checkoutError(request, env, 500, code, message, { stage });
   }
+}
+
+function checkoutError(request, env, status, code, message, details = {}) {
+  console.warn("[checkout backend]", {
+    provider: "paypal",
+    stage: details.stage || null,
+    code,
+    status,
+    errorMessage: message,
+    dbCode: details.dbCode || undefined,
+    cartItemCount: details.cartItemCount,
+    orderId: details.orderId,
+  });
+
+  return json(request, env, status, { ok: false, code, error: message });
+}
+
+function readableError(error, fallback) {
+  return error?.message || String(error || "") || fallback;
+}
+
+function classifyCheckoutFailure(error, stage) {
+  const message = readableError(error, "").toLowerCase();
+  if (stage === "validate_cart" && (message.includes("stock") || message.includes("not enough"))) return "invalid_stock";
+  if (stage === "validate_cart" || message.includes("carrinho") || message.includes("product") || message.includes("preco")) return "invalid_cart";
+  if (stage?.includes("paypal")) return "paypal_error";
+  if (stage?.includes("order") || message.includes("column") || message.includes("constraint") || message.includes("policy")) return "database_error";
+  if (message.includes("rpc")) return "rpc_error";
+  return "internal_error";
 }
 
 async function paypalToken(env) {

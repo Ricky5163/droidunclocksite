@@ -1,7 +1,5 @@
 import {
-  assertCheckoutAllowed,
   assertEnv,
-  buildValidatedOrder,
   calculateShipping,
   cleanEnvValue,
   createAuthClient,
@@ -9,11 +7,13 @@ import {
   ensureAllowedOrigin,
   formatSupabaseError,
   handleOptions,
+  isCheckoutValidationError,
   json,
   normalizeCustomer,
   orderExpiresAt,
   readJson,
   requireAuthenticatedUser,
+  validateCheckoutCart,
 } from "./_utils.js";
 import { encryptSensitiveData, normalizeSensitiveOrderData } from "./_encryption.js";
 
@@ -77,14 +77,12 @@ export async function onRequest(context) {
     }
 
     stage = "validate_cart";
-    let checkoutCart;
     let orderDraft;
     try {
-      checkoutCart = await assertCheckoutAllowed(supabase, user.id, body.cart);
-      orderDraft = await buildValidatedOrder(checkoutCart, supabase);
+      orderDraft = await validateCheckoutCart(supabase, user.id, body.cart, env);
     } catch (error) {
-      const code = classifyCheckoutFailure(error, stage);
-      const status = code === "invalid_stock" ? 409 : 400;
+      const code = isCheckoutValidationError(error) ? error.code : classifyCheckoutFailure(error, stage);
+      const status = isCheckoutValidationError(error) ? error.status : code === "invalid_stock" ? 409 : 400;
       return checkoutError(request, env, status, code, readableError(error, "Carrinho invalido."), {
         stage,
         cartItemCount: Array.isArray(body.cart) ? body.cart.length : 0,

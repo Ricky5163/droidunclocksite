@@ -124,6 +124,19 @@ function getCustomer() {
 
 function validateCustomer(customer) {
   if (!formElement.reportValidity()) return false;
+  const textFields = [
+    [customer.customer_name, "nome completo"],
+    [customer.customer_phone, "telefone"],
+    [customer.country, "pais"],
+    [customer.city, "cidade"],
+    [customer.address, "morada"],
+    [customer.postal_code, "codigo postal"],
+  ];
+  const invalidField = textFields.find(([value]) => !/[A-Za-z0-9À-ÿ]/.test(String(value || "")));
+  if (invalidField) {
+    setStatus(`Preenche um valor valido para ${invalidField[1]}.`, "error");
+    return false;
+  }
   if (!isValidEmail(customer.customer_email)) {
     setStatus("Enter a valid email address.", "error");
     return false;
