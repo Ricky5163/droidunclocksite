@@ -21,17 +21,21 @@ export const VALID_LOCAL_PATHS = new Set([
   "cancel.html",
 ]);
 
-if (window.supabase?.createClient && !window.supabaseClient) {
-  window.supabaseClient = window.supabaseClient || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+if (window.supabase?.createClient) {
+  window.supabaseClient =
+    window.supabaseClient ||
+    window.__DROIDUNCLOCK_SUPABASE_CLIENT__ ||
+    window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
     },
   });
+  window.__DROIDUNCLOCK_SUPABASE_CLIENT__ = window.supabaseClient;
 }
 
-export function createSupabaseBrowserClient() {
+export function getSupabaseClient() {
   if (window.supabaseClient) {
     return window.supabaseClient;
   }

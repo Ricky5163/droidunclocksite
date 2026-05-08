@@ -1,5 +1,5 @@
-import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth9";
-import { getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth9";
+import { buildLoginRedirect, escapeHtml, isValidEmail, setupAdminLogoShortcut } from "./app-config.js?v=auth10";
+import { getAuthenticatedSession, hydrateUserEmail, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth10";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 import {
   buildCartDetails,
@@ -8,7 +8,7 @@ import {
   formatEuro,
   getCart,
   syncCartToStock,
-} from "./storefront.js?v=auth9";
+} from "./storefront.js?v=auth10";
 
 const SHIPPING_COST = 9.95;
 

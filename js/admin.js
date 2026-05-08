@@ -1,7 +1,7 @@
-import { buildAdminLoginRedirect, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth9";
-import { getCurrentUser, getSession, logoutAndRedirect } from "./auth-utils.js?v=auth9";
+import { buildAdminLoginRedirect, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth10";
+import { getCurrentUser, getSession, logoutAndRedirect } from "./auth-utils.js?v=auth10";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
-import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=auth9";
+import { formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=auth10";
 
 const supabase = window.supabaseClient;
 const statusElement = document.getElementById("adminStatus");

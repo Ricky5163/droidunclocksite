@@ -1,6 +1,6 @@
-import { buildLoginRedirect, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth9";
-import { getAuthenticatedSession, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth9";
-import { setupLanguageSelector, t } from "./i18n.js?v=auth9";
+import { buildLoginRedirect, escapeHtml, setupAdminLogoShortcut } from "./app-config.js?v=auth10";
+import { getAuthenticatedSession, rememberRedirectAfterLogin, syncAccountLinks } from "./auth-utils.js?v=auth10";
+import { setupLanguageSelector, t } from "./i18n.js?v=auth10";
 import {
   buildCartDetails,
   fetchProductsByIds,
@@ -9,7 +9,7 @@ import {
   getProductImage,
   setCart,
   syncCartToStock,
-} from "./storefront.js?v=auth9";
+} from "./storefront.js?v=auth10";
 
 const cartListElement = document.getElementById("cartList");
 const statusElement = document.getElementById("status");

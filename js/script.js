@@ -1,5 +1,5 @@
-import { SITE_NAME, buildWhatsAppUrl, formatEuro, setupAdminLogoShortcut } from "./app-config.js?v=auth9";
-import { syncAccountLinks } from "./auth-utils.js?v=auth9";
+import { SITE_NAME, buildWhatsAppUrl, formatEuro, setupAdminLogoShortcut } from "./app-config.js?v=auth10";
+import { syncAccountLinks } from "./auth-utils.js?v=auth10";
 import { setupLanguageSelector } from "./i18n.js?v=lang2";
 
 const defaultMessage = [

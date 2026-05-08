@@ -1,7 +1,7 @@
-import { buildLoginRedirect, escapeHtml, getCartCount, mergeCartItem, setupAdminLogoShortcut } from "./app-config.js?v=auth9";
-import { getCurrentUser, syncAccountLinks } from "./auth-utils.js?v=auth9";
-import { setupLanguageSelector, t } from "./i18n.js?v=auth9";
-import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=auth9";
+import { buildLoginRedirect, escapeHtml, getCartCount, mergeCartItem, setupAdminLogoShortcut } from "./app-config.js?v=auth10";
+import { getCurrentUser, syncAccountLinks } from "./auth-utils.js?v=auth10";
+import { setupLanguageSelector, t } from "./i18n.js?v=auth10";
+import { fetchActiveProducts, formatEuro, getEffectivePrice, getProductImage } from "./storefront.js?v=auth10";
 
 const statusElement = document.getElementById("status");
 const gridElement = document.getElementById("grid");

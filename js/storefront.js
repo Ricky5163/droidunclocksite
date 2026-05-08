@@ -5,7 +5,7 @@ import {
   getCart,
   isValidProductId,
   setCart,
-} from "./app-config.js?v=auth9";
+} from "./app-config.js?v=auth10";
 
 const supabase = window.supabaseClient;
 

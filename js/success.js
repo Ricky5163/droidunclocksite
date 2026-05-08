@@ -1,5 +1,5 @@
-import { buildLoginRedirect, clearCart } from "./app-config.js?v=auth9";
-import { rememberRedirectAfterLogin } from "./auth-utils.js?v=auth9";
+import { buildLoginRedirect, clearCart } from "./app-config.js?v=auth10";
+import { rememberRedirectAfterLogin } from "./auth-utils.js?v=auth10";
 import { setupLanguageSelector, t } from "./i18n.js?v=lang2";
 
 const messageElement = document.getElementById("msg");

@@ -93,7 +93,7 @@ export function normalizeCustomer(body = {}) {
 }
 
 export async function requireAdminAuth(request, env, supabase = createServiceClient(env)) {
-  const authorization = request.headers.get("authorization") || "";
+  const authorization = request.headers.get("Authorization") || request.headers.get("authorization") || "";
   const token = authorization.replace(/^Bearer\s+/i, "").trim();
   if (!token) return null;
 
@@ -112,7 +112,7 @@ export async function requireAdminAuth(request, env, supabase = createServiceCli
 }
 
 export async function requireAuthenticatedUser(request, supabase) {
-  const authorization = request.headers.get("authorization") || "";
+  const authorization = request.headers.get("Authorization") || request.headers.get("authorization") || "";
   const token = authorization.replace(/^Bearer\s+/i, "").trim();
   if (!token) return null;
 
