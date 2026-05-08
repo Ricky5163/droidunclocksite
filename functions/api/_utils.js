@@ -20,12 +20,24 @@ export function createAuthClient(env) {
   });
 }
 
-function cleanEnvValue(value) {
+export function cleanEnvValue(value) {
   return String(value || "").trim();
 }
 
 export function assertEnv(env, names) {
   return names.filter((name) => !cleanEnvValue(env[name]));
+}
+
+export function formatSupabaseError(error) {
+  if (!error) return "Supabase error.";
+  return [
+    error.message,
+    error.details,
+    error.hint,
+    error.code ? `code=${error.code}` : "",
+  ]
+    .filter(Boolean)
+    .join(" | ") || "Supabase error.";
 }
 
 export function json(request, env, status, payload, extraHeaders = {}) {
@@ -229,7 +241,7 @@ export async function assertCheckoutAllowed(supabase, userId, cart) {
     .eq("payment_status", "pending")
     .gte("created_at", windowStart);
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(formatSupabaseError(error));
   if (Number(count || 0) >= CHECKOUT_PENDING_LIMIT) {
     throw new Error("Demasiadas tentativas de checkout recentes. Aguarda alguns minutos e tenta novamente.");
   }
@@ -255,7 +267,7 @@ export async function buildValidatedOrder(cart, supabase) {
     .eq("active", true)
     .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`);
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(formatSupabaseError(error));
 
   const productMap = new Map(
     (products || [])
@@ -320,7 +332,7 @@ export async function markOrderPaid(supabase, orderId, updates = {}) {
     p_stripe_payment_intent_id: updates.stripe_payment_intent_id ?? null,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(formatSupabaseError(error));
   if (!data?.ok) {
     throw new Error(data?.error || "Pagamento confirmado, mas nao foi possivel reservar stock.");
   }
@@ -337,7 +349,7 @@ export async function markOrderPaid(supabase, orderId, updates = {}) {
 
 export async function reserveOrderStock(supabase, orderId) {
   const { error } = await supabase.rpc("reserve_order_stock", { p_order_id: orderId });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(formatSupabaseError(error));
 }
 
 export async function triggerOrderEmails(env, orderId) {
