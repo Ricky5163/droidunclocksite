@@ -38,16 +38,17 @@ export function formatSupabaseError(error) {
       .filter(([, value]) => value)
   );
   const serialized = safeJson(error);
+  const hasUsefulSerializedValue = serialized && serialized !== "{}" && serialized !== '{"message":""}';
 
   return [
     error.message || props.message,
     error.details || props.details,
     error.hint || props.hint,
     error.code || props.code ? `code=${error.code || props.code}` : "",
-    serialized && serialized !== "{}" ? serialized : "",
+    hasUsefulSerializedValue ? serialized : "",
   ]
     .filter(Boolean)
-    .join(" | ") || "Supabase error.";
+    .join(" | ") || "Supabase query failed without details.";
 }
 
 function safeJson(value) {
@@ -68,6 +69,7 @@ function logSupabaseError(stage, error, context = {}) {
     productIds: context.productIds || undefined,
     cartItemCount: context.cartItemCount,
     queryVariant: context.queryVariant || undefined,
+    columns: context.columns || undefined,
   });
 }
 
@@ -243,7 +245,7 @@ export function normalizeCart(cart) {
   const quantities = new Map();
 
   for (const entry of cart) {
-    const id = String(entry?.id || "").trim();
+    const id = String(entry?.id || entry?.product_id || entry?.productId || "").trim();
     const qty = Math.max(1, Math.min(20, Number(entry?.qty || 1)));
     if (!id || !UUID_REGEX.test(id)) continue;
 
@@ -256,6 +258,12 @@ export function normalizeCart(cart) {
 export async function assertCheckoutAllowed(supabase, userId, cart) {
   const normalizedCart = normalizeCart(cart);
   if (!normalizedCart.length) {
+    console.warn("[checkout cart]", {
+      stage: "normalize_cart",
+      rawCart: sanitizeCartForLog(cart),
+      productIds: [],
+      invalidItemCount: Array.isArray(cart) ? cart.length : 0,
+    });
     throw new Error("Carrinho invalido.");
   }
 
@@ -290,6 +298,12 @@ export function orderExpiresAt() {
 export async function buildValidatedOrder(cart, supabase) {
   const normalizedCart = normalizeCart(cart);
   if (!normalizedCart.length) {
+    console.warn("[checkout cart]", {
+      stage: "normalize_cart",
+      rawCart: sanitizeCartForLog(cart),
+      productIds: [],
+      invalidItemCount: Array.isArray(cart) ? cart.length : 0,
+    });
     throw new Error("Carrinho invalido.");
   }
 
@@ -301,24 +315,47 @@ export async function buildValidatedOrder(cart, supabase) {
       .map((product) => [String(product.id), product])
   );
 
-  if (productMap.size !== normalizedCart.length) {
-    throw new Error("Existem produtos invalidos ou indisponiveis.");
+  const missingIds = ids.filter((id) => !productMap.has(id));
+  if (missingIds.length) {
+    console.warn("[checkout cart]", {
+      stage: "product_availability",
+      productIds: ids,
+      foundProductIds: [...productMap.keys()],
+      missingIds,
+    });
+    throw new Error("Product not found or unavailable.");
   }
 
   let total = 0;
   const items = normalizedCart.map((item) => {
     const product = productMap.get(item.id);
-    const basePrice = Number(product.price || 0);
+    const basePrice = getProductPrice(product);
     const discountPrice = Number(product.discount_price || 0);
     const price = discountPrice > 0 && discountPrice < basePrice ? discountPrice : basePrice;
     const stock = Number(product.stock ?? 0);
+
+    if (product.active === false) {
+      console.warn("[checkout cart]", {
+        stage: "product_availability",
+        productIds: ids,
+        inactiveProductIds: [item.id],
+      });
+      throw new Error("Product is not active.");
+    }
 
     if (!Number.isFinite(price) || price <= 0) {
       throw new Error(`Preco invalido para ${product.name || "produto"}.`);
     }
 
-    if (Number.isFinite(stock) && stock < item.qty) {
-      throw new Error(`Stock insuficiente para ${product.name || "produto"}.`);
+    if (!Number.isFinite(stock) || stock <= 0 || stock < item.qty) {
+      console.warn("[checkout cart]", {
+        stage: "product_availability",
+        productIds: ids,
+        outOfStockProductIds: [item.id],
+        requestedQty: item.qty,
+        stock: Number.isFinite(stock) ? stock : null,
+      });
+      throw new Error("Product out of stock.");
     }
 
     total += price * item.qty;
@@ -340,23 +377,33 @@ export async function buildValidatedOrder(cart, supabase) {
 async function fetchCheckoutProducts(supabase, ids) {
   const variants = [
     {
-      name: "active_publish_discount",
+      name: "publish_discount",
       columns: "id,name,price,discount_price,stock,active,publish_at",
       publishFilter: true,
     },
     {
-      name: "active_discount",
+      name: "discount",
       columns: "id,name,price,discount_price,stock,active",
       publishFilter: false,
     },
     {
-      name: "active_publish_basic",
+      name: "publish_basic",
       columns: "id,name,price,stock,active,publish_at",
       publishFilter: true,
     },
     {
-      name: "active_basic",
+      name: "basic",
       columns: "id,name,price,stock,active",
+      publishFilter: false,
+    },
+    {
+      name: "price_cents_publish",
+      columns: "id,name,price_cents,stock,active,publish_at",
+      publishFilter: true,
+    },
+    {
+      name: "price_cents",
+      columns: "id,name,price_cents,stock,active",
       publishFilter: false,
     },
   ];
@@ -366,8 +413,7 @@ async function fetchCheckoutProducts(supabase, ids) {
     let query = supabase
       .from("products")
       .select(variant.columns)
-      .in("id", ids)
-      .eq("active", true);
+      .in("id", ids);
 
     if (variant.publishFilter) {
       query = query.or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`);
@@ -377,7 +423,13 @@ async function fetchCheckoutProducts(supabase, ids) {
     if (!error) {
       console.log("[checkout products]", {
         queryVariant: variant.name,
+        columns: variant.columns,
         productIds: ids,
+        foundProductIds: (data || []).map((product) => String(product.id)),
+        inactiveProductIds: (data || []).filter((product) => product.active === false).map((product) => String(product.id)),
+        outOfStockProductIds: (data || [])
+          .filter((product) => !Number.isFinite(Number(product.stock ?? 0)) || Number(product.stock ?? 0) <= 0)
+          .map((product) => String(product.id)),
         foundCount: data?.length || 0,
       });
       return data || [];
@@ -388,6 +440,7 @@ async function fetchCheckoutProducts(supabase, ids) {
       productIds: ids,
       cartItemCount: ids.length,
       queryVariant: variant.name,
+      columns: variant.columns,
     });
 
     if (!isMissingOptionalProductColumn(error)) break;
@@ -396,13 +449,35 @@ async function fetchCheckoutProducts(supabase, ids) {
   throw new Error(formatSupabaseError(lastError));
 }
 
+function getProductPrice(product) {
+  if (product?.price !== undefined && product?.price !== null) {
+    return Number(product.price || 0);
+  }
+
+  if (product?.price_cents !== undefined && product?.price_cents !== null) {
+    return Number(product.price_cents || 0) / 100;
+  }
+
+  return 0;
+}
+
+function sanitizeCartForLog(cart) {
+  if (!Array.isArray(cart)) return [];
+  return cart.map((item) => ({
+    id: String(item?.id || "").trim() || undefined,
+    product_id: String(item?.product_id || "").trim() || undefined,
+    productId: String(item?.productId || "").trim() || undefined,
+    qty: Number(item?.qty || 1),
+  }));
+}
+
 function isMissingOptionalProductColumn(error) {
   const message = [error?.message, error?.details, error?.hint, error?.code]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
 
-  return message.includes("publish_at") || message.includes("discount_price") || message.includes("schema cache");
+  return message.includes("publish_at") || message.includes("discount_price") || message.includes("price") || message.includes("schema cache");
 }
 
 export function calculateShipping(customer, orderDraft, env) {
