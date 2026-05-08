@@ -3,6 +3,7 @@ import {
   assertEnv,
   buildValidatedOrder,
   calculateShipping,
+  createAuthClient,
   createServiceClient,
   ensureAllowedOrigin,
   handleOptions,
@@ -33,6 +34,7 @@ export async function onRequest(context) {
     const missing = assertEnv(env, [
       "STRIPE_SECRET_KEY",
       "SUPABASE_URL",
+      "SUPABASE_ANON_KEY",
       "SUPABASE_SERVICE_ROLE_KEY",
       "SITE_URL",
     ]);
@@ -44,7 +46,8 @@ export async function onRequest(context) {
     }
 
     const supabase = createServiceClient(env);
-    const user = await requireAuthenticatedUser(request, supabase);
+    const authClient = createAuthClient(env);
+    const user = await requireAuthenticatedUser(request, authClient);
     if (!user) {
       return json(request, env, 401, { error: "Authentication required." });
     }

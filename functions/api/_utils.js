@@ -10,6 +10,16 @@ export function createServiceClient(env) {
   return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
+export function createAuthClient(env) {
+  return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
+
 export function assertEnv(env, names) {
   return names.filter((name) => !env[name]);
 }
@@ -113,11 +123,32 @@ export async function requireAdminAuth(request, env, supabase = createServiceCli
 
 export async function requireAuthenticatedUser(request, supabase) {
   const authorization = request.headers.get("Authorization") || request.headers.get("authorization") || "";
-  const token = authorization.replace(/^Bearer\s+/i, "").trim();
-  if (!token) return null;
+  const hasAuthHeader = Boolean(authorization);
+  const hasBearer = /^Bearer\s+/i.test(authorization);
+  const token = hasBearer ? authorization.replace(/^Bearer\s+/i, "").trim() : "";
+
+  if (!token) {
+    console.warn("[auth] user token missing", {
+      hasAuthHeader,
+      hasBearer,
+      tokenLength: 0,
+      getUserErrorMessage: null,
+    });
+    return null;
+  }
 
   const { data, error } = await supabase.auth.getUser(token);
-  return error ? null : data?.user || null;
+  if (error || !data?.user) {
+    console.warn("[auth] user token rejected", {
+      hasAuthHeader,
+      hasBearer,
+      tokenLength: token.length,
+      getUserErrorMessage: error?.message || "No user returned",
+    });
+    return null;
+  }
+
+  return data.user;
 }
 
 export async function readJson(request) {
