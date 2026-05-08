@@ -36,6 +36,10 @@ const checkoutLoginLink = document.getElementById("checkoutLoginLink");
 
 let orderLines = [];
 let orderSubtotal = 0;
+let checkoutSession = null;
+let isInitialLoading = true;
+let isSubmitting = false;
+let orderLoadError = "";
 setupLanguageSelector();
 setupAdminLogoShortcut();
 syncAccountLinks().catch(() => null);
@@ -46,10 +50,18 @@ function setStatus(message, type = "neutral") {
   statusElement.dataset.state = type;
 }
 
+function setPaymentButtonsDisabled(disabled) {
+  [stripeButton, paypalButton].forEach((button) => {
+    if (button) button.disabled = disabled;
+  });
+}
+
 function setBusy(busy) {
-  [stripeButton, paypalButton, ...Object.values(fields)].forEach((element) => {
+  isSubmitting = busy;
+  [...Object.values(fields)].forEach((element) => {
     if (element) element.disabled = busy;
   });
+  updatePaymentAvailability();
 }
 
 function showCheckout() {
@@ -58,11 +70,13 @@ function showCheckout() {
 }
 
 function showLoginGate() {
+  checkoutSession = null;
   checkoutMainElement?.classList.add("hidden");
   checkoutGateElement?.classList.remove("hidden");
   rememberRedirectAfterLogin("checkout.html");
   if (checkoutLoginLink) checkoutLoginLink.href = buildLoginRedirect("checkout.html");
   setStatus("Sessao expirada ou nao autenticada. Inicia sessao para continuar.", "error");
+  updatePaymentAvailability();
 }
 
 function totals() {
@@ -71,12 +85,11 @@ function totals() {
 }
 
 function renderSummary(lines, subtotal) {
+  orderLoadError = "";
   orderLines = lines;
   orderSubtotal = subtotal;
   if (!lines.length) {
     summaryElement.innerHTML = `<div class="empty-state"><h3>No items</h3><p>Your cart is empty or unavailable.</p><a class="btn btn--primary" href="shop.html">Back to shop</a></div>`;
-    stripeButton.disabled = true;
-    paypalButton.disabled = true;
   } else {
     summaryElement.innerHTML = lines
       .map(
@@ -94,6 +107,7 @@ function renderSummary(lines, subtotal) {
   subtotalElement.textContent = formatEuro(next.subtotal);
   shippingElement.textContent = formatEuro(next.shipping);
   totalElement.textContent = formatEuro(next.total);
+  updatePaymentAvailability({ showMessage: true });
 }
 
 function getCustomer() {
@@ -117,7 +131,54 @@ function validateCustomer(customer) {
   return true;
 }
 
+function getCheckoutBlocker() {
+  if (!checkoutSession?.access_token) {
+    return { message: "Sessao expirada. Faz login novamente.", type: "error" };
+  }
+
+  if (orderLoadError) {
+    return { message: orderLoadError, type: "error" };
+  }
+
+  if (!orderLines.length) {
+    return { message: "Carrinho vazio.", type: "error" };
+  }
+
+  const requiredFields = [
+    [fields.name, "nome completo"],
+    [fields.email, "email"],
+    [fields.phone, "telefone"],
+    [fields.country, "pais"],
+    [fields.city, "cidade"],
+    [fields.address, "morada"],
+    [fields.postalCode, "codigo postal"],
+  ];
+  const missing = requiredFields.find(([field]) => !field?.value.trim());
+  if (missing) {
+    return { message: `Preenche o campo obrigatorio: ${missing[1]}.`, type: "neutral" };
+  }
+
+  if (!isValidEmail(fields.email.value.trim())) {
+    return { message: "Introduz um email valido.", type: "error" };
+  }
+
+  return null;
+}
+
+function updatePaymentAvailability(options = {}) {
+  const blocker = getCheckoutBlocker();
+  const disabled = isInitialLoading || isSubmitting || Boolean(blocker);
+  setPaymentButtonsDisabled(disabled);
+
+  if (options.showMessage && !isInitialLoading && !isSubmitting) {
+    setStatus(blocker?.message || "", blocker?.type || "neutral");
+  }
+
+  return !disabled;
+}
+
 async function loadOrder() {
+  orderLoadError = "";
   const cart = getCart();
   if (!cart.length) {
     renderSummary([], 0);
@@ -132,10 +193,12 @@ async function loadOrder() {
 }
 
 async function startCheckout(endpoint, providerLabel) {
+  if (!updatePaymentAvailability({ showMessage: true })) return;
+
   const customer = getCustomer();
   if (!validateCustomer(customer)) return;
   if (!orderLines.length) {
-    setStatus("No valid items for payment.", "error");
+    setStatus("Carrinho vazio.", "error");
     return;
   }
 
@@ -152,12 +215,14 @@ async function startCheckout(endpoint, providerLabel) {
     });
 
     if (!session?.access_token) {
-      localStorage.setItem("redirect_after_login", "checkout");
+      checkoutSession = null;
+      rememberRedirectAfterLogin("checkout.html");
       setStatus("Sessao expirada. Faz login novamente.", "error");
       window.location.href = "login.html";
       return;
     }
 
+    checkoutSession = session;
     const accessToken = session.access_token;
 
     let response;
@@ -185,24 +250,37 @@ async function startCheckout(endpoint, providerLabel) {
     window.location.href = redirectUrl;
   } catch (error) {
     setBusy(false);
+    updatePaymentAvailability();
     setStatus(error.message || "Payment error.", "error");
   }
 }
 
 stripeButton?.addEventListener("click", () => startCheckout("/api/create-checkout-session", "Stripe"));
 paypalButton?.addEventListener("click", () => startCheckout("/api/paypal-create-order", "PayPal"));
+Object.values(fields).forEach((field) => {
+  field?.addEventListener("input", () => updatePaymentAvailability({ showMessage: true }));
+  field?.addEventListener("change", () => updatePaymentAvailability({ showMessage: true }));
+});
 
 (async function init() {
+  setPaymentButtonsDisabled(true);
+  setStatus("A carregar checkout...");
   const session = await getAuthenticatedSession({ wait: true, timeoutMs: 1200 }).catch(() => null);
   if (!session?.access_token) {
+    isInitialLoading = false;
     showLoginGate();
     return;
   }
+  checkoutSession = session;
   showCheckout();
   await hydrateUserEmail(fields.email);
   try {
     await loadOrder();
   } catch (error) {
-    setStatus(error.message || "Could not load checkout.", "error");
+    orderLoadError = error.message || "Could not load checkout.";
+    setStatus(orderLoadError, "error");
+  } finally {
+    isInitialLoading = false;
+    updatePaymentAvailability({ showMessage: true });
   }
 })();
