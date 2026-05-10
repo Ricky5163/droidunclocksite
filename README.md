@@ -64,6 +64,18 @@ Re-run `supabase-schema.sql` after pulling security updates. It includes the `st
 - Product prices and stock are revalidated server-side before payment sessions are created.
 - Stripe payment confirmation should use the `stripe-webhook` function with `STRIPE_WEBHOOK_SECRET`.
 
+## Stripe Webhook
+
+Create a Stripe webhook endpoint for:
+
+```text
+https://droidunclock.site/api/stripe-webhook
+```
+
+Subscribe it to `checkout.session.completed`, then copy the endpoint signing secret (`whsec_...`) into the Cloudflare Pages production secret `STRIPE_WEBHOOK_SECRET`.
+
+After a payment is approved, the webhook validates Stripe's signature from the raw request body, resolves the order from `metadata.order_id` or `client_reference_id`, calls `mark_order_paid_after_stock`, and sends order emails only after the order is marked paid.
+
 ## Cloudflare Pages
 
 Build command: none.

@@ -212,12 +212,32 @@ export async function onRequest(context) {
       });
     }
 
+    await saveStripeSessionId(supabase, order.id, session.id);
+
     return json(request, env, 200, { url: session.url, sessionUrl: session.url });
   } catch (error) {
     const message = error?.message || String(error || "") || `Erro no checkout Stripe (${stage}).`;
     const code = classifyCheckoutFailure(error, stage);
     await markCreatedOrderFailed(supabase, createdOrderId, stage);
     return checkoutError(request, env, 500, code, message, { stage });
+  }
+}
+
+async function saveStripeSessionId(supabase, orderId, stripeSessionId) {
+  if (!stripeSessionId) return;
+
+  const { error } = await supabase
+    .from("orders")
+    .update({ stripe_session_id: stripeSessionId })
+    .eq("id", orderId);
+
+  if (error) {
+    console.warn("[checkout backend]", {
+      provider: "stripe",
+      stage: "save_stripe_session_id",
+      orderId,
+      errorMessage: formatSupabaseError(error),
+    });
   }
 }
 

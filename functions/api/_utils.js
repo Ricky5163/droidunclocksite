@@ -667,23 +667,38 @@ export async function reserveOrderStock(supabase, orderId) {
 }
 
 export async function triggerOrderEmails(env, orderId) {
-  if (!env.INTERNAL_API_SECRET) return;
+  if (!env.INTERNAL_API_SECRET) {
+    return { ok: false, skipped: true, error: "INTERNAL_API_SECRET is not configured." };
+  }
 
-  const response = await fetch(`${env.SITE_URL}/api/send-order-emails`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "X-Internal-Auth": env.INTERNAL_API_SECRET,
-    },
-    body: JSON.stringify({ orderId }),
-  });
+  try {
+    const response = await fetch(`${env.SITE_URL}/api/send-order-emails`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "X-Internal-Auth": env.INTERNAL_API_SECRET,
+      },
+      body: JSON.stringify({ orderId }),
+    });
 
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      const errorMessage = data?.error || "Email endpoint failed.";
+      console.warn("[order email]", {
+        orderId,
+        status: response.status,
+        errorMessage,
+      });
+      return { ok: false, status: response.status, error: errorMessage };
+    }
+
+    return { ok: true, status: response.status };
+  } catch (error) {
+    const errorMessage = error?.message || "Email endpoint request failed.";
     console.warn("[order email]", {
       orderId,
-      status: response.status,
-      errorMessage: data?.error || "Email endpoint failed.",
+      errorMessage,
     });
+    return { ok: false, error: errorMessage };
   }
 }

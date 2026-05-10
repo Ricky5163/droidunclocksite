@@ -50,24 +50,87 @@ export async function onRequest(context) {
 
   try {
     const supabase = createServiceClient(env);
+    console.log("[stripe webhook]", {
+      eventType: event.type || null,
+    });
 
     if (event.type === "checkout.session.completed") {
       const session = event.data?.object;
-      const orderId = session?.metadata?.order_id;
+      const orderId = String(session?.metadata?.order_id || session?.client_reference_id || "").trim();
+      const sessionId = session?.id || null;
+      const paymentIntentId = session?.payment_intent || null;
+
+      console.log("[stripe webhook]", {
+        eventType: event.type,
+        orderId: orderId || null,
+        sessionId,
+        paymentIntentId,
+        paymentStatus: session?.payment_status || null,
+      });
 
       if (orderId) {
         const validationError = await validateStripeSession(supabase, session, orderId);
         if (validationError) {
+          console.warn("[stripe webhook]", {
+            eventType: event.type,
+            orderId,
+            sessionId,
+            paymentIntentId,
+            stage: "validate_session",
+            errorMessage: validationError,
+          });
           return new Response(validationError, { status: 409 });
         }
 
-        const result = await markOrderPaid(supabase, orderId, {
-          stripe_payment_intent_id: session.payment_intent ?? null,
+        let result;
+        try {
+          result = await markOrderPaid(supabase, orderId, {
+            stripe_payment_intent_id: paymentIntentId,
+          });
+        } catch (error) {
+          console.warn("[stripe webhook]", {
+            eventType: event.type,
+            orderId,
+            sessionId,
+            paymentIntentId,
+            stage: "mark_order_paid",
+            errorMessage: error?.message || "markOrderPaid failed.",
+          });
+          throw error;
+        }
+
+        console.log("[stripe webhook]", {
+          eventType: event.type,
+          orderId,
+          sessionId,
+          paymentIntentId,
+          stage: "mark_order_paid",
+          changed: result.changed,
+          paymentStatus: result.order?.payment_status || null,
+          orderStatus: result.order?.order_status || null,
         });
 
         if (result.changed) {
-          await triggerOrderEmails(env, orderId);
+          const emailResult = await triggerOrderEmails(env, orderId);
+          console.log("[stripe webhook]", {
+            eventType: event.type,
+            orderId,
+            sessionId,
+            paymentIntentId,
+            stage: "send_order_emails",
+            emailSent: Boolean(emailResult?.ok),
+            emailStatus: emailResult?.status || null,
+            errorMessage: emailResult?.ok ? null : emailResult?.error || "Email was not sent.",
+          });
         }
+      } else {
+        console.warn("[stripe webhook]", {
+          eventType: event.type,
+          sessionId,
+          paymentIntentId,
+          stage: "resolve_order",
+          errorMessage: "Missing order id in Stripe session metadata and client_reference_id.",
+        });
       }
     }
 

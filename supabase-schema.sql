@@ -58,6 +58,7 @@ create table if not exists public.orders (
     'Cancelled'
   )),
   paypal_order_id text,
+  stripe_session_id text,
   stripe_payment_intent_id text,
   encrypted_notes jsonb,
   stock_reserved_at timestamptz,
@@ -79,6 +80,9 @@ add column if not exists encrypted_notes jsonb;
 
 alter table public.orders
 add column if not exists expires_at timestamptz;
+
+alter table public.orders
+add column if not exists stripe_session_id text;
 
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),
@@ -400,6 +404,7 @@ create index if not exists products_category_idx on public.products(category);
 create index if not exists products_publish_at_idx on public.products(publish_at);
 create index if not exists orders_created_at_idx on public.orders(created_at desc);
 create index if not exists orders_user_id_idx on public.orders(user_id);
+create index if not exists orders_stripe_session_id_idx on public.orders(stripe_session_id);
 
 -- Create this email in Supabase Auth first, then this row authorizes it for admin.html.
 insert into public.admin_users (user_id, email, role)
