@@ -10,7 +10,7 @@ import {
   syncCartToStock,
 } from "./storefront.js?v=auth10";
 
-const SHIPPING_COST = 9.95;
+const SHIPPING_COST = 6.95;
 
 const fields = {
   name: document.getElementById("customerName"),
