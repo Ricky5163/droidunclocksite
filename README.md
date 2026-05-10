@@ -32,7 +32,7 @@ PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
 SITE_URL=https://your-domain.com
 INTERNAL_API_SECRET=
 ENCRYPTION_KEY=
-SHIPPING_COST=0
+SHIPPING_COST=0.01
 FREE_SHIPPING_THRESHOLD=
 ```
 

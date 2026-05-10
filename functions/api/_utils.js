@@ -625,7 +625,7 @@ function isMissingOptionalProductColumn(error) {
 }
 
 export function calculateShipping(customer, orderDraft, env) {
-  const baseShipping = numericEnv(env.SHIPPING_COST, 0);
+  const baseShipping = numericEnv(env.SHIPPING_COST, 0.01);
   const freeShippingThreshold = numericEnv(env.FREE_SHIPPING_THRESHOLD, 0);
   const subtotal = Number(orderDraft?.total || 0);
 

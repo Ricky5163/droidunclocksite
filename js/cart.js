@@ -23,7 +23,7 @@ let currentLang = setupLanguageSelector();
 setupAdminLogoShortcut();
 syncAccountLinks().catch(() => null);
 
-const SHIPPING_COST = 0;
+const SHIPPING_COST = 0.01;
 const MAX_CART_QTY = 20;
 
 checkoutButton?.addEventListener("click", async (event) => {
