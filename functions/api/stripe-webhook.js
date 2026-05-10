@@ -2,8 +2,8 @@ import {
   assertEnv,
   createServiceClient,
   markOrderPaid,
-  triggerOrderEmails,
 } from "./_utils.js";
+import { sendOrderEmailsForPaidOrder } from "./_order-emails.js";
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -110,19 +110,22 @@ export async function onRequest(context) {
           orderStatus: result.order?.order_status || null,
         });
 
-        if (result.changed) {
-          const emailResult = await triggerOrderEmails(env, orderId);
-          console.log("[stripe webhook]", {
-            eventType: event.type,
-            orderId,
-            sessionId,
-            paymentIntentId,
-            stage: "send_order_emails",
-            emailSent: Boolean(emailResult?.ok),
-            emailStatus: emailResult?.status || null,
-            errorMessage: emailResult?.ok ? null : emailResult?.error || "Email was not sent.",
-          });
-        }
+        const emailResult = await sendOrderEmailsForPaidOrder(env, supabase, orderId);
+        console.log("[stripe webhook]", {
+          eventType: event.type,
+          orderId,
+          sessionId,
+          paymentIntentId,
+          stage: "send_order_emails",
+          emailSent: Boolean(emailResult?.ok),
+          customerEmailSent: Boolean(emailResult?.customer?.sent),
+          customerEmailSkipped: Boolean(emailResult?.customer?.skipped),
+          adminEmailSent: Boolean(emailResult?.admin?.sent),
+          adminEmailSkipped: Boolean(emailResult?.admin?.skipped),
+          errorMessage: emailResult?.ok
+            ? null
+            : [emailResult?.error, emailResult?.customer?.error, emailResult?.admin?.error].filter(Boolean).join(" | ") || "Email was not sent.",
+        });
       } else {
         console.warn("[stripe webhook]", {
           eventType: event.type,

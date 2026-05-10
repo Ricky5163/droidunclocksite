@@ -76,6 +76,21 @@ Subscribe it to `checkout.session.completed`, then copy the endpoint signing sec
 
 After a payment is approved, the webhook validates Stripe's signature from the raw request body, resolves the order from `metadata.order_id` or `client_reference_id`, calls `mark_order_paid_after_stock`, and sends order emails only after the order is marked paid.
 
+Order emails are sent through Resend's API from the `send-order-emails` function. The Supabase `orders.confirmation_email_sent_at` and `orders.admin_email_sent_at` fields prevent duplicate sends when Stripe retries or an event is resent.
+
+To resend emails for a paid order:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "https://droidunclock.site/api/send-order-emails" `
+  -Headers @{
+    "Content-Type" = "application/json"
+    "X-Internal-Auth" = "<INTERNAL_API_SECRET>"
+  } `
+  -Body '{"orderId":"<ORDER_ID>","force":true}'
+```
+
 ## Cloudflare Pages
 
 Build command: none.

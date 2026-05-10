@@ -60,6 +60,8 @@ create table if not exists public.orders (
   paypal_order_id text,
   stripe_session_id text,
   stripe_payment_intent_id text,
+  confirmation_email_sent_at timestamptz,
+  admin_email_sent_at timestamptz,
   encrypted_notes jsonb,
   stock_reserved_at timestamptz,
   expires_at timestamptz,
@@ -83,6 +85,12 @@ add column if not exists expires_at timestamptz;
 
 alter table public.orders
 add column if not exists stripe_session_id text;
+
+alter table public.orders
+add column if not exists confirmation_email_sent_at timestamptz;
+
+alter table public.orders
+add column if not exists admin_email_sent_at timestamptz;
 
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),

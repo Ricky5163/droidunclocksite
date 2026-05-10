@@ -1,9 +1,8 @@
-import { sendEmail, adminOrderEmailHtml, orderEmailHtml } from "./_email.js";
+import { sendOrderEmailsForPaidOrder } from "./_order-emails.js";
 import {
   assertEnv,
   createServiceClient,
   json,
-  normalizeEmail,
   readJson,
   requireInternalAuth,
 } from "./_utils.js";
@@ -41,50 +40,14 @@ export async function onRequest(context) {
     }
 
     const supabase = createServiceClient(env);
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("id", orderId)
-      .single();
-
-    if (orderError) {
-      return json(request, env, 500, { error: orderError.message });
-    }
-
-    if (order.payment_status !== "paid") {
-      return json(request, env, 409, { error: "A encomenda ainda nao esta paga." });
-    }
-
-    const { data: items, error: itemsError } = await supabase
-      .from("order_items")
-      .select("*")
-      .eq("order_id", orderId);
-
-    if (itemsError) {
-      return json(request, env, 500, { error: itemsError.message });
-    }
-
-    const customerEmail = normalizeEmail(order.customer_email);
-    if (!customerEmail) {
-      return json(request, env, 500, { error: "Email do cliente invalido." });
-    }
-
-    const html = orderEmailHtml({ order, items, siteUrl: env.SITE_URL });
-    const adminHtml = adminOrderEmailHtml({ order, items, siteUrl: env.SITE_URL });
-
-    await sendEmail(env, {
-      to: customerEmail,
-      subject: `Droidunclock - Encomenda #${order.id}`,
-      html,
+    const result = await sendOrderEmailsForPaidOrder(env, supabase, orderId, {
+      force: Boolean(body.force),
     });
+    if (!result.ok) {
+      return json(request, env, 500, result);
+    }
 
-    await sendEmail(env, {
-      to: env.EMAIL_TO,
-      subject: `Nova encomenda paga #${order.id} - EUR ${Number(order.total_amount || 0).toFixed(2)}`,
-      html: adminHtml,
-    });
-
-    return json(request, env, 200, { ok: true });
+    return json(request, env, 200, result);
   } catch (error) {
     return json(request, env, 500, { error: error?.message || "Erro" });
   }
