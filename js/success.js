@@ -23,6 +23,14 @@ function setMessage(message, detail = "", type = "neutral") {
   }
 }
 
+function paymentReceivedDetail(lang) {
+  if (lang === "pt") {
+    return "Obrigado pela sua encomenda. Recebemos o pagamento e a sua encomenda está a ser processada.";
+  }
+
+  return "Thank you for your order. We have received your payment and your order is being processed.";
+}
+
 (async function init() {
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get("order");
@@ -75,7 +83,7 @@ function setMessage(message, detail = "", type = "neutral") {
     clearCart();
     setMessage(
       "Payment sent successfully.",
-      "Stripe returned you to the site. The webhook will complete the order confirmation.",
+      paymentReceivedDetail(currentLang),
       "success"
     );
     return;

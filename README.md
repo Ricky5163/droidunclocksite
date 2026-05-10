@@ -27,6 +27,8 @@ STRIPE_WEBHOOK_SECRET=
 PAYPAL_CLIENT_ID=
 PAYPAL_CLIENT_SECRET=
 PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
+# Use this only after confirming live credentials in Cloudflare:
+# PAYPAL_API_BASE=https://api-m.paypal.com
 SITE_URL=https://your-domain.com
 INTERNAL_API_SECRET=
 ENCRYPTION_KEY=
@@ -34,7 +36,7 @@ SHIPPING_COST=9.95
 FREE_SHIPPING_THRESHOLD=
 ```
 
-Use `https://api-m.paypal.com` for production PayPal.
+Use `https://api-m.paypal.com` for production PayPal only after confirming the Cloudflare Pages secrets `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` are live credentials. Keep `https://api-m.sandbox.paypal.com` until the final live switch is approved.
 
 `ENCRYPTION_KEY` is used only by Cloudflare Functions to encrypt optional sensitive order notes before they are inserted into Supabase. Use exactly 32 bytes, 64 hex characters, or base64 that decodes to 32 bytes. Do not expose this key in frontend JavaScript. Core order fields such as name, email, phone, address, products, totals, payment IDs, payment method, order status, and dates stay readable in the database because they are needed for shipping, support, invoices, and admin workflows.
 

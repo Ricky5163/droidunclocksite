@@ -669,7 +669,7 @@ export async function reserveOrderStock(supabase, orderId) {
 export async function triggerOrderEmails(env, orderId) {
   if (!env.INTERNAL_API_SECRET) return;
 
-  await fetch(`${env.SITE_URL}/api/send-order-emails`, {
+  const response = await fetch(`${env.SITE_URL}/api/send-order-emails`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -677,4 +677,13 @@ export async function triggerOrderEmails(env, orderId) {
     },
     body: JSON.stringify({ orderId }),
   });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    console.warn("[order email]", {
+      orderId,
+      status: response.status,
+      errorMessage: data?.error || "Email endpoint failed.",
+    });
+  }
 }
