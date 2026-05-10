@@ -19,6 +19,8 @@ import { encryptSensitiveData, normalizeSensitiveOrderData } from "./_encryption
 export async function onRequest(context) {
   const { request, env } = context;
   let stage = "start";
+  let supabase = null;
+  let createdOrderId = null;
 
   try {
     if (request.method === "OPTIONS") {
@@ -47,7 +49,7 @@ export async function onRequest(context) {
       return json(request, env, 500, { error: "Missing env: " + missing.join(", ") });
     }
 
-    const supabase = createServiceClient(env);
+    supabase = createServiceClient(env);
     const authClient = createAuthClient(env);
     stage = "auth";
     const user = await requireAuthenticatedUser(request, authClient, env);
@@ -109,6 +111,7 @@ export async function onRequest(context) {
         dbCode: orderError.code || null,
       });
     }
+    createdOrderId = order.id;
 
     const orderItems = orderDraft.items.map((item) => ({
       order_id: order.id,
@@ -122,6 +125,7 @@ export async function onRequest(context) {
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
     if (itemsError) {
       await supabase.from("orders").delete().eq("id", order.id);
+      createdOrderId = null;
       return checkoutError(request, env, 500, "database_error", formatSupabaseError(itemsError), {
         stage: "create_order_items",
         dbCode: itemsError.code || null,
@@ -181,6 +185,7 @@ export async function onRequest(context) {
     const { error: paypalIdError } = await supabase.from("orders").update({ paypal_order_id: data.id }).eq("id", order.id);
     if (paypalIdError) {
       console.warn("[checkout backend]", { provider: "paypal", stage: "save_paypal_order_id", errorMessage: paypalIdError.message });
+      await markCreatedOrderFailed(supabase, order.id, "save_paypal_order_id");
       return json(request, env, 500, { error: paypalIdError.message });
     }
 
@@ -203,7 +208,35 @@ export async function onRequest(context) {
   } catch (error) {
     const message = error?.message || String(error || "") || `Erro no checkout PayPal (${stage}).`;
     const code = classifyCheckoutFailure(error, stage);
+    await markCreatedOrderFailed(supabase, createdOrderId, stage);
     return checkoutError(request, env, 500, code, message, { stage });
+  }
+}
+
+async function markCreatedOrderFailed(supabase, orderId, stage) {
+  if (!supabase || !orderId || !stage?.includes("paypal")) return;
+
+  try {
+    const { error } = await supabase
+      .from("orders")
+      .update({ payment_status: "failed", order_status: "Cancelled" })
+      .eq("id", orderId)
+      .eq("payment_status", "pending");
+    if (error) {
+      console.warn("[checkout backend]", {
+        provider: "paypal",
+        stage: "mark_order_failed",
+        orderId,
+        errorMessage: error.message || "Could not mark failed order.",
+      });
+    }
+  } catch (error) {
+    console.warn("[checkout backend]", {
+      provider: "paypal",
+      stage: "mark_order_failed",
+      orderId,
+      errorMessage: error?.message || "Could not mark failed order.",
+    });
   }
 }
 

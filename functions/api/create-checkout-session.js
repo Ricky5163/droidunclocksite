@@ -20,6 +20,8 @@ import { encryptSensitiveData, normalizeSensitiveOrderData } from "./_encryption
 export async function onRequest(context) {
   const { request, env } = context;
   let stage = "start";
+  let supabase = null;
+  let createdOrderId = null;
 
   try {
     if (request.method === "OPTIONS") {
@@ -51,7 +53,7 @@ export async function onRequest(context) {
 
     const siteUrl = cleanEnvValue(env.SITE_URL);
     const stripeSecretKey = cleanEnvValue(env.STRIPE_SECRET_KEY);
-    const supabase = createServiceClient(env);
+    supabase = createServiceClient(env);
     const authClient = createAuthClient(env);
     stage = "auth";
     const user = await requireAuthenticatedUser(request, authClient, env);
@@ -125,6 +127,7 @@ export async function onRequest(context) {
         dbCode: orderError.code || null,
       });
     }
+    createdOrderId = order.id;
 
     const orderItems = orderDraft.items.map((item) => ({
       order_id: order.id,
@@ -138,6 +141,7 @@ export async function onRequest(context) {
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
     if (itemsError) {
       await supabase.from("orders").delete().eq("id", order.id);
+      createdOrderId = null;
       return checkoutError(request, env, 500, "database_error", formatSupabaseError(itemsError), {
         stage: "create_order_items",
         dbCode: itemsError.code || null,
@@ -212,7 +216,35 @@ export async function onRequest(context) {
   } catch (error) {
     const message = error?.message || String(error || "") || `Erro no checkout Stripe (${stage}).`;
     const code = classifyCheckoutFailure(error, stage);
+    await markCreatedOrderFailed(supabase, createdOrderId, stage);
     return checkoutError(request, env, 500, code, message, { stage });
+  }
+}
+
+async function markCreatedOrderFailed(supabase, orderId, stage) {
+  if (!supabase || !orderId || !stage?.includes("stripe")) return;
+
+  try {
+    const { error } = await supabase
+      .from("orders")
+      .update({ payment_status: "failed", order_status: "Cancelled" })
+      .eq("id", orderId)
+      .eq("payment_status", "pending");
+    if (error) {
+      console.warn("[checkout backend]", {
+        provider: "stripe",
+        stage: "mark_order_failed",
+        orderId,
+        errorMessage: error.message || "Could not mark failed order.",
+      });
+    }
+  } catch (error) {
+    console.warn("[checkout backend]", {
+      provider: "stripe",
+      stage: "mark_order_failed",
+      orderId,
+      errorMessage: error?.message || "Could not mark failed order.",
+    });
   }
 }
 
