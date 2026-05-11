@@ -24,7 +24,6 @@ export async function onRequest(context) {
     "SUPABASE_URL",
     "SUPABASE_SERVICE_ROLE_KEY",
     "SITE_URL",
-    "INTERNAL_API_SECRET",
   ]);
 
   if (missing.length) {
