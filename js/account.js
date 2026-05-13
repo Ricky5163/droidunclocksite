@@ -272,6 +272,7 @@ function renderOrders() {
             ${order.tracking_number ? `<span>${trackingLink(order)}</span>` : ""}
             ${order.shipped_at ? `<span>Enviado ${escapeHtml(orderDate(order.shipped_at))}</span>` : ""}
           </div>
+          <span class="order-card__action">Ver detalhes da encomenda</span>
         </button>
       `;
     })
@@ -318,6 +319,11 @@ function renderOrderDetail(order) {
       </section>
     </div>
 
+    <section class="tracking-panel">
+      <h3>Seguimento</h3>
+      ${trackingSummary(order)}
+    </section>
+
     <section class="order-items">
       <h3>Produtos</h3>
       ${items.length ? items.map((item) => `
@@ -343,6 +349,23 @@ function trackingLink(order) {
   if (!order.tracking_url) return escapeHtml(label);
 
   return `<a href="${escapeHtml(order.tracking_url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
+}
+
+function trackingSummary(order) {
+  if (!order.tracking_number) {
+    return `
+      <p class="muted">A encomenda ainda esta a ser preparada. Quando for enviada, o tracking aparece aqui.</p>
+    `;
+  }
+
+  return `
+    <dl class="detail-list">
+      <div><dt>Transportadora</dt><dd>${escapeHtml(order.shipping_carrier || "-")}</dd></div>
+      <div><dt>Tracking</dt><dd>${trackingLink(order)}</dd></div>
+      ${order.shipped_at ? `<div><dt>Enviado em</dt><dd>${escapeHtml(orderDate(order.shipped_at))}</dd></div>` : ""}
+    </dl>
+    ${order.tracking_url ? `<a class="btn btn--primary btn--block tracking-panel__button" href="${escapeHtml(order.tracking_url)}" target="_blank" rel="noopener">Seguir encomenda</a>` : ""}
+  `;
 }
 
 function setupTabs() {

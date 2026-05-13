@@ -2774,6 +2774,12 @@ select:focus {
   font-size: 0.88rem;
 }
 
+.order-card__action {
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -2844,14 +2850,27 @@ select:focus {
 }
 
 .order-items,
-.order-address {
+.order-address,
+.tracking-panel {
   margin-top: 20px;
 }
 
 .order-items h3,
 .order-address h3,
+.tracking-panel h3,
 .address-card h3 {
   margin: 0 0 12px;
+}
+
+.tracking-panel {
+  padding: 16px;
+  border: 1px solid rgba(20, 119, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(234, 243, 255, 0.6);
+}
+
+.tracking-panel__button {
+  margin-top: 14px;
 }
 
 .order-item {
