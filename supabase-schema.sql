@@ -62,6 +62,10 @@ create table if not exists public.orders (
   stripe_payment_intent_id text,
   confirmation_email_sent_at timestamptz,
   admin_email_sent_at timestamptz,
+  shipping_carrier text,
+  tracking_number text,
+  tracking_url text,
+  shipped_at timestamptz,
   encrypted_notes jsonb,
   stock_reserved_at timestamptz,
   expires_at timestamptz,
@@ -91,6 +95,18 @@ add column if not exists confirmation_email_sent_at timestamptz;
 
 alter table public.orders
 add column if not exists admin_email_sent_at timestamptz;
+
+alter table public.orders
+add column if not exists shipping_carrier text;
+
+alter table public.orders
+add column if not exists tracking_number text;
+
+alter table public.orders
+add column if not exists tracking_url text;
+
+alter table public.orders
+add column if not exists shipped_at timestamptz;
 
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),

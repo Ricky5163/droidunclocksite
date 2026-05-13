@@ -24,12 +24,24 @@ export async function onRequest(context) {
       return json(request, env, 403, { error: "Admin access required." });
     }
 
-    const { data: orders, error: ordersError } = await supabase
+    const baseSelect = "id,user_id,customer_name,customer_email,customer_phone,country,address,postal_code,city,total_amount,payment_currency,payment_method,payment_status,order_status,created_at";
+    const shippingSelect = `${baseSelect},shipping_carrier,tracking_number,tracking_url,shipped_at`;
+
+    let ordersResponse = await supabase
       .from("orders")
-      .select("id,user_id,customer_name,customer_email,customer_phone,country,address,postal_code,city,total_amount,payment_currency,payment_method,payment_status,order_status,created_at")
+      .select(shippingSelect)
       .order("created_at", { ascending: false })
       .limit(50);
 
+    if (ordersResponse.error && /shipping_carrier|tracking_number|tracking_url|shipped_at|column/i.test(ordersResponse.error.message || "")) {
+      ordersResponse = await supabase
+        .from("orders")
+        .select(baseSelect)
+        .order("created_at", { ascending: false })
+        .limit(50);
+    }
+
+    const { data: orders, error: ordersError } = ordersResponse;
     if (ordersError) {
       return json(request, env, 500, { error: ordersError.message });
     }

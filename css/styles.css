@@ -1811,6 +1811,26 @@ select:focus {
   color: var(--ink);
 }
 
+.admin-tracking {
+  display: grid;
+  gap: 8px;
+  min-width: 220px;
+  margin-top: 12px;
+}
+
+.admin-tracking label {
+  gap: 4px;
+  color: var(--muted-strong);
+  font-size: 0.76rem;
+}
+
+.admin-tracking input {
+  min-height: 34px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+}
+
 .admin-product {
   display: flex;
   align-items: center;

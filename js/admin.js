@@ -224,6 +224,12 @@ async function loadOrders() {
                   <strong>${escapeHtml(order.address || "")}</strong><br />
                   <span>${escapeHtml([order.postal_code, order.city].filter(Boolean).join(" "))}</span><br />
                   <span>${escapeHtml(order.country || "")}</span>
+                  <div class="admin-tracking">
+                    <label>Carrier<input value="${escapeHtml(order.shipping_carrier || "")}" data-tracking-carrier="${order.id}" placeholder="DHL, PostNL, UPS" /></label>
+                    <label>Tracking<input value="${escapeHtml(order.tracking_number || "")}" data-tracking-number="${order.id}" placeholder="Tracking number" /></label>
+                    <label>Tracking URL<input value="${escapeHtml(order.tracking_url || "")}" data-tracking-url="${order.id}" placeholder="https://..." /></label>
+                    <button class="link-button" type="button" data-save-tracking="${order.id}">Save tracking</button>
+                  </div>
                 </td>
                 <td>${orderItemsSummary(order.items)}</td>
                 <td>${formatEuro(order.total_amount || 0)}</td>
@@ -245,6 +251,32 @@ async function loadOrders() {
     select.addEventListener("change", async () => {
       const { error } = await supabase.from("orders").update({ order_status: select.value }).eq("id", select.dataset.orderStatus);
       setStatus(error ? error.message : "Order status updated.", error ? "error" : "success");
+    });
+  });
+
+  ordersElement.querySelectorAll("[data-save-tracking]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const orderId = button.dataset.saveTracking;
+      const order = data.find((entry) => String(entry.id) === String(orderId));
+      const carrier = ordersElement.querySelector(`[data-tracking-carrier="${CSS.escape(orderId)}"]`)?.value.trim() || null;
+      const trackingNumber = ordersElement.querySelector(`[data-tracking-number="${CSS.escape(orderId)}"]`)?.value.trim() || null;
+      const trackingUrl = ordersElement.querySelector(`[data-tracking-url="${CSS.escape(orderId)}"]`)?.value.trim() || null;
+      const payload = {
+        shipping_carrier: carrier,
+        tracking_number: trackingNumber,
+        tracking_url: trackingUrl,
+        shipped_at: trackingNumber && !order?.shipped_at ? new Date().toISOString() : order?.shipped_at || null,
+        order_status: trackingNumber && order?.order_status === "Paid" ? "Shipped" : order?.order_status || "Paid",
+      };
+
+      const { error } = await supabase.from("orders").update(payload).eq("id", orderId);
+      if (error) {
+        setStatus(error.message, "error");
+        return;
+      }
+
+      setStatus("Tracking updated.", "success");
+      await loadOrders();
     });
   });
 }

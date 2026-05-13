@@ -218,6 +218,7 @@ async function loadOrders(user) {
     ${baseSelect},
     tracking_number,
     shipping_carrier,
+    tracking_url,
     shipped_at
   `;
 
@@ -268,7 +269,7 @@ function renderOrders() {
           <div class="order-card__meta">
             <span class="status-pill ${statusClass(order.payment_status)}">${escapeHtml(order.payment_status || "pending")}</span>
             <span class="status-pill ${statusClass(order.order_status)}">${escapeHtml(order.order_status || "Pending")}</span>
-            ${order.tracking_number ? `<span>${escapeHtml(order.shipping_carrier || "Tracking")} ${escapeHtml(order.tracking_number)}</span>` : ""}
+            ${order.tracking_number ? `<span>${trackingLink(order)}</span>` : ""}
             ${order.shipped_at ? `<span>Enviado ${escapeHtml(orderDate(order.shipped_at))}</span>` : ""}
           </div>
         </button>
@@ -312,7 +313,7 @@ function renderOrderDetail(order) {
       <section>
         <span>Envio</span>
         <strong>${escapeHtml(order.shipping_carrier || "A preparar")}</strong>
-        <small>${escapeHtml(order.tracking_number || "Sem tracking ainda")}</small>
+        <small>${order.tracking_number ? trackingLink(order) : "Sem tracking ainda"}</small>
         ${order.shipped_at ? `<small>Enviado em ${escapeHtml(orderDate(order.shipped_at))}</small>` : ""}
       </section>
     </div>
@@ -335,6 +336,13 @@ function renderOrderDetail(order) {
       ${addressBlock(order)}
     </section>
   `;
+}
+
+function trackingLink(order) {
+  const label = `${order.shipping_carrier || "Tracking"} ${order.tracking_number || ""}`.trim();
+  if (!order.tracking_url) return escapeHtml(label);
+
+  return `<a href="${escapeHtml(order.tracking_url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
 }
 
 function setupTabs() {
