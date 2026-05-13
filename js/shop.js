@@ -201,7 +201,6 @@ function productCard(product) {
         <div class="product-card__trust">
           <span>Fast NL delivery</span>
           <span>14-day returns</span>
-          <span>Stripe / PayPal</span>
         </div>
         <div class="product-card__footer">
           <button class="btn btn--ghost btn--small" data-add="${escapeHtml(product.id)}" ${stock > 0 ? "" : "disabled"}>${t("addToCart", currentLang)}</button>

@@ -153,7 +153,6 @@ function render(product, related = []) {
       <div class="checkout-trust-row" aria-label="Trust information">
         <span>Fast delivery in the Netherlands</span>
         <span>14-day returns</span>
-        <span>Secure Stripe / PayPal payment</span>
       </div>
       <div class="detail-panels">
         <section>
