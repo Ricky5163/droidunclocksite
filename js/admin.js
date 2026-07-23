@@ -21,6 +21,8 @@ const fields = {
   condition: document.getElementById("condition"),
   description: document.getElementById("description"),
   images: document.getElementById("images"),
+  imageFiles: document.getElementById("imageFiles"),
+  imagePreview: document.getElementById("imagePreview"),
   price: document.getElementById("price"),
   discountPrice: document.getElementById("discountPrice"),
   stock: document.getElementById("stock"),
@@ -43,6 +45,28 @@ function slugify(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function imageUrlsFromField() {
+  return fields.images.value.split(/\n|,/).map((url) => url.trim()).filter(Boolean);
+}
+
+function selectedImageFiles() {
+  return [...(fields.imageFiles?.files || [])].filter((file) => file.type.startsWith("image/"));
+}
+
+function renderImagePreview() {
+  const files = selectedImageFiles();
+  if (!fields.imagePreview) return;
+
+  fields.imagePreview.innerHTML = files.length
+    ? files.map((file) => {
+        const url = URL.createObjectURL(file);
+        return `<figure><img src="${url}" alt="" /><figcaption>${escapeHtml(file.name)}</figcaption></figure>`;
+      }).join("")
+    : imageUrlsFromField().slice(0, 4).map((url) => (
+        `<figure><img src="${escapeHtml(url)}" alt="" /><figcaption>Current image</figcaption></figure>`
+      )).join("");
 }
 
 async function assertAdmin() {
@@ -91,7 +115,7 @@ function productPayload() {
     price: Number(fields.price.value || 0),
     discount_price: fields.discountPrice.value ? Number(fields.discountPrice.value) : null,
     stock: Number(fields.stock.value || 0),
-    images: fields.images.value.split(/\n|,/).map((url) => url.trim()).filter(Boolean),
+    images: imageUrlsFromField(),
     technical_details: fields.technicalDetails.value.trim(),
     warranty_info: fields.warrantyInfo.value.trim(),
     delivery_info: fields.deliveryInfo.value.trim(),
@@ -120,6 +144,8 @@ function fillForm(product) {
   fields.condition.value = product.condition || "New";
   fields.description.value = product.description || "";
   fields.images.value = Array.isArray(product.images) ? product.images.join("\n") : "";
+  if (fields.imageFiles) fields.imageFiles.value = "";
+  renderImagePreview();
   fields.price.value = product.price || 0;
   fields.discountPrice.value = product.discount_price || "";
   fields.stock.value = product.stock || 0;
@@ -135,6 +161,45 @@ function resetForm() {
   form.reset();
   fields.id.value = "";
   fields.active.checked = true;
+  if (fields.imageFiles) fields.imageFiles.value = "";
+  renderImagePreview();
+}
+
+async function uploadSelectedImages(productSlug) {
+  const files = selectedImageFiles();
+  if (!files.length) return [];
+
+  const session = await getSession();
+  if (!session?.access_token) {
+    throw new Error("Admin session expired. Login again before uploading images.");
+  }
+
+  const uploadedUrls = [];
+  for (const [index, file] of files.entries()) {
+    setStatus(`Uploading image ${index + 1} of ${files.length}...`);
+    const body = new FormData();
+    body.append("image", file);
+    body.append("productSlug", productSlug || slugify(fields.name.value || "product"));
+
+    const response = await fetch("/api/admin-upload-image", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.url) {
+      throw new Error(payload.error || "Could not upload image.");
+    }
+    uploadedUrls.push(payload.url);
+  }
+
+  const merged = [...imageUrlsFromField(), ...uploadedUrls];
+  fields.images.value = merged.join("\n");
+  if (fields.imageFiles) fields.imageFiles.value = "";
+  renderImagePreview();
+  return uploadedUrls;
 }
 
 function productStatus(product) {
@@ -300,6 +365,16 @@ form?.addEventListener("submit", async (event) => {
   event.preventDefault();
   setStatus("Saving product...");
   const payload = productPayload();
+  try {
+    const uploadedUrls = await uploadSelectedImages(payload.slug);
+    if (uploadedUrls.length) {
+      payload.images = [...payload.images, ...uploadedUrls];
+    }
+  } catch (error) {
+    setStatus(error.message || "Could not upload images.", "error");
+    return;
+  }
+
   const request = fields.id.value
     ? supabase.from("products").update(payload).eq("id", fields.id.value)
     : supabase.from("products").insert([payload]);
@@ -312,6 +387,8 @@ form?.addEventListener("submit", async (event) => {
   }
 });
 
+fields.imageFiles?.addEventListener("change", renderImagePreview);
+fields.images?.addEventListener("input", renderImagePreview);
 document.getElementById("resetForm")?.addEventListener("click", resetForm);
 logoutButton?.addEventListener("click", () => logoutAndRedirect("login.html"));
 

@@ -84,7 +84,16 @@
             </select>
           </label>
           <label>Description<textarea id="description" rows="3"></textarea></label>
-          <label>Image URLs<textarea id="images" rows="3" placeholder="One image URL per line"></textarea></label>
+          <div class="admin-image-field">
+            <label>Image URLs<textarea id="images" rows="3" placeholder="One image URL per line"></textarea></label>
+            <label class="admin-mobile-upload">
+              Product photos
+              <input id="imageFiles" type="file" accept="image/*" multiple />
+              <span class="admin-mobile-upload__button">Choose from gallery</span>
+              <span class="admin-mobile-upload__hint">Images will be uploaded when you save the product.</span>
+            </label>
+            <div id="imagePreview" class="admin-image-preview" aria-live="polite"></div>
+          </div>
           <div class="form-row">
             <label>Price<input id="price" type="number" min="0" step="0.01" required /></label>
             <label>Discount<input id="discountPrice" type="number" min="0" step="0.01" /></label>
@@ -116,6 +125,6 @@
     </section>
   </main>
 
-  <script type="module" src="js/admin.js?v=auth10"></script>
+  <script type="module" src="js/admin.js?v=admin-upload1"></script>
 </body>
 </html>
