@@ -11,6 +11,7 @@ const ordersElement = document.getElementById("ordersAdmin");
 const logoutButton = document.getElementById("logoutBtn");
 setupLanguageSelector();
 setupAdminLogoShortcut();
+let imagePreviewObjectUrls = [];
 
 const fields = {
   id: document.getElementById("productId"),
@@ -59,13 +60,17 @@ function renderImagePreview() {
   const files = selectedImageFiles();
   if (!fields.imagePreview) return;
 
+  imagePreviewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+  imagePreviewObjectUrls = [];
+
   fields.imagePreview.innerHTML = files.length
     ? files.map((file) => {
         const url = URL.createObjectURL(file);
-        return `<figure><img src="${url}" alt="" /><figcaption>${escapeHtml(file.name)}</figcaption></figure>`;
+        imagePreviewObjectUrls.push(url);
+        return `<figure><img src="${escapeHtml(url)}" alt="" /><figcaption>Ready to upload</figcaption></figure>`;
       }).join("")
     : imageUrlsFromField().slice(0, 4).map((url) => (
-        `<figure><img src="${escapeHtml(url)}" alt="" /><figcaption>Current image</figcaption></figure>`
+        `<figure><img src="${escapeHtml(url)}" alt="" /><figcaption>Uploaded image</figcaption></figure>`
       )).join("");
 }
 
