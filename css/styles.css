@@ -3959,7 +3959,7 @@ select:focus {
   }
 
   .admin-page .brand {
-    gap: 8px;
+    gap: 10px;
   }
 
   .admin-page .brand__logo {
@@ -3980,7 +3980,7 @@ select:focus {
   .admin-page .admin-nav {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 5px;
+    gap: 7px;
     overflow: visible;
     padding-bottom: 0;
   }
