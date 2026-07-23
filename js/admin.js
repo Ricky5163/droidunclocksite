@@ -110,12 +110,18 @@ function renderStoredImagePreview() {
 function renderImagePreview() {
   const files = selectedImageFiles();
   const token = ++imagePreviewToken;
+  console.log("Product image selection changed", {
+    count: files.length,
+    names: files.map((file) => fileLabel(file)),
+    types: files.map((file) => file.type || "unknown"),
+  });
 
   if (!files.length) {
     renderStoredImagePreview();
     return;
   }
 
+  setStatus(`${files.length} photo${files.length === 1 ? "" : "s"} selected.`, "success");
   const previews = files.map((file) => ({
     state: "loading",
     src: "",
