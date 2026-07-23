@@ -282,6 +282,37 @@ function productPayload() {
   };
 }
 
+async function resolveUniqueProductSlug(baseSlug, currentProductId = "") {
+  const fallbackSlug = baseSlug || slugify(`${fields.name.value}-${fields.model.value}`) || `product-${Date.now()}`;
+  const { data, error } = await supabase
+    .from("products")
+    .select("id,slug")
+    .like("slug", `${fallbackSlug}%`)
+    .limit(200);
+
+  if (error) {
+    throw new Error(error.message || "Could not check product slug.");
+  }
+
+  const escapedSlug = fallbackSlug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const slugPattern = new RegExp(`^${escapedSlug}(?:-(\\d+))?$`);
+  const usedNumbers = new Set();
+
+  (data || [])
+    .filter((product) => String(product.id) !== String(currentProductId || ""))
+    .forEach((product) => {
+      const match = String(product.slug || "").match(slugPattern);
+      if (!match) return;
+      usedNumbers.add(match[1] ? Number(match[1]) : 1);
+    });
+
+  if (!usedNumbers.has(1)) return fallbackSlug;
+
+  let nextNumber = 2;
+  while (usedNumbers.has(nextNumber)) nextNumber += 1;
+  return `${fallbackSlug}-${nextNumber}`;
+}
+
 function dateInputValue(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -527,12 +558,13 @@ form?.addEventListener("submit", async (event) => {
   setStatus("Saving product...");
   const payload = productPayload();
   try {
+    payload.slug = await resolveUniqueProductSlug(payload.slug, fields.id.value);
     const uploadedUrls = await uploadSelectedImages(payload.slug);
     if (uploadedUrls.length) {
       payload.images = [...payload.images, ...uploadedUrls];
     }
   } catch (error) {
-    setStatus(error.message || "Could not upload images.", "error");
+    setStatus(error.message || "Could not prepare product.", "error");
     return;
   }
 
@@ -540,7 +572,15 @@ form?.addEventListener("submit", async (event) => {
     ? supabase.from("products").update(payload).eq("id", fields.id.value)
     : supabase.from("products").insert([payload]);
   const { error } = await request;
-  if (error) setStatus(error.message, "error");
+  if (error) {
+    const message = String(error.message || "");
+    setStatus(
+      message.includes("products_slug_key")
+        ? "A product with this name/model already exists. Change the name or model and try again."
+        : message,
+      "error",
+    );
+  }
   else {
     setStatus("Product saved.", "success");
     resetForm();
