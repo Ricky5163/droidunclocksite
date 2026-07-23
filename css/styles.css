@@ -3952,28 +3952,35 @@ select:focus {
 
 @media (max-width: 760px) {
   .admin-page .header-bar {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 4px 0 7px;
+  }
+
+  .admin-page .brand {
     gap: 8px;
-    padding: 8px 0 10px;
   }
 
   .admin-page .brand__logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 11px;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
   }
 
   .admin-page .brand strong {
-    font-size: 0.9rem;
+    font-size: 0.78rem;
+    line-height: 1.05;
   }
 
   .admin-page .brand span {
-    font-size: 0.74rem;
+    display: none;
   }
 
   .admin-page .admin-nav {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    gap: 5px;
     overflow: visible;
     padding-bottom: 0;
   }
@@ -3982,10 +3989,10 @@ select:focus {
   .admin-page .admin-nav .btn--small,
   .admin-page .admin-nav .language-select {
     min-width: 0;
-    min-height: 32px;
-    padding: 6px 7px;
-    border-radius: 12px;
-    font-size: 0.72rem;
+    min-height: 28px;
+    padding: 4px 6px;
+    border-radius: 10px;
+    font-size: 0.62rem;
     line-height: 1.1;
   }
 
