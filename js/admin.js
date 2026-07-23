@@ -161,13 +161,13 @@ async function loadProducts() {
           .map(
             (product) => `
               <tr>
-                <td><div class="admin-product"><img src="${escapeHtml(getProductImage(product))}" alt="" /><strong>${escapeHtml(product.name)}</strong></div></td>
-                <td>${escapeHtml(product.category || "")}</td>
-                <td>${productStatus(product)}</td>
-                <td>${product.publish_at ? escapeHtml(dateInputValue(product.publish_at)) : "Now"}</td>
-                <td>${product.stock ?? 0}</td>
-                <td>${formatEuro(getEffectivePrice(product))}</td>
-                <td>
+                <td data-label="Product"><div class="admin-product"><img src="${escapeHtml(getProductImage(product))}" alt="" /><strong>${escapeHtml(product.name)}</strong></div></td>
+                <td data-label="Category">${escapeHtml(product.category || "")}</td>
+                <td data-label="Status">${productStatus(product)}</td>
+                <td data-label="Go live">${product.publish_at ? escapeHtml(dateInputValue(product.publish_at)) : "Now"}</td>
+                <td data-label="Stock">${product.stock ?? 0}</td>
+                <td data-label="Price">${formatEuro(getEffectivePrice(product))}</td>
+                <td data-label="Actions">
                   <button class="link-button" data-edit="${product.id}">Edit</button>
                   <button class="link-button" data-delete="${product.id}">Delete</button>
                 </td>
@@ -215,12 +215,12 @@ async function loadOrders() {
           .map(
             (order) => `
               <tr>
-                <td>
+                <td data-label="Customer">
                   <strong>${escapeHtml(order.customer_name || "")}</strong><br />
                   <span>${escapeHtml(order.customer_email || "")}</span><br />
                   <span>${escapeHtml(order.customer_phone || "")}</span>
                 </td>
-                <td>
+                <td data-label="Delivery">
                   <strong>${escapeHtml(order.address || "")}</strong><br />
                   <span>${escapeHtml([order.postal_code, order.city].filter(Boolean).join(" "))}</span><br />
                   <span>${escapeHtml(order.country || "")}</span>
@@ -231,10 +231,10 @@ async function loadOrders() {
                     <button class="link-button" type="button" data-save-tracking="${order.id}">Save tracking</button>
                   </div>
                 </td>
-                <td>${orderItemsSummary(order.items)}</td>
-                <td>${formatEuro(order.total_amount || 0)}</td>
-                <td>${escapeHtml(order.payment_method || "")} / ${escapeHtml(order.payment_status || "")}</td>
-                <td>
+                <td data-label="Items">${orderItemsSummary(order.items)}</td>
+                <td data-label="Total">${formatEuro(order.total_amount || 0)}</td>
+                <td data-label="Payment">${escapeHtml(order.payment_method || "")} / ${escapeHtml(order.payment_status || "")}</td>
+                <td data-label="Status">
                   <select data-order-status="${order.id}">
                     ${statuses.map((status) => `<option ${status === order.order_status ? "selected" : ""}>${status}</option>`).join("")}
                   </select>

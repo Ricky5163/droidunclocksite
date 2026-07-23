@@ -21,8 +21,11 @@
         <img src="assets/img_2.jpg" alt="Droidunclock" class="brand__logo" />
         <div><strong>Droidunclock</strong><span data-i18n="adminDashboard">Admin dashboard</span></div>
       </a>
-      <nav class="desktop-nav">
+      <nav class="desktop-nav admin-nav" aria-label="Admin navigation">
         <a href="shop.html">Shop</a>
+        <a href="#productForm">Product</a>
+        <a href="#inventoryPanel">Products</a>
+        <a href="#ordersPanel">Orders</a>
         <button class="btn btn--ghost btn--small" id="logoutBtn" type="button" data-i18n="logout">Logout</button>
         <select class="language-select" data-language-select aria-label="Language">
           <option value="en">EN</option><option value="pt">PT</option><option value="nl">NL</option>
@@ -99,13 +102,13 @@
       </aside>
 
       <section class="admin-content">
-        <div class="glass-card admin-panel">
+        <div class="glass-card admin-panel" id="inventoryPanel">
           <div class="section-head section-head--split">
             <div><span class="eyebrow">Products</span><h2 data-i18n="inventory">Inventory</h2></div>
           </div>
           <div id="productsAdmin" class="admin-table"></div>
         </div>
-        <div class="glass-card admin-panel">
+        <div class="glass-card admin-panel" id="ordersPanel">
           <div class="section-head"><span class="eyebrow" data-i18n="orders">Orders</span><h2 data-i18n="orderManagement">Order management</h2></div>
           <div id="ordersAdmin" class="admin-table"></div>
         </div>
