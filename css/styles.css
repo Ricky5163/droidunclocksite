@@ -3955,7 +3955,7 @@ select:focus {
     display: grid !important;
     grid-template-columns: 1fr;
     gap: 6px;
-    padding: 7px 0 7px;
+    padding: 14px 0 7px;
   }
 
   .admin-page .brand {
