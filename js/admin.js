@@ -11,7 +11,7 @@ const ordersElement = document.getElementById("ordersAdmin");
 const logoutButton = document.getElementById("logoutBtn");
 setupLanguageSelector();
 setupAdminLogoShortcut();
-let imagePreviewObjectUrls = [];
+let imagePreviewToken = 0;
 
 const fields = {
   id: document.getElementById("productId"),
@@ -23,6 +23,7 @@ const fields = {
   description: document.getElementById("description"),
   images: document.getElementById("images"),
   imageFiles: document.getElementById("imageFiles"),
+  imagePickButton: document.getElementById("imagePickButton"),
   imagePreview: document.getElementById("imagePreview"),
   price: document.getElementById("price"),
   discountPrice: document.getElementById("discountPrice"),
@@ -49,29 +50,112 @@ function slugify(value) {
 }
 
 function imageUrlsFromField() {
-  return fields.images.value.split(/\n|,/).map((url) => url.trim()).filter(Boolean);
+  return (fields.images?.value || "").split(/\n|,/).map((url) => url.trim()).filter(Boolean);
 }
 
 function selectedImageFiles() {
-  return [...(fields.imageFiles?.files || [])].filter((file) => file.type.startsWith("image/"));
+  return [...(fields.imageFiles?.files || [])].filter((file) => file && file.size > 0);
+}
+
+function setStoredImageUrls(urls) {
+  if (fields.images) fields.images.value = [...new Set(urls.filter(Boolean))].join("\n");
+}
+
+function fileLabel(file) {
+  return file?.name || "Selected photo";
+}
+
+function renderPreviewItems(items) {
+  if (!fields.imagePreview) return;
+
+  fields.imagePreview.innerHTML = items.map((item) => {
+    if (item.state === "loading" || item.state === "uploading") {
+      return `
+        <figure class="admin-image-preview__item is-loading">
+          <div class="admin-image-preview__placeholder"><span class="admin-image-preview__spinner"></span></div>
+          <figcaption>${escapeHtml(item.label || (item.state === "uploading" ? "Uploading..." : "Preparing..."))}</figcaption>
+        </figure>
+      `;
+    }
+
+    if (item.state === "error") {
+      return `
+        <figure class="admin-image-preview__item is-error">
+          <div class="admin-image-preview__placeholder">!</div>
+          <figcaption>${escapeHtml(item.label || "Could not load")}</figcaption>
+        </figure>
+      `;
+    }
+
+    return `
+      <figure class="admin-image-preview__item">
+        <img src="${escapeHtml(item.src)}" alt="" />
+        <span class="admin-image-preview__badge">${escapeHtml(item.badge || "Ready")}</span>
+        <figcaption>${escapeHtml(item.label || "Photo")}</figcaption>
+      </figure>
+    `;
+  }).join("");
+}
+
+function renderStoredImagePreview() {
+  const urls = imageUrlsFromField().slice(0, 4);
+  renderPreviewItems(urls.map((url) => ({
+    state: "ready",
+    src: url,
+    badge: "Uploaded",
+    label: "Saved photo",
+  })));
 }
 
 function renderImagePreview() {
   const files = selectedImageFiles();
-  if (!fields.imagePreview) return;
+  const token = ++imagePreviewToken;
 
-  imagePreviewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
-  imagePreviewObjectUrls = [];
+  if (!files.length) {
+    renderStoredImagePreview();
+    return;
+  }
 
-  fields.imagePreview.innerHTML = files.length
-    ? files.map((file) => {
-        const url = URL.createObjectURL(file);
-        imagePreviewObjectUrls.push(url);
-        return `<figure><img src="${escapeHtml(url)}" alt="" /><figcaption>Ready to upload</figcaption></figure>`;
-      }).join("")
-    : imageUrlsFromField().slice(0, 4).map((url) => (
-        `<figure><img src="${escapeHtml(url)}" alt="" /><figcaption>Uploaded image</figcaption></figure>`
-      )).join("");
+  const previews = files.map((file) => ({
+    state: "loading",
+    src: "",
+    badge: "Ready",
+    label: fileLabel(file),
+  }));
+  renderPreviewItems(previews);
+
+  files.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      if (token !== imagePreviewToken) return;
+      previews[index] = {
+        state: "ready",
+        src: String(reader.result || ""),
+        badge: "Ready",
+        label: fileLabel(file),
+      };
+      renderPreviewItems(previews);
+    });
+    reader.addEventListener("error", () => {
+      if (token !== imagePreviewToken) return;
+      previews[index] = {
+        state: "error",
+        label: "Could not preview",
+      };
+      renderPreviewItems(previews);
+    });
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderUploadProgress(activeIndex = 0) {
+  const files = selectedImageFiles();
+  if (!files.length) return;
+
+  renderPreviewItems(files.map((file, index) => ({
+    state: "uploading",
+    label: index < activeIndex ? "Uploaded" : `Uploading ${index + 1}/${files.length}`,
+  })));
 }
 
 async function assertAdmin() {
@@ -148,7 +232,7 @@ function fillForm(product) {
   fields.category.value = product.category || "Refurbished Phones";
   fields.condition.value = product.condition || "New";
   fields.description.value = product.description || "";
-  fields.images.value = Array.isArray(product.images) ? product.images.join("\n") : "";
+  setStoredImageUrls(Array.isArray(product.images) ? product.images : []);
   if (fields.imageFiles) fields.imageFiles.value = "";
   renderImagePreview();
   fields.price.value = product.price || 0;
@@ -166,6 +250,7 @@ function resetForm() {
   form.reset();
   fields.id.value = "";
   fields.active.checked = true;
+  setStoredImageUrls([]);
   if (fields.imageFiles) fields.imageFiles.value = "";
   renderImagePreview();
 }
@@ -181,6 +266,7 @@ async function uploadSelectedImages(productSlug) {
 
   const uploadedUrls = [];
   for (const [index, file] of files.entries()) {
+    renderUploadProgress(index);
     setStatus(`Uploading image ${index + 1} of ${files.length}...`);
     const body = new FormData();
     body.append("image", file);
@@ -201,7 +287,7 @@ async function uploadSelectedImages(productSlug) {
   }
 
   const merged = [...imageUrlsFromField(), ...uploadedUrls];
-  fields.images.value = merged.join("\n");
+  setStoredImageUrls(merged);
   if (fields.imageFiles) fields.imageFiles.value = "";
   renderImagePreview();
   return uploadedUrls;
@@ -392,8 +478,8 @@ form?.addEventListener("submit", async (event) => {
   }
 });
 
+fields.imagePickButton?.addEventListener("click", () => fields.imageFiles?.click());
 fields.imageFiles?.addEventListener("change", renderImagePreview);
-fields.images?.addEventListener("input", renderImagePreview);
 document.getElementById("resetForm")?.addEventListener("click", resetForm);
 logoutButton?.addEventListener("click", () => logoutAndRedirect("login.html"));
 

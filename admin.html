@@ -85,13 +85,13 @@
           </label>
           <label>Description<textarea id="description" rows="3"></textarea></label>
           <div class="admin-image-field">
-            <label>Image URLs<textarea id="images" rows="3" placeholder="One image URL per line"></textarea></label>
-            <label class="admin-mobile-upload">
-              Product photos
-              <input id="imageFiles" type="file" accept="image/*" multiple />
-              <span class="admin-mobile-upload__button">Choose from gallery</span>
-              <span class="admin-mobile-upload__hint">Images will be uploaded when you save the product.</span>
-            </label>
+            <input id="images" type="hidden" />
+            <div class="admin-mobile-upload">
+              <span class="admin-mobile-upload__label">Product photos</span>
+              <button id="imagePickButton" class="admin-mobile-upload__button" type="button">Choose from gallery</button>
+              <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/*" multiple />
+              <span class="admin-mobile-upload__hint">Images are uploaded before the product is saved.</span>
+            </div>
             <div id="imagePreview" class="admin-image-preview" aria-live="polite"></div>
           </div>
           <div class="form-row">
@@ -125,6 +125,6 @@
     </section>
   </main>
 
-  <script type="module" src="js/admin.js?v=admin-upload2"></script>
+  <script type="module" src="js/admin.js?v=admin-upload3"></script>
 </body>
 </html>

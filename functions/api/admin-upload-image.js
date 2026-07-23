@@ -46,7 +46,8 @@ export async function onRequest(context) {
       return json(request, env, 400, { error: "Image file is required." });
     }
 
-    if (!ALLOWED_TYPES.has(file.type)) {
+    const imageType = await imageTypeFor(file);
+    if (!imageType) {
       return json(request, env, 400, { error: "Use JPG, PNG, WebP, or GIF images." });
     }
 
@@ -56,12 +57,12 @@ export async function onRequest(context) {
 
     await ensureProductImagesBucket(supabase);
 
-    const extension = extensionFor(file.name, file.type);
+    const extension = extensionFor(file.name, imageType);
     const objectPath = `${productSlug}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
     const { error: uploadError } = await supabase.storage
       .from(BUCKET_NAME)
       .upload(objectPath, file, {
-        contentType: file.type,
+        contentType: imageType,
         cacheControl: "31536000",
         upsert: false,
       });
@@ -100,6 +101,38 @@ function safePathPart(value) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
     .slice(0, 80) || "product";
+}
+
+async function imageTypeFor(file) {
+  const type = String(file.type || "").toLowerCase();
+  if (ALLOWED_TYPES.has(type)) return type;
+
+  const extension = String(file.name || "").split(".").pop()?.toLowerCase();
+  if (["jpg", "jpeg"].includes(extension)) return "image/jpeg";
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  if (extension === "gif") return "image/gif";
+
+  const signature = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  if (signature[0] === 0xff && signature[1] === 0xd8 && signature[2] === 0xff) return "image/jpeg";
+  if (
+    signature[0] === 0x89 &&
+    signature[1] === 0x50 &&
+    signature[2] === 0x4e &&
+    signature[3] === 0x47
+  ) return "image/png";
+  if (signature[0] === 0x47 && signature[1] === 0x49 && signature[2] === 0x46) return "image/gif";
+  if (
+    signature[0] === 0x52 &&
+    signature[1] === 0x49 &&
+    signature[2] === 0x46 &&
+    signature[3] === 0x46 &&
+    signature[8] === 0x57 &&
+    signature[9] === 0x45 &&
+    signature[10] === 0x42 &&
+    signature[11] === 0x50
+  ) return "image/webp";
+  return "";
 }
 
 function extensionFor(name, type) {
