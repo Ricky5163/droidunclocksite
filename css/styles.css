@@ -1285,6 +1285,7 @@ select:focus {
 }
 
 .admin-page {
+  color-scheme: light;
   color: #edf4ff;
   background:
     radial-gradient(circle at 8% 0%, rgba(20, 119, 255, 0.28), transparent 34%),
@@ -1668,6 +1669,7 @@ select:focus {
   position: relative;
   overflow: hidden;
   padding: 26px;
+  color: #101419;
   border-color: rgba(12, 26, 42, 0.08);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 255, 0.94));
@@ -1715,13 +1717,30 @@ select:focus {
 .admin-panel select {
   border-color: rgba(12, 26, 42, 0.11);
   background: rgba(255, 255, 255, 0.82);
+  color: #101419;
+  color-scheme: light;
+  -webkit-text-fill-color: #101419;
+  caret-color: #1477ff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.admin-panel input::placeholder,
+.admin-panel textarea::placeholder {
+  color: #778397;
+  -webkit-text-fill-color: #778397;
+}
+
+.admin-panel select option {
+  color: #101419;
+  background: #fff;
 }
 
 .admin-panel input:focus,
 .admin-panel textarea:focus,
 .admin-panel select:focus {
   background: #fff;
+  color: #101419;
+  -webkit-text-fill-color: #101419;
   border-color: rgba(20, 119, 255, 0.72);
   box-shadow: 0 0 0 4px rgba(20, 119, 255, 0.12), 0 12px 30px rgba(20, 119, 255, 0.08);
 }
@@ -1744,6 +1763,7 @@ select:focus {
   border: 1px solid rgba(12, 26, 42, 0.08);
   border-radius: var(--radius-lg);
   background: #fff;
+  color: #101419;
 }
 
 .admin-table table {
@@ -1755,6 +1775,7 @@ select:focus {
 .admin-table th,
 .admin-table td {
   padding: 16px 14px;
+  color: #101419;
   text-align: left;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
@@ -1781,7 +1802,33 @@ select:focus {
 }
 
 .admin-table td span {
-  color: var(--muted);
+  color: #64707f;
+}
+
+.admin-table strong,
+.admin-table b,
+.admin-table td > :not(.status-pill):not(.link-button):not(select):not(input) {
+  color: #101419;
+}
+
+.admin-table td span:not(.status-pill),
+.admin-order-item span {
+  color: #64707f;
+}
+
+.admin-table input,
+.admin-table select,
+.admin-tracking input {
+  color: #101419;
+  color-scheme: light;
+  background: #fff;
+  -webkit-text-fill-color: #101419;
+  caret-color: #1477ff;
+}
+
+.admin-table select option {
+  color: #101419;
+  background: #fff;
 }
 
 .status-pill {
