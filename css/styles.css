@@ -3369,32 +3369,56 @@ select:focus {
   .admin-page .header-bar {
     align-items: flex-start;
     flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 0 12px;
   }
 
   .admin-page .brand {
     flex: 1 1 220px;
   }
 
+  .admin-page .brand__logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .admin-page .brand strong {
+    font-size: 0.96rem;
+  }
+
+  .admin-page .brand span {
+    font-size: 0.8rem;
+  }
+
   .admin-page .admin-nav {
     width: 100%;
-    gap: 8px;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
   }
 
   .admin-page .admin-nav a:not(.btn),
   .admin-page .admin-nav .btn--small {
-    flex: 1 1 calc(33.333% - 8px);
     justify-content: center;
-    min-width: 96px;
-    padding-inline: 10px;
+    min-width: 0;
+    min-height: 36px;
+    padding: 7px 8px;
+    border-radius: 14px;
+    font-size: 0.8rem;
+    line-height: 1.1;
   }
 
   .admin-page .admin-nav .language-select {
-    flex: 0 0 82px;
+    min-width: 0;
+    min-height: 36px;
+    padding: 7px 8px;
+    border-radius: 14px;
+    font-size: 0.8rem;
   }
 
   .admin-page .dashboard-main {
-    padding-top: 22px;
+    padding-top: 16px;
   }
 
   .admin-hero {
@@ -3403,11 +3427,11 @@ select:focus {
   }
 
   .admin-hero__copy {
-    padding: 22px;
+    padding: 20px;
   }
 
   .admin-hero__copy h1 {
-    font-size: 2.45rem;
+    font-size: 2.15rem;
   }
 
   .admin-layout {
