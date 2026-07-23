@@ -12,6 +12,7 @@ const logoutButton = document.getElementById("logoutBtn");
 setupLanguageSelector();
 setupAdminLogoShortcut();
 let imagePreviewToken = 0;
+let nativeImageItems = [];
 
 const fields = {
   id: document.getElementById("productId"),
@@ -57,6 +58,19 @@ function selectedImageFiles() {
   return [...(fields.imageFiles?.files || [])].filter((file) => file && file.size > 0);
 }
 
+function selectedImageItems() {
+  if (nativeImageItems.length) return nativeImageItems;
+
+  return selectedImageFiles().map((file) => ({
+    name: fileLabel(file),
+    type: file.type || "image/jpeg",
+    size: file.size || 0,
+    file,
+    previewSrc: "",
+    getBlob: async () => file,
+  }));
+}
+
 function setStoredImageUrls(urls) {
   if (fields.images) fields.images.value = [...new Set(urls.filter(Boolean))].join("\n");
 }
@@ -64,6 +78,41 @@ function setStoredImageUrls(urls) {
 function fileLabel(file) {
   return file?.name || "Selected photo";
 }
+
+function dataUrlToBlob(dataUrl, type = "image/jpeg") {
+  const [header, base64 = ""] = String(dataUrl || "").split(",");
+  const mime = header.match(/data:([^;]+)/)?.[1] || type;
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new Blob([bytes], { type: mime });
+}
+
+function resetSelectedImages() {
+  nativeImageItems = [];
+  if (fields.imageFiles) fields.imageFiles.value = "";
+}
+
+function receiveNativeProductImages(items = []) {
+  const normalized = items
+    .filter((item) => item?.dataUrl)
+    .map((item, index) => ({
+      name: item.name || `product-${index + 1}.jpg`,
+      type: item.type || item.dataUrl.match(/data:([^;]+)/)?.[1] || "image/jpeg",
+      size: Number(item.size || 0),
+      previewSrc: item.dataUrl,
+      getBlob: async () => dataUrlToBlob(item.dataUrl, item.type),
+    }));
+
+  nativeImageItems = normalized;
+  if (fields.imageFiles) fields.imageFiles.value = "";
+  console.log(`Native product images received: count=${nativeImageItems.length}`);
+  renderImagePreview();
+}
+
+window.receiveNativeProductImages = receiveNativeProductImages;
 
 function renderPreviewItems(items) {
   if (!fields.imagePreview) return;
@@ -108,29 +157,43 @@ function renderStoredImagePreview() {
 }
 
 function renderImagePreview() {
-  const files = selectedImageFiles();
+  const items = selectedImageItems();
   const token = ++imagePreviewToken;
-  console.log("Product image selection changed", {
-    count: files.length,
-    names: files.map((file) => fileLabel(file)),
-    types: files.map((file) => file.type || "unknown"),
-  });
+  console.log(`Product image selection changed: count=${items.length}`);
 
-  if (!files.length) {
+  if (!items.length) {
     renderStoredImagePreview();
     return;
   }
 
-  setStatus(`${files.length} photo${files.length === 1 ? "" : "s"} selected.`, "success");
-  const previews = files.map((file) => ({
+  setStatus(`${items.length} photo${items.length === 1 ? "" : "s"} selected.`, "success");
+  const previews = items.map((item) => ({
     state: "loading",
-    src: "",
+    src: item.previewSrc || "",
     badge: "Ready",
-    label: fileLabel(file),
+    label: item.name || "Selected photo",
   }));
   renderPreviewItems(previews);
 
-  files.forEach((file, index) => {
+  items.forEach((item, index) => {
+    if (item.previewSrc) {
+      previews[index] = {
+        state: "ready",
+        src: item.previewSrc,
+        badge: "Ready",
+        label: item.name || "Selected photo",
+      };
+      renderPreviewItems(previews);
+      return;
+    }
+
+    const file = item.file;
+    if (!file) {
+      previews[index] = { state: "error", label: "Could not preview" };
+      renderPreviewItems(previews);
+      return;
+    }
+
     const reader = new FileReader();
     reader.addEventListener("load", () => {
       if (token !== imagePreviewToken) return;
@@ -138,7 +201,7 @@ function renderImagePreview() {
         state: "ready",
         src: String(reader.result || ""),
         badge: "Ready",
-        label: fileLabel(file),
+        label: item.name || fileLabel(file),
       };
       renderPreviewItems(previews);
     });
@@ -155,12 +218,12 @@ function renderImagePreview() {
 }
 
 function renderUploadProgress(activeIndex = 0) {
-  const files = selectedImageFiles();
-  if (!files.length) return;
+  const items = selectedImageItems();
+  if (!items.length) return;
 
-  renderPreviewItems(files.map((file, index) => ({
+  renderPreviewItems(items.map((item, index) => ({
     state: "uploading",
-    label: index < activeIndex ? "Uploaded" : `Uploading ${index + 1}/${files.length}`,
+    label: index < activeIndex ? "Uploaded" : `Uploading ${index + 1}/${items.length}`,
   })));
 }
 
@@ -239,7 +302,7 @@ function fillForm(product) {
   fields.condition.value = product.condition || "New";
   fields.description.value = product.description || "";
   setStoredImageUrls(Array.isArray(product.images) ? product.images : []);
-  if (fields.imageFiles) fields.imageFiles.value = "";
+  resetSelectedImages();
   renderImagePreview();
   fields.price.value = product.price || 0;
   fields.discountPrice.value = product.discount_price || "";
@@ -257,13 +320,13 @@ function resetForm() {
   fields.id.value = "";
   fields.active.checked = true;
   setStoredImageUrls([]);
-  if (fields.imageFiles) fields.imageFiles.value = "";
+  resetSelectedImages();
   renderImagePreview();
 }
 
 async function uploadSelectedImages(productSlug) {
-  const files = selectedImageFiles();
-  if (!files.length) return [];
+  const items = selectedImageItems();
+  if (!items.length) return [];
 
   const session = await getSession();
   if (!session?.access_token) {
@@ -271,11 +334,12 @@ async function uploadSelectedImages(productSlug) {
   }
 
   const uploadedUrls = [];
-  for (const [index, file] of files.entries()) {
+  for (const [index, item] of items.entries()) {
     renderUploadProgress(index);
-    setStatus(`Uploading image ${index + 1} of ${files.length}...`);
+    setStatus(`Uploading image ${index + 1} of ${items.length}...`);
     const body = new FormData();
-    body.append("image", file);
+    const imageBlob = await item.getBlob();
+    body.append("image", imageBlob, item.name || `product-${index + 1}.jpg`);
     body.append("productSlug", productSlug || slugify(fields.name.value || "product"));
 
     const response = await fetch("/api/admin-upload-image", {
@@ -294,7 +358,7 @@ async function uploadSelectedImages(productSlug) {
 
   const merged = [...imageUrlsFromField(), ...uploadedUrls];
   setStoredImageUrls(merged);
-  if (fields.imageFiles) fields.imageFiles.value = "";
+  resetSelectedImages();
   renderImagePreview();
   return uploadedUrls;
 }
@@ -484,7 +548,15 @@ form?.addEventListener("submit", async (event) => {
   }
 });
 
-fields.imagePickButton?.addEventListener("click", () => fields.imageFiles?.click());
+fields.imagePickButton?.addEventListener("click", () => {
+  nativeImageItems = [];
+  renderPreviewItems([{ state: "loading", label: "Opening gallery..." }]);
+  if (window.DroidunclockNative?.chooseProductImages) {
+    window.DroidunclockNative.chooseProductImages();
+    return;
+  }
+  fields.imageFiles?.click();
+});
 fields.imageFiles?.addEventListener("change", renderImagePreview);
 document.getElementById("resetForm")?.addEventListener("click", resetForm);
 logoutButton?.addEventListener("click", () => logoutAndRedirect("login.html"));
