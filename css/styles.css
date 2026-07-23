@@ -3366,6 +3366,16 @@ select:focus {
 }
 
 @media (max-width: 760px) {
+  .admin-page {
+    background:
+      radial-gradient(circle at 8% 0%, rgba(20, 119, 255, 0.22), transparent 30%),
+      linear-gradient(180deg, #06080d 0, #0d1420 390px, #eef3f8 390px, #eef3f8 100%);
+  }
+
+  .admin-page .site-header {
+    position: static;
+  }
+
   .admin-page .header-bar {
     align-items: flex-start;
     flex-wrap: wrap;
@@ -3393,15 +3403,23 @@ select:focus {
 
   .admin-page .admin-nav {
     width: 100%;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
     gap: 7px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .admin-page .admin-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .admin-page .admin-nav a:not(.btn),
   .admin-page .admin-nav .btn--small {
+    flex: 0 0 auto;
     justify-content: center;
-    min-width: 0;
+    min-width: 82px;
     min-height: 36px;
     padding: 7px 8px;
     border-radius: 14px;
@@ -3410,6 +3428,7 @@ select:focus {
   }
 
   .admin-page .admin-nav .language-select {
+    flex: 0 0 auto;
     min-width: 0;
     min-height: 36px;
     padding: 7px 8px;
@@ -3422,6 +3441,7 @@ select:focus {
   }
 
   .admin-hero {
+    display: none;
     gap: 14px;
     margin-bottom: 18px;
   }
