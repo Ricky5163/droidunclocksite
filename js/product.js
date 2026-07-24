@@ -9,6 +9,9 @@ let currentLang = setupLanguageSelector();
 let currentProduct;
 let currentRelated = [];
 let currentUser = null;
+let currentGallery = [];
+let activeGalleryIndex = 0;
+let galleryZoom = 1;
 setupAdminLogoShortcut();
 syncAccountLinks().catch(() => null);
 
@@ -98,11 +101,53 @@ function relatedCard(item) {
   `;
 }
 
+function renderGalleryLightbox() {
+  const image = currentGallery[activeGalleryIndex];
+  const lightbox = detailElement.querySelector(".product-lightbox");
+  const imageElement = detailElement.querySelector(".product-lightbox__image");
+  const counter = detailElement.querySelector(".product-lightbox__counter");
+  const zoomValue = detailElement.querySelector(".product-lightbox__zoom-value");
+
+  if (!lightbox || !imageElement || !image) return;
+  imageElement.src = image;
+  imageElement.style.transform = `scale(${galleryZoom})`;
+  if (counter) counter.textContent = `${activeGalleryIndex + 1} / ${currentGallery.length}`;
+  if (zoomValue) zoomValue.textContent = `${Math.round(galleryZoom * 100)}%`;
+}
+
+function openGalleryLightbox(index = activeGalleryIndex) {
+  activeGalleryIndex = Math.max(0, Math.min(index, currentGallery.length - 1));
+  galleryZoom = 1;
+  document.body.classList.add("product-lightbox-open");
+  detailElement.querySelector(".product-lightbox")?.classList.add("is-open");
+  renderGalleryLightbox();
+}
+
+function closeGalleryLightbox() {
+  document.body.classList.remove("product-lightbox-open");
+  detailElement.querySelector(".product-lightbox")?.classList.remove("is-open");
+}
+
+function changeGalleryZoom(amount) {
+  galleryZoom = Math.max(1, Math.min(3, Number((galleryZoom + amount).toFixed(2))));
+  renderGalleryLightbox();
+}
+
+function moveGalleryImage(direction) {
+  if (!currentGallery.length) return;
+  activeGalleryIndex = (activeGalleryIndex + direction + currentGallery.length) % currentGallery.length;
+  galleryZoom = 1;
+  renderGalleryLightbox();
+}
+
 function render(product, related = []) {
   currentProduct = product;
   currentRelated = related;
   const images = parseImages(product.images);
   const gallery = images.length ? images : [getProductImage(product)];
+  currentGallery = gallery;
+  activeGalleryIndex = 0;
+  galleryZoom = 1;
   const stock = Math.max(0, Number(product.stock ?? 0));
   const price = Number(product.price || 0);
   const effectivePrice = getEffectivePrice(product);
@@ -110,9 +155,28 @@ function render(product, related = []) {
   document.title = `Droidunclock | ${product.name}`;
   detailElement.innerHTML = `
     <div class="product-gallery">
-      <img class="product-gallery__main" src="${escapeHtml(gallery[0])}" alt="${escapeHtml(product.name)}" />
+      <button class="product-gallery__main-button" type="button" aria-label="Open product photo">
+        <img class="product-gallery__main" src="${escapeHtml(gallery[0])}" alt="${escapeHtml(product.name)}" />
+        <span class="product-gallery__zoom-hint">Zoom</span>
+      </button>
       <div class="product-gallery__thumbs">
-        ${gallery.map((image) => `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" />`).join("")}
+        ${gallery.map((image, index) => `<button class="product-gallery__thumb ${index === 0 ? "is-active" : ""}" type="button"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" /></button>`).join("")}
+      </div>
+      <div class="product-lightbox" role="dialog" aria-modal="true" aria-label="Product photo viewer">
+        <div class="product-lightbox__bar">
+          <button class="product-lightbox__button" type="button" data-lightbox-close>Close</button>
+          <span class="product-lightbox__counter">1 / ${gallery.length}</span>
+        </div>
+        <div class="product-lightbox__stage">
+          <button class="product-lightbox__nav product-lightbox__nav--prev" type="button" data-lightbox-prev aria-label="Previous photo">&lt;</button>
+          <img class="product-lightbox__image" src="${escapeHtml(gallery[0])}" alt="${escapeHtml(product.name)}" />
+          <button class="product-lightbox__nav product-lightbox__nav--next" type="button" data-lightbox-next aria-label="Next photo">&gt;</button>
+        </div>
+        <div class="product-lightbox__controls">
+          <button class="product-lightbox__button" type="button" data-zoom-out>-</button>
+          <span class="product-lightbox__zoom-value">100%</span>
+          <button class="product-lightbox__button" type="button" data-zoom-in>+</button>
+        </div>
       </div>
     </div>
     <article class="product-buybox">
@@ -193,10 +257,30 @@ function render(product, related = []) {
     }, 180);
   });
 
-  detailElement.querySelectorAll(".product-gallery__thumbs img").forEach((thumb) => {
+  detailElement.querySelector(".product-gallery__main-button")?.addEventListener("click", () => {
+    openGalleryLightbox(activeGalleryIndex);
+  });
+
+  detailElement.querySelectorAll(".product-gallery__thumb").forEach((thumb, index) => {
     thumb.addEventListener("click", () => {
-      detailElement.querySelector(".product-gallery__main").src = thumb.src;
+      activeGalleryIndex = index;
+      detailElement.querySelector(".product-gallery__main").src = gallery[index];
+      detailElement.querySelectorAll(".product-gallery__thumb").forEach((item) => item.classList.remove("is-active"));
+      thumb.classList.add("is-active");
     });
+  });
+
+  detailElement.querySelector("[data-lightbox-close]")?.addEventListener("click", closeGalleryLightbox);
+  detailElement.querySelector(".product-lightbox")?.addEventListener("click", (event) => {
+    if (event.target.classList.contains("product-lightbox")) closeGalleryLightbox();
+  });
+  detailElement.querySelector("[data-lightbox-prev]")?.addEventListener("click", () => moveGalleryImage(-1));
+  detailElement.querySelector("[data-lightbox-next]")?.addEventListener("click", () => moveGalleryImage(1));
+  detailElement.querySelector("[data-zoom-out]")?.addEventListener("click", () => changeGalleryZoom(-0.25));
+  detailElement.querySelector("[data-zoom-in]")?.addEventListener("click", () => changeGalleryZoom(0.25));
+  detailElement.querySelector(".product-lightbox__image")?.addEventListener("click", () => {
+    galleryZoom = galleryZoom > 1 ? 1 : 2;
+    renderGalleryLightbox();
   });
 }
 
@@ -221,6 +305,15 @@ document.querySelector("[data-language-select]")?.addEventListener("change", () 
   currentLang = localStorage.getItem("language") || "en";
   updateCartBadge();
   if (currentProduct) render(currentProduct, currentRelated);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (!detailElement.querySelector(".product-lightbox.is-open")) return;
+  if (event.key === "Escape") closeGalleryLightbox();
+  if (event.key === "ArrowLeft") moveGalleryImage(-1);
+  if (event.key === "ArrowRight") moveGalleryImage(1);
+  if (event.key === "+" || event.key === "=") changeGalleryZoom(0.25);
+  if (event.key === "-") changeGalleryZoom(-0.25);
 });
 
 init();
