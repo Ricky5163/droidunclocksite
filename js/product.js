@@ -12,6 +12,7 @@ let currentUser = null;
 let currentGallery = [];
 let activeGalleryIndex = 0;
 let galleryZoom = 1;
+let galleryRotation = 0;
 setupAdminLogoShortcut();
 syncAccountLinks().catch(() => null);
 
@@ -107,17 +108,20 @@ function renderGalleryLightbox() {
   const imageElement = detailElement.querySelector(".product-lightbox__image");
   const counter = detailElement.querySelector(".product-lightbox__counter");
   const zoomValue = detailElement.querySelector(".product-lightbox__zoom-value");
+  const rotationValue = detailElement.querySelector(".product-lightbox__rotation-value");
 
   if (!lightbox || !imageElement || !image) return;
   imageElement.src = image;
-  imageElement.style.transform = `scale(${galleryZoom})`;
+  imageElement.style.transform = `scale(${galleryZoom}) rotate(${galleryRotation}deg)`;
   if (counter) counter.textContent = `${activeGalleryIndex + 1} / ${currentGallery.length}`;
   if (zoomValue) zoomValue.textContent = `${Math.round(galleryZoom * 100)}%`;
+  if (rotationValue) rotationValue.textContent = `${galleryRotation}deg`;
 }
 
 function openGalleryLightbox(index = activeGalleryIndex) {
   activeGalleryIndex = Math.max(0, Math.min(index, currentGallery.length - 1));
   galleryZoom = 1;
+  galleryRotation = 0;
   document.body.classList.add("product-lightbox-open");
   detailElement.querySelector(".product-lightbox")?.classList.add("is-open");
   renderGalleryLightbox();
@@ -133,10 +137,16 @@ function changeGalleryZoom(amount) {
   renderGalleryLightbox();
 }
 
+function rotateGalleryImage(amount) {
+  galleryRotation = (galleryRotation + amount + 360) % 360;
+  renderGalleryLightbox();
+}
+
 function moveGalleryImage(direction) {
   if (!currentGallery.length) return;
   activeGalleryIndex = (activeGalleryIndex + direction + currentGallery.length) % currentGallery.length;
   galleryZoom = 1;
+  galleryRotation = 0;
   renderGalleryLightbox();
 }
 
@@ -148,6 +158,7 @@ function render(product, related = []) {
   currentGallery = gallery;
   activeGalleryIndex = 0;
   galleryZoom = 1;
+  galleryRotation = 0;
   const stock = Math.max(0, Number(product.stock ?? 0));
   const price = Number(product.price || 0);
   const effectivePrice = getEffectivePrice(product);
@@ -176,6 +187,9 @@ function render(product, related = []) {
           <button class="product-lightbox__button" type="button" data-zoom-out>-</button>
           <span class="product-lightbox__zoom-value">100%</span>
           <button class="product-lightbox__button" type="button" data-zoom-in>+</button>
+          <button class="product-lightbox__button" type="button" data-rotate-left aria-label="Rotate photo left">Left</button>
+          <span class="product-lightbox__rotation-value">0deg</span>
+          <button class="product-lightbox__button" type="button" data-rotate-right aria-label="Rotate photo right">Right</button>
         </div>
       </div>
     </div>
@@ -278,6 +292,8 @@ function render(product, related = []) {
   detailElement.querySelector("[data-lightbox-next]")?.addEventListener("click", () => moveGalleryImage(1));
   detailElement.querySelector("[data-zoom-out]")?.addEventListener("click", () => changeGalleryZoom(-0.25));
   detailElement.querySelector("[data-zoom-in]")?.addEventListener("click", () => changeGalleryZoom(0.25));
+  detailElement.querySelector("[data-rotate-left]")?.addEventListener("click", () => rotateGalleryImage(-90));
+  detailElement.querySelector("[data-rotate-right]")?.addEventListener("click", () => rotateGalleryImage(90));
   detailElement.querySelector(".product-lightbox__image")?.addEventListener("click", () => {
     galleryZoom = galleryZoom > 1 ? 1 : 2;
     renderGalleryLightbox();
@@ -314,6 +330,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "ArrowRight") moveGalleryImage(1);
   if (event.key === "+" || event.key === "=") changeGalleryZoom(0.25);
   if (event.key === "-") changeGalleryZoom(-0.25);
+  if (event.key.toLowerCase() === "r") rotateGalleryImage(90);
 });
 
 init();

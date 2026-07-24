@@ -1661,7 +1661,8 @@ select:focus {
 }
 
 .product-lightbox__counter,
-.product-lightbox__zoom-value {
+.product-lightbox__zoom-value,
+.product-lightbox__rotation-value {
   min-width: 68px;
   color: #edf4ff;
   font-weight: 900;
@@ -1677,6 +1678,10 @@ select:focus {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
   font-weight: 900;
+}
+
+.product-lightbox__controls {
+  flex-wrap: wrap;
 }
 
 .product-lightbox__stage {
